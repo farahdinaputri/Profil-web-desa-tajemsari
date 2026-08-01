@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, MapPin, Phone, Mail, Clock, Lock, ExternalLink, Compass } from 'lucide-react';
+import { Leaf, MapPin, Phone, Mail, Clock, Lock, ExternalLink } from 'lucide-react';
 
 export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
   const navigate = useNavigate();
@@ -8,6 +8,10 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
   const handleNavClick = (path) => {
     navigate(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenMaps = () => {
+    window.open('https://maps.app.goo.gl/3VuZdA1hyBNbtZpn8', '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -22,7 +26,7 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
 
         .footer-grid {
           display: grid;
-          grid-template-columns: 1.6fr 0.9fr 1.1fr 1.1fr 1.4fr;
+          grid-template-columns: 1.6fr 0.9fr 1.1fr 1.1fr 1.2fr;
           gap: 2rem;
           margin-bottom: 3.5rem;
         }
@@ -80,30 +84,54 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
           margin-bottom: 0.85rem;
         }
 
-        .footer-map-embed {
+        /* Square Interactive Clickable Google Maps */
+        .footer-map-square-wrapper {
+          position: relative;
           width: 100%;
-          height: 180px;
-          border-radius: 12px;
-          border: 1px solid rgba(212, 175, 55, 0.4);
+          max-width: 200px;
+          aspect-ratio: 1 / 1;
+          border-radius: 16px;
+          overflow: hidden;
+          border: 2px solid rgba(212, 175, 55, 0.4);
           box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-          margin-bottom: 0.75rem;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .footer-maps-link {
-          display: inline-flex;
+        .footer-map-square-wrapper:hover {
+          transform: scale(1.04);
+          border-color: var(--color-gold);
+          box-shadow: 0 10px 25px rgba(212, 175, 55, 0.35);
+        }
+
+        .footer-map-embed-square {
+          width: 100%;
+          height: 100%;
+          border: none;
+          pointer-events: none;
+        }
+
+        .footer-map-overlay-hint {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(17, 42, 20, 0.88);
+          backdrop-filter: blur(4px);
+          color: #ffffff;
+          font-size: 0.78rem;
+          font-weight: 700;
+          font-family: var(--font-heading);
+          padding: 0.45rem;
+          text-align: center;
+          display: flex;
           align-items: center;
-          gap: 0.4rem;
-          background: rgba(212, 175, 55, 0.15);
-          border: 1px solid var(--color-gold);
-          color: #fef9e7;
-          padding: 0.4rem 0.85rem;
-          border-radius: 8px;
-          font-size: 0.82rem;
-          font-weight: 600;
-          transition: var(--transition-fast);
+          justify-content: center;
+          gap: 0.35rem;
+          transition: background 0.3s ease;
         }
 
-        .footer-maps-link:hover {
+        .footer-map-square-wrapper:hover .footer-map-overlay-hint {
           background: var(--color-gold);
           color: #ffffff;
         }
@@ -123,6 +151,9 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
         @media (max-width: 1100px) {
           .footer-grid {
             grid-template-columns: 1fr 1fr;
+          }
+          .footer-map-square-wrapper {
+            max-width: 220px;
           }
         }
         @media (max-width: 650px) {
@@ -193,24 +224,26 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
             </div>
           </div>
 
-          {/* Google Maps Location Section (Far Right on Desktop, Bottom on Mobile) */}
+          {/* Square Interactive Clickable Google Maps Section */}
           <div>
             <h4 className="footer-col-title">Lokasi Desa</h4>
-            <iframe 
-              className="footer-map-embed"
-              title="Lokasi Desa Tajemsari Tegowanu"
-              src="https://maps.google.com/maps?q=Desa%20Tajemsari,%20Tegowanu,%20Grobogan&t=&z=14&ie=UTF8&iwloc=&output=embed"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-            <a 
-              href="https://maps.app.goo.gl/3VuZdA1hyBNbtZpn8" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="footer-maps-link"
+            <div 
+              className="footer-map-square-wrapper" 
+              onClick={handleOpenMaps}
+              title="Klik untuk membuka lokasi Desa Tajemsari di Google Maps"
             >
-              <ExternalLink size={14} /> Buka di Google Maps
-            </a>
+              <iframe 
+                className="footer-map-embed-square"
+                title="Lokasi Desa Tajemsari Tegowanu"
+                src="https://maps.google.com/maps?q=Desa%20Tajemsari,%20Tegowanu,%20Grobogan&t=&z=14&ie=UTF8&iwloc=&output=embed"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+              <div className="footer-map-overlay-hint">
+                <MapPin size={15} color="#ffffff" />
+                <span>Buka Google Maps</span>
+              </div>
+            </div>
           </div>
         </div>
 
