@@ -3,7 +3,11 @@ import {
   INITIAL_BERITA, 
   INITIAL_UMKM, 
   INITIAL_WISATA, 
-  INITIAL_PERMOHONAN 
+  INITIAL_PERMOHONAN,
+  INITIAL_HERO,
+  INITIAL_PROFIL,
+  INITIAL_FOOTER,
+  INITIAL_SETTINGS
 } from '../data/mockData';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -203,5 +207,41 @@ export const apiService = {
     const updated = current.filter(w => w.id !== id);
     setStorageItem('wisata', updated);
     return true;
+  },
+
+  // --- CMS HERO SECTION ---
+  async getHero() {
+    return getStorageItem('hero', INITIAL_HERO);
+  },
+  async updateHero(heroData) {
+    setStorageItem('hero', heroData);
+    return heroData;
+  },
+
+  // --- CMS PROFIL DESA ---
+  async getProfil() {
+    return getStorageItem('profil', INITIAL_PROFIL);
+  },
+  async updateProfil(profilData) {
+    setStorageItem('profil', profilData);
+    return profilData;
+  },
+
+  // --- CMS FOOTER ---
+  async getFooter() {
+    return getStorageItem('footer', INITIAL_FOOTER);
+  },
+  async updateFooter(footerData) {
+    setStorageItem('footer', footerData);
+    return footerData;
+  },
+
+  // --- CMS SETTINGS ---
+  async getSettings() {
+    return getStorageItem('settings', INITIAL_SETTINGS);
+  },
+  async updateSettings(settingsData) {
+    setStorageItem('settings', settingsData);
+    return settingsData;
   }
 };

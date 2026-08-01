@@ -208,3 +208,48 @@ export const APBDES_DATA = {
     { bidang: "Pemberdayaan Masyarakat (UMKM/Tani)", persentase: 13, jumlah: "Rp 188.500.000" }
   ]
 };
+
+export const INITIAL_HERO = {
+  badge: "Website Resmi Desa Tajemsari • Kec. Tegowanu",
+  judul: "Selamat Datang di Portal Resmi Desa Tajemsari",
+  deskripsi: "Desa Tajemsari merupakan desa paling barat di Kecamatan Tegowanu, Kabupaten Grobogan, Jawa Tengah. Wilayah desa ini terdiri dari 4 dusun: Kendalsari, Mlangi, Plosorejo, dan Tajem.",
+  bgImage: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80",
+  ctaPrimary: "Layanan Surat Online",
+  ctaSecondary: "Jelajahi Potensi Desa"
+};
+
+export const INITIAL_PROFIL = {
+  namaKades: "H. Suhartono, S.Sos",
+  jabatanKades: "Kepala Desa Tajemsari Tegowanu",
+  sambutanKades: "Selamat datang di Portal Resmi Pemerintah Desa Tajemsari. Kami berkomitmen memberikan pelayanan publik yang cepat, transparan, akuntabel, dan ramah warga melalui sistem digitalisasi desa terpadu.",
+  fotoKades: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
+  visi: "Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Berdaya Saing, dan Berbudaya Berlandaskan Gotong Royong.",
+  misi: [
+    "Meningkatkan kualitas pelayanan publik berbasis digital yang cepat, terbuka, dan transparan.",
+    "Mengembangkan potensi sektor pertanian organik, UMKM lokal, dan agrowisata unggulan desa.",
+    "Pembangunan fasilitas infrastruktur jalan dan irigasi desa yang merata dan berkelanjutan.",
+    "Memperkuat nilai-nilai religius, budaya gotong royong, dan kearifan lokal masyarakat Tajemsari."
+  ]
+};
+
+export const INITIAL_FOOTER = {
+  alamat: "Jl. Raya Tajemsari No. 01, Kecamatan Tegowanu, Kabupaten Grobogan, Jawa Tengah 58165",
+  telepon: "(0292) 7654321",
+  whatsapp: "6281234567890",
+  email: "pemdes@tajemsari.desa.id",
+  jamPelayanan: "Senin - Jumat: 08.00 - 15.00 WIB",
+  mapsUrl: "https://maps.app.goo.gl/3VuZdA1hyBNbtZpn8",
+  facebook: "https://facebook.com/desatajemsari",
+  instagram: "https://instagram.com/desatajemsari",
+  youtube: "https://youtube.com/@desatajemsariofficial"
+};
+
+export const INITIAL_SETTINGS = {
+  namaDesa: "Desa Tajemsari",
+  kecamatan: "Kecamatan Tegowanu",
+  kabupaten: "Kabupaten Grobogan",
+  provinsi: "Jawa Tengah",
+  emailAdmin: "admin@tajemsari.desa.id",
+  teleponKantor: "081234567890",
+  runningText: "Pelayanan Surat Online Desa Tajemsari Tegowanu Buka 24 Jam. Hubungi Perangkat Desa jika memerlukan bantuan darurat."
+};

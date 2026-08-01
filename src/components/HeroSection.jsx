@@ -1,14 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Users, HeartPulse, ArrowRight, Compass, ShieldCheck } from 'lucide-react';
+import { apiService } from '../lib/supabaseClient';
 
 export default function HeroSection({ onNavigate }) {
+  const [hero, setHero] = useState({
+    badge: "Website Resmi Desa Tajemsari • Kec. Tegowanu",
+    judul: "Selamat Datang di Portal Resmi Desa Tajemsari",
+    deskripsi: "Desa Tajemsari merupakan desa paling barat di Kecamatan Tegowanu, Kabupaten Grobogan, Jawa Tengah. Wilayah desa ini terdiri dari 4 dusun: Kendalsari, Mlangi, Plosorejo, dan Tajem.",
+    bgImage: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80",
+    ctaPrimary: "Pengajuan Surat Online",
+    ctaSecondary: "Jelajahi Potensi Desa"
+  });
+
+  useEffect(() => {
+    apiService.getHero().then(data => {
+      if (data) setHero(data);
+    });
+  }, []);
+
   return (
-    <div className="hero-container">
+    <div className="hero-container" style={{
+      backgroundImage: `linear-gradient(180deg, rgba(15, 42, 18, 0.75) 0%, rgba(27, 94, 32, 0.88) 100%), url('${hero.bgImage || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80'}')`
+    }}>
       <style>{`
         .hero-container {
           position: relative;
-          background: linear-gradient(180deg, rgba(15, 42, 18, 0.72) 0%, rgba(27, 94, 32, 0.85) 100%),
-                      url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+          background-position: center;
+          background-size: cover;
+          background-repeat: no-repeat;
           color: #ffffff;
           padding: 6rem 0 7rem 0;
           overflow: hidden;
@@ -73,10 +92,6 @@ export default function HeroSection({ onNavigate }) {
           align-items: center;
           justify-content: space-between;
           margin-bottom: 1.25rem;
-        }
-
-        .quick-services-title {
-          font-size: 1.05rem;
           font-weight: 700;
           color: var(--color-primary-dark);
         }
@@ -128,15 +143,15 @@ export default function HeroSection({ onNavigate }) {
 
       <div className="container">
         <div className="hero-badge-pill">
-          <Compass size={16} /> Website Resmi Desa Tajemsari • Kec. Tegowanu, Grobogan
+          <Compass size={16} /> {hero.badge}
         </div>
 
         <h1 className="hero-title">
-          Harmoni Alam & <span>Kemajuan Desa Tajemsari</span>
+          {hero.judul}
         </h1>
 
         <p className="hero-description">
-          Selamat datang di portal resmi Pemerintah Desa Tajemsari, wilayah yang terletak di batas barat Kecamatan Tegowanu, Kabupaten Grobogan, Jawa Tengah. Membawahi empat dusun—Kendalsari, Mlangi, Plosorejo, dan Tajem—kami berkomitmen menghadirkan tata kelola desa yang transparan, pelayanan kependudukan yang cepat, serta pengembangan potensi persawahan dan UMKM masyarakat.
+          {hero.deskripsi}
         </p>
 
         <div className="hero-actions">
@@ -145,7 +160,7 @@ export default function HeroSection({ onNavigate }) {
             className="btn btn-gold" 
             onClick={() => onNavigate('layanan')}
           >
-            <FileText size={18} /> Pengajuan Surat Online
+            <FileText size={18} /> {hero.ctaPrimary || 'Pengajuan Surat Online'}
           </button>
 
           <button 
@@ -154,59 +169,49 @@ export default function HeroSection({ onNavigate }) {
             style={{ color: '#ffffff', borderColor: '#ffffff' }}
             onClick={() => onNavigate('potensi')}
           >
-            <Compass size={18} /> Jelajahi UMKM & Wisata
+            <Compass size={18} /> {hero.ctaSecondary || 'Jelajahi Potensi Desa'}
           </button>
         </div>
 
-        {/* Akses Cepat Layanan (Kependudukan, Surat, Kesehatan) */}
+        {/* Quick Access Floating Bar */}
         <div className="quick-services-bar">
           <div className="quick-services-header">
-            <div className="quick-services-title">Akses Cepat Layanan Administrasi & Informasi</div>
-            <span style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 600 }}>
-              Sistem Desain Rural Harmony
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.05rem' }}>
+              <ShieldCheck size={20} color="var(--color-primary)" /> Akses Cepat Pelayanan Publik Tajemsari
+            </span>
+            <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+              Kec. Tegowanu • Kab. Grobogan
             </span>
           </div>
 
           <div className="quick-cards-grid">
             <div className="quick-card" onClick={() => onNavigate('layanan')}>
-              <div className="quick-icon-box" style={{ background: 'linear-gradient(135deg, #2e7d32, #1b5e20)' }}>
-                <Users size={22} />
-              </div>
-              <div>
-                <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--color-primary-dark)' }}>
-                  Kependudukan
-                </strong>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Pengantar KTP, KK & Pindah
-                </span>
-              </div>
-            </div>
-
-            <div className="quick-card" onClick={() => onNavigate('layanan')}>
-              <div className="quick-icon-box" style={{ background: 'linear-gradient(135deg, #d4af37, #b89628)' }}>
+              <div className="quick-icon-box" style={{ background: 'var(--color-primary)' }}>
                 <FileText size={22} />
               </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--color-primary-dark)' }}>
-                  Surat Keterangan
-                </strong>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  SKU, SKTM, & Surat Domisili
-                </span>
+                <h4 style={{ fontSize: '0.95rem', marginBottom: 2 }}>Surat Keterangan Usaha</h4>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>SKU & Legalitas UMKM</span>
               </div>
             </div>
 
             <div className="quick-card" onClick={() => onNavigate('layanan')}>
-              <div className="quick-icon-box" style={{ background: 'linear-gradient(135deg, #0284c7, #0369a1)' }}>
+              <div className="quick-icon-box" style={{ background: 'var(--color-gold)' }}>
+                <Users size={22} />
+              </div>
+              <div>
+                <h4 style={{ fontSize: '0.95rem', marginBottom: 2 }}>Surat SKTM & KIS</h4>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Bantuan Beasiswa & KIS</span>
+              </div>
+            </div>
+
+            <div className="quick-card" onClick={() => onNavigate('potensi')}>
+              <div className="quick-icon-box" style={{ background: 'var(--color-primary-dark)' }}>
                 <HeartPulse size={22} />
               </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--color-primary-dark)' }}>
-                  Kesehatan & BLT
-                </strong>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Jadwal Posyandu & Bantuan
-                </span>
+                <h4 style={{ fontSize: '0.95rem', marginBottom: 2 }}>Potensi & Wisata Desa</h4>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Pertanian & Olahan Madu</span>
               </div>
             </div>
           </div>
