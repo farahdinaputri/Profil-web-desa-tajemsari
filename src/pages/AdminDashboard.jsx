@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, Plus, Trash2, Edit3, Check, X, FileText, Newspaper, 
   ShoppingBag, LogOut, Upload, Image as ImageIcon, Star, ArrowUp, 
-  ArrowDown, Sparkles, MessageSquare, Compass, MapPin, Clock, Ticket
+  ArrowDown, Sparkles, MessageSquare, Compass, MapPin, Clock, Ticket, Tag, DollarSign, User, Phone
 } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
@@ -528,7 +528,65 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          margin-bottom: 1.5rem;
+        }
+
+        .admin-form-card {
+          background: #ffffff;
+          border-radius: 20px;
+          padding: 2rem;
+          border: 1.5px solid var(--color-border);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        }
+
+        .admin-form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
           margin-bottom: 1.25rem;
+          width: 100%;
+        }
+
+        .admin-form-label {
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: var(--color-primary-dark);
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+        }
+
+        .form-input-custom {
+          width: 100%;
+          display: block;
+          box-sizing: border-box;
+          padding: 0.8rem 1rem;
+          border: 1.5px solid #cbd5e1;
+          border-radius: 12px;
+          font-size: 0.95rem;
+          font-family: var(--font-body);
+          background: #ffffff;
+          color: var(--color-text-main);
+          transition: var(--transition-fast);
+        }
+
+        .form-input-custom:focus {
+          border-color: var(--color-primary);
+          outline: none;
+          box-shadow: 0 0 0 3.5px rgba(46, 125, 50, 0.15);
+        }
+
+        select.form-input-custom {
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232e7d32' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 1rem center;
+          background-size: 1.1rem;
+          padding-right: 2.5rem;
+        }
+
+        textarea.form-input-custom {
+          resize: vertical;
         }
 
         .dropzone-box {
@@ -634,10 +692,22 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           border-bottom: 1px solid #f1f5f9;
           font-size: 0.88rem;
         }
+
+        .form-grid-2col {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+        }
+
+        @media (max-width: 650px) {
+          .form-grid-2col {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
 
       <div className="container">
-        {/* Admin Header */}
+        {/* Admin Header Bar */}
         <div className="admin-header-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ width: 48, height: 48, background: 'var(--color-gold)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
@@ -747,8 +817,8 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         {/* TAB 2: KELOLA BERITA DESA (FULL CRUD & MULTI-IMAGE) */}
         {activeTab === 'berita' && (
           <div className="grid-2">
-            {/* Form Create / Edit Berita */}
-            <div className="card-rural">
+            {/* Form Create / Edit Berita Card */}
+            <div className="admin-form-card">
               {editingBeritaId ? (
                 <div className="editing-banner">
                   <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -762,14 +832,17 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </button>
                 </div>
               ) : (
-                <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.25rem' }}>
-                  ✨ Tambah Berita / Pengumuman Baru
+                <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Sparkles size={20} color="var(--color-gold)" /> Tambah Berita / Pengumuman Baru
                 </h3>
               )}
 
               <form onSubmit={handleSaveBerita}>
-                <div style={{ marginBottom: '0.85rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Judul Berita *</label>
+                {/* Judul Berita */}
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <FileText size={15} /> Judul Berita *
+                  </label>
                   <input 
                     type="text" 
                     className="form-input-custom" 
@@ -780,8 +853,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   />
                 </div>
 
-                <div style={{ marginBottom: '0.85rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Kategori Berita *</label>
+                {/* Kategori Berita */}
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <Tag size={15} /> Kategori Berita *
+                  </label>
                   <select 
                     className="form-input-custom" 
                     value={newKategori} 
@@ -794,8 +870,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </select>
                 </div>
 
-                <div style={{ marginBottom: '0.85rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Ringkasan Singkat (Awal) *</label>
+                {/* Ringkasan Singkat */}
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <MessageSquare size={15} /> Ringkasan Singkat (Awal) *
+                  </label>
                   <textarea 
                     className="form-input-custom" 
                     rows={2} 
@@ -806,8 +885,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   />
                 </div>
 
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Isi Lengkap Berita *</label>
+                {/* Isi Lengkap Berita */}
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <FileText size={15} /> Isi Lengkap Berita *
+                  </label>
                   <textarea 
                     className="form-input-custom" 
                     rows={5} 
@@ -819,9 +901,9 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 </div>
 
                 {/* Multiple Image Upload Zone */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'block', marginBottom: 4 }}>
-                    Foto Utama & Galeri Dokumentasi (Multiple Upload)
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <ImageIcon size={15} /> Foto Utama & Galeri Dokumentasi (Multiple Upload)
                   </label>
                   
                   <div 
@@ -924,7 +1006,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   )}
                 </div>
 
-                <button type="submit" className="btn btn-gold" style={{ width: '100%' }}>
+                <button type="submit" className="btn btn-gold" style={{ width: '100%', padding: '0.9rem', fontSize: '0.95rem' }}>
                   {editingBeritaId ? <><Check size={18} /> Simpan Perubahan Berita</> : <><Plus size={18} /> Publikasikan Berita</>}
                 </button>
               </form>
@@ -975,8 +1057,8 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         {/* TAB 3: KELOLA UMKM DESA (FULL CRUD & MULTI-IMAGE UPLOAD) */}
         {activeTab === 'umkm' && (
           <div className="grid-2">
-            {/* Form Create / Edit UMKM */}
-            <div className="card-rural">
+            {/* Form Create / Edit UMKM Card */}
+            <div className="admin-form-card">
               {editingUmkmId ? (
                 <div className="editing-banner">
                   <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -990,14 +1072,17 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </button>
                 </div>
               ) : (
-                <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.25rem' }}>
-                  🛍️ Tambah Produk UMKM Baru
+                <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <ShoppingBag size={20} color="var(--color-gold)" /> Tambah Produk UMKM Baru
                 </h3>
               )}
 
               <form onSubmit={handleSaveUmkm}>
-                <div style={{ marginBottom: '0.85rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Nama Produk *</label>
+                {/* Nama Produk */}
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <ShoppingBag size={15} /> Nama Produk *
+                  </label>
                   <input 
                     type="text" 
                     className="form-input-custom" 
@@ -1008,9 +1093,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Kategori *</label>
+                {/* Kategori & Harga 2-Col */}
+                <div className="form-grid-2col">
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">
+                      <Tag size={15} /> Kategori *
+                    </label>
                     <select 
                       className="form-input-custom" 
                       value={newProdukKategori} 
@@ -1022,8 +1110,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       <option value="Hasil Tani">Hasil Tani</option>
                     </select>
                   </div>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Harga *</label>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">
+                      <DollarSign size={15} /> Harga *
+                    </label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1035,9 +1125,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Nama Pembuat / Penjual *</label>
+                {/* Pembuat & WhatsApp 2-Col */}
+                <div className="form-grid-2col">
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">
+                      <User size={15} /> Nama Pembuat / Penjual *
+                    </label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1047,8 +1140,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       required 
                     />
                   </div>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>No. WhatsApp Penjual (Tanpa +) *</label>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">
+                      <Phone size={15} /> WhatsApp (Tanpa +) *
+                    </label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1060,8 +1155,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Deskripsi Produk *</label>
+                {/* Deskripsi Produk */}
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <FileText size={15} /> Deskripsi Produk *
+                  </label>
                   <textarea 
                     className="form-input-custom" 
                     rows={3} 
@@ -1073,9 +1171,9 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 </div>
 
                 {/* Multiple Image Upload Zone for UMKM */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'block', marginBottom: 4 }}>
-                    Foto Produk UMKM (Multiple Image Upload)
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <ImageIcon size={15} /> Foto Produk UMKM (Multiple Image Upload)
                   </label>
                   
                   <div 
@@ -1178,7 +1276,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   )}
                 </div>
 
-                <button type="submit" className="btn btn-gold" style={{ width: '100%' }}>
+                <button type="submit" className="btn btn-gold" style={{ width: '100%', padding: '0.9rem', fontSize: '0.95rem' }}>
                   {editingUmkmId ? <><Check size={18} /> Simpan Perubahan UMKM</> : <><Plus size={18} /> Tambah Katalog UMKM</>}
                 </button>
               </form>
@@ -1227,8 +1325,8 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         {/* TAB 4: KELOLA DESTINASI WISATA DESA (FULL CRUD & MULTI-IMAGE UPLOAD) */}
         {activeTab === 'wisata' && (
           <div className="grid-2">
-            {/* Form Create / Edit Wisata */}
-            <div className="card-rural">
+            {/* Form Create / Edit Wisata Card */}
+            <div className="admin-form-card">
               {editingWisataId ? (
                 <div className="editing-banner">
                   <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1242,14 +1340,17 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </button>
                 </div>
               ) : (
-                <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.25rem' }}>
-                  🏞️ Tambah Destinasi Wisata Baru
+                <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Compass size={20} color="var(--color-gold)" /> Tambah Destinasi Wisata Baru
                 </h3>
               )}
 
               <form onSubmit={handleSaveWisata}>
-                <div style={{ marginBottom: '0.85rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Nama Tempat / Destinasi *</label>
+                {/* Nama Tempat */}
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <Compass size={15} /> Nama Tempat / Destinasi *
+                  </label>
                   <input 
                     type="text" 
                     className="form-input-custom" 
@@ -1260,9 +1361,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Kategori *</label>
+                {/* Kategori & Tiket 2-Col */}
+                <div className="form-grid-2col">
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">
+                      <Tag size={15} /> Kategori *
+                    </label>
                     <select 
                       className="form-input-custom" 
                       value={newWisataKategori} 
@@ -1274,8 +1378,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       <option value="Kuliner Desa">Kuliner Desa</option>
                     </select>
                   </div>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Tiket Masuk *</label>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">
+                      <Ticket size={15} /> Tiket Masuk *
+                    </label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1287,9 +1393,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Lokasi / Dusun *</label>
+                {/* Lokasi & Jam Buka 2-Col */}
+                <div className="form-grid-2col">
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">
+                      <MapPin size={15} /> Lokasi / Dusun *
+                    </label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1299,8 +1408,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       required 
                     />
                   </div>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Jam Buka *</label>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">
+                      <Clock size={15} /> Jam Buka *
+                    </label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1312,8 +1423,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Deskripsi Destinasi Wisata *</label>
+                {/* Deskripsi Destinasi */}
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <FileText size={15} /> Deskripsi Destinasi Wisata *
+                  </label>
                   <textarea 
                     className="form-input-custom" 
                     rows={3} 
@@ -1325,9 +1439,9 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 </div>
 
                 {/* Multiple Image Upload Zone for Wisata */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'block', marginBottom: 4 }}>
-                    Foto Destinasi & Dokumentasi (Multiple Upload)
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    <ImageIcon size={15} /> Foto Destinasi & Dokumentasi (Multiple Upload)
                   </label>
                   
                   <div 
@@ -1419,7 +1533,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                             <button 
                               type="button" 
                               style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 4, padding: '0.25rem 0.4rem', cursor: 'pointer' }}
-                              onClick={() => handleWisataDeleteImage(img.id)}
+                              onClick={() => handleDeleteWisata(img.id)}
                             >
                               <Trash2 size={14} />
                             </button>
@@ -1430,7 +1544,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   )}
                 </div>
 
-                <button type="submit" className="btn btn-gold" style={{ width: '100%' }}>
+                <button type="submit" className="btn btn-gold" style={{ width: '100%', padding: '0.9rem', fontSize: '0.95rem' }}>
                   {editingWisataId ? <><Check size={18} /> Simpan Perubahan Wisata</> : <><Plus size={18} /> Tambah Destinasi Wisata</>}
                 </button>
               </form>
