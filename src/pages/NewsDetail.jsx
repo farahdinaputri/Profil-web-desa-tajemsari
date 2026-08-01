@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, Share2, ChevronRight, Clock, Check, Bookmark, Image as ImageIcon, ChevronLeft, ZoomIn, ZoomOut, X, Maximize2 } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Share2, ChevronRight, Clock, Check, Bookmark, Image as ImageIcon, ChevronLeft, ZoomIn, ZoomOut, X, Maximize2, Camera } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function NewsDetail() {
@@ -59,11 +59,27 @@ export default function NewsDetail() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Lightbox Handlers
-  const galleryList = berita?.galeri && berita.galeri.length > 0 
-    ? berita.galeri 
-    : (berita?.gambar ? [berita.gambar] : []);
+  // Helper to normalize galeri items into objects with { url, caption }
+  const galleryItems = React.useMemo(() => {
+    if (!berita) return [];
+    if (!berita.galeri || berita.galeri.length === 0) {
+      return [{ url: berita.gambar, caption: `Foto utama: ${berita.judul}` }];
+    }
+    return berita.galeri.map((item, idx) => {
+      if (typeof item === 'string') {
+        return { 
+          url: item, 
+          caption: idx === 0 ? `Foto utama: ${berita.judul}` : `Dokumentasi kegiatan Desa Tajemsari #${idx}` 
+        };
+      }
+      return {
+        url: item.url || berita.gambar,
+        caption: item.caption || (idx === 0 ? `Foto utama: ${berita.judul}` : `Dokumentasi foto #${idx}`)
+      };
+    });
+  }, [berita]);
 
+  // Lightbox Handlers
   const openLightbox = (index) => {
     setLightboxIndex(index);
     setIsZoomed(false);
@@ -72,12 +88,12 @@ export default function NewsDetail() {
 
   const handleNextPhoto = () => {
     setIsZoomed(false);
-    setLightboxIndex((prev) => (prev + 1) % galleryList.length);
+    setLightboxIndex((prev) => (prev + 1) % galleryItems.length);
   };
 
   const handlePrevPhoto = () => {
     setIsZoomed(false);
-    setLightboxIndex((prev) => (prev - 1 + galleryList.length) % galleryList.length);
+    setLightboxIndex((prev) => (prev - 1 + galleryItems.length) % galleryItems.length);
   };
 
   if (loading) {
@@ -106,6 +122,10 @@ export default function NewsDetail() {
     );
   }
 
+  const coverPhotoObj = galleryItems[0] || { url: berita.gambar, caption: berita.judul };
+  const inlineDocPhotos = galleryItems.slice(1);
+  const paragraphs = berita.isi ? berita.isi.split('\n').filter(p => p.trim()) : [];
+
   return (
     <div className="news-portal-container animate-fade-in">
       <style>{`
@@ -126,7 +146,7 @@ export default function NewsDetail() {
           max-width: 780px;
         }
 
-        /* Top Bar: Back Action & Breadcrumb */
+        /* Top Bar */
         .news-top-bar {
           display: flex;
           align-items: center;
@@ -209,7 +229,12 @@ export default function NewsDetail() {
           gap: 1rem;
         }
 
-        /* Featured Hero Image (16:9 ratio, Cover) */
+        /* Photo Figure Container & Caption Styling */
+        .article-photo-figure {
+          margin: 1.75rem 0 2rem 0;
+          width: 100%;
+        }
+
         .article-featured-image {
           width: 100%;
           aspect-ratio: 16 / 9;
@@ -217,7 +242,6 @@ export default function NewsDetail() {
           object-fit: cover;
           border-radius: 12px;
           display: block;
-          margin-bottom: 2rem;
           box-shadow: 0 4px 15px rgba(0,0,0,0.05);
           cursor: pointer;
           transition: transform 0.3s ease;
@@ -225,6 +249,34 @@ export default function NewsDetail() {
 
         .article-featured-image:hover {
           transform: scale(1.01);
+        }
+
+        .article-inline-image {
+          width: 100%;
+          max-height: 380px;
+          object-fit: cover;
+          border-radius: 12px;
+          display: block;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+          cursor: pointer;
+          transition: transform 0.3s ease;
+        }
+
+        .article-inline-image:hover {
+          transform: scale(1.01);
+        }
+
+        /* Professional News Photo Caption (Keterangan Foto) */
+        .article-photo-caption {
+          font-size: 0.84rem;
+          color: #64748b;
+          font-style: italic;
+          margin-top: 0.5rem;
+          line-height: 1.5;
+          display: flex;
+          align-items: flex-start;
+          gap: 0.35rem;
+          padding-left: 0.2rem;
         }
 
         /* Article Content Stream */
@@ -250,7 +302,7 @@ export default function NewsDetail() {
           font-style: italic;
         }
 
-        /* Documentation Photo Gallery Grid */
+        /* Documentation Photo Gallery Grid at Bottom */
         .article-gallery-section {
           margin-top: 3rem;
           padding-top: 2rem;
@@ -270,18 +322,26 @@ export default function NewsDetail() {
 
         .gallery-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-          gap: 1.25rem;
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 1.5rem;
         }
 
         .gallery-thumb-card {
           position: relative;
-          aspect-ratio: 4 / 3;
           border-radius: 12px;
           overflow: hidden;
           cursor: pointer;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.06);
           border: 1px solid var(--color-border);
+          background: #ffffff;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .gallery-thumb-img-wrap {
+          position: relative;
+          aspect-ratio: 4 / 3;
+          overflow: hidden;
         }
 
         .gallery-thumb-img {
@@ -312,7 +372,17 @@ export default function NewsDetail() {
           transform: scale(1.08);
         }
 
-        /* --- LIGHTBOX MODAL --- */
+        .gallery-card-caption {
+          padding: 0.65rem 0.85rem;
+          font-size: 0.8rem;
+          color: #64748b;
+          font-style: italic;
+          line-height: 1.35;
+          background: #f8faf8;
+          border-top: 1px solid #f1f5f9;
+        }
+
+        /* --- LIGHTBOX MODAL WITH CAPTION --- */
         .lightbox-modal {
           position: fixed;
           inset: 0;
@@ -349,7 +419,7 @@ export default function NewsDetail() {
 
         .lightbox-image {
           max-width: 90%;
-          max-height: 80vh;
+          max-height: 75vh;
           object-fit: contain;
           border-radius: 8px;
           box-shadow: 0 10px 40px rgba(0,0,0,0.5);
@@ -385,6 +455,20 @@ export default function NewsDetail() {
 
         .lightbox-btn-nav.prev { left: 1rem; }
         .lightbox-btn-nav.next { right: 1rem; }
+
+        .lightbox-caption-bar {
+          background: rgba(0, 0, 0, 0.7);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: #e2e8f0;
+          font-size: 0.88rem;
+          font-style: italic;
+          padding: 0.6rem 1.25rem;
+          border-radius: 20px;
+          max-width: 700px;
+          text-align: center;
+          margin-top: 0.5rem;
+          z-index: 10;
+        }
 
         /* Right Sidebar Column */
         .news-sidebar-col {
@@ -528,8 +612,8 @@ export default function NewsDetail() {
                   <span>{berita.tanggal}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <ImageIcon size={15} color="var(--color-text-muted)" />
-                  <span>{galleryList.length} Foto Dokumentasi</span>
+                  <Camera size={15} color="var(--color-text-muted)" />
+                  <span>{galleryItems.length} Foto Dokumentasi</span>
                 </div>
               </div>
 
@@ -551,21 +635,22 @@ export default function NewsDetail() {
               </div>
             </div>
 
-            {/* Main Cover Image (Clicking opens Lightbox at index 0) */}
-            <div style={{ position: 'relative' }}>
+            {/* --- MAIN COVER PHOTO WITH CAPTION --- */}
+            <figure className="article-photo-figure">
               <img 
-                src={berita.gambar} 
-                alt={berita.judul} 
+                src={coverPhotoObj.url} 
+                alt={coverPhotoObj.caption} 
                 className="article-featured-image" 
                 onClick={() => openLightbox(0)}
                 title="Klik untuk memperbesar foto"
               />
-              <div style={{ position: 'absolute', bottom: '2.5rem', right: '1rem', background: 'rgba(0,0,0,0.65)', color: '#fff', padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, backdropFilter: 'blur(4px)', pointerEvents: 'none' }}>
-                <Maximize2 size={12} /> Foto Utama (Klik untuk Zoom)
-              </div>
-            </div>
+              <figcaption className="article-photo-caption">
+                <Camera size={13} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span>{coverPhotoObj.caption}</span>
+              </figcaption>
+            </figure>
 
-            {/* Article Content Stream */}
+            {/* --- ARTICLE CONTENT STREAM WITH INLINE DOCUMENTATION PHOTOS --- */}
             <div className="article-content-flow">
               {berita.ringkasan && (
                 <div className="article-lead-summary">
@@ -574,29 +659,52 @@ export default function NewsDetail() {
               )}
 
               <div>
-                {berita.isi.split('\n').map((paragraph, index) => (
-                  paragraph.trim() ? <p key={index}>{paragraph}</p> : null
+                {paragraphs.map((paragraph, pIdx) => (
+                  <React.Fragment key={pIdx}>
+                    <p>{paragraph}</p>
+                    
+                    {/* Disisipkan foto dokumentasi tambahan di antara paragraf */}
+                    {inlineDocPhotos[pIdx] && (
+                      <figure className="article-photo-figure">
+                        <img 
+                          src={inlineDocPhotos[pIdx].url} 
+                          alt={inlineDocPhotos[pIdx].caption} 
+                          className="article-inline-image" 
+                          onClick={() => openLightbox(pIdx + 1)}
+                        />
+                        <figcaption className="article-photo-caption">
+                          <Camera size={13} style={{ flexShrink: 0, marginTop: 2 }} />
+                          <span>{inlineDocPhotos[pIdx].caption}</span>
+                        </figcaption>
+                      </figure>
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
             </div>
 
-            {/* --- GALERI DOKUMENTASI KEGIATAN (MULTIPLE IMAGES) --- */}
-            {galleryList.length > 0 && (
+            {/* --- GALERI LENGKAP DOKUMENTASI DI BAGIAN BAWAH ARTIKEL --- */}
+            {galleryItems.length > 1 && (
               <div className="article-gallery-section">
                 <div className="gallery-title">
-                  <ImageIcon size={22} color="var(--color-gold)" /> Galeri Dokumentasi Kegiatan ({galleryList.length} Foto)
+                  <ImageIcon size={22} color="var(--color-gold)" /> Galeri Dokumentasi Kegiatan ({galleryItems.length} Foto)
                 </div>
 
                 <div className="gallery-grid">
-                  {galleryList.map((photoUrl, idx) => (
+                  {galleryItems.map((photoItem, idx) => (
                     <div 
                       key={idx} 
                       className="gallery-thumb-card"
                       onClick={() => openLightbox(idx)}
                     >
-                      <img src={photoUrl} alt={`Dokumentasi ${idx + 1}`} className="gallery-thumb-img" />
-                      <div className="gallery-thumb-overlay">
-                        <ZoomIn size={24} />
+                      <div className="gallery-thumb-img-wrap">
+                        <img src={photoItem.url} alt={photoItem.caption} className="gallery-thumb-img" />
+                        <div className="gallery-thumb-overlay">
+                          <ZoomIn size={24} />
+                        </div>
+                      </div>
+                      <div className="gallery-card-caption">
+                        {photoItem.caption}
                       </div>
                     </div>
                   ))}
@@ -604,8 +712,8 @@ export default function NewsDetail() {
               </div>
             )}
 
-            {/* Bottom Article Footer */}
-            <div className="article-share-footer">
+            {/* Bottom Article Share Footer */}
+            <div className="article-share-footer" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '2rem', marginTop: '3rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>
                 Bagikan artikel ini:
               </span>
@@ -656,15 +764,15 @@ export default function NewsDetail() {
         </div>
       </div>
 
-      {/* --- INTERACTIVE LIGHTBOX MODAL WITH ZOOM & NAV --- */}
-      {lightboxOpen && (
+      {/* --- INTERACTIVE LIGHTBOX MODAL WITH CAPTION DISPLAY --- */}
+      {lightboxOpen && galleryItems[lightboxIndex] && (
         <div className="lightbox-modal">
           {/* Header Bar */}
           <div className="lightbox-header">
             <div>
               <span style={{ fontWeight: 800, fontSize: '1.05rem' }}>Dokumentasi Desa Tajemsari</span>
               <span style={{ fontSize: '0.85rem', opacity: 0.8, marginLeft: '1rem' }}>
-                Foto {lightboxIndex + 1} dari {galleryList.length}
+                Foto {lightboxIndex + 1} dari {galleryItems.length}
               </span>
             </div>
 
@@ -687,7 +795,7 @@ export default function NewsDetail() {
 
           {/* Main Photo View */}
           <div className="lightbox-body" onClick={() => setIsZoomed(!isZoomed)}>
-            {galleryList.length > 1 && (
+            {galleryItems.length > 1 && (
               <button 
                 className="lightbox-btn-nav prev"
                 onClick={(e) => { e.stopPropagation(); handlePrevPhoto(); }}
@@ -697,12 +805,12 @@ export default function NewsDetail() {
             )}
 
             <img 
-              src={galleryList[lightboxIndex]} 
-              alt={`Dokumentasi ${lightboxIndex + 1}`} 
+              src={galleryItems[lightboxIndex].url} 
+              alt={galleryItems[lightboxIndex].caption} 
               className={`lightbox-image ${isZoomed ? 'zoomed' : ''}`}
             />
 
-            {galleryList.length > 1 && (
+            {galleryItems.length > 1 && (
               <button 
                 className="lightbox-btn-nav next"
                 onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
@@ -712,17 +820,25 @@ export default function NewsDetail() {
             )}
           </div>
 
+          {/* Lightbox Photo Caption Bar */}
+          {galleryItems[lightboxIndex].caption && (
+            <div className="lightbox-caption-bar">
+              <Camera size={14} style={{ display: 'inline', marginRight: 6 }} />
+              {galleryItems[lightboxIndex].caption}
+            </div>
+          )}
+
           {/* Footer Thumbnails Selector */}
-          {galleryList.length > 1 && (
-            <div style={{ display: 'flex', gap: '0.5rem', zIndex: 10, overflowX: 'auto', maxWidth: '100%', padding: '0.5rem' }}>
-              {galleryList.map((thumbUrl, idx) => (
+          {galleryItems.length > 1 && (
+            <div style={{ display: 'flex', gap: '0.5rem', zIndex: 10, overflowX: 'auto', maxWidth: '100%', padding: '0.5rem 0 0 0' }}>
+              {galleryItems.map((photoItem, idx) => (
                 <img 
                   key={idx}
-                  src={thumbUrl}
+                  src={photoItem.url}
                   alt={`Thumb ${idx + 1}`}
                   style={{
-                    width: 48,
-                    height: 48,
+                    width: 46,
+                    height: 46,
                     borderRadius: 6,
                     objectFit: 'cover',
                     cursor: 'pointer',

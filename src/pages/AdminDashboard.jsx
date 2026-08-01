@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Plus, Trash2, Edit3, Check, X, FileText, Newspaper, ShoppingBag, LogOut, Upload, Image as ImageIcon, Star, ArrowUp, ArrowDown, Sparkles } from 'lucide-react';
+import { ShieldCheck, Plus, Trash2, Edit3, Check, X, FileText, Newspaper, ShoppingBag, LogOut, Upload, Image as ImageIcon, Star, ArrowUp, ArrowDown, Sparkles, MessageSquare } from 'lucide-react';
 import { apiService, isSupabaseConfigured } from '../lib/supabaseClient';
 
 export default function AdminDashboard({ adminUser, onLogout }) {
@@ -16,9 +16,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [newRingkasan, setNewRingkasan] = useState('');
   const [newIsi, setNewIsi] = useState('');
   
-  // Image List: Array of objects { id, url, isCover }
+  // Image List: Array of objects { id, url, caption, isCover }
   const [imagesList, setImagesList] = useState([]);
   const [manualUrlInput, setManualUrlInput] = useState('');
+  const [manualCaptionInput, setManualCaptionInput] = useState('');
   const [isDragging, setIsDragging] = useState(false);
 
   // Form States for UMKM
@@ -48,7 +49,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     setUmkmList(uData);
   };
 
-  // --- MULTIPLE IMAGE HANDLING LOGIC ---
+  // --- MULTIPLE IMAGE & CAPTION HANDLING LOGIC ---
   const handleFilesAdded = (files) => {
     const fileArray = Array.from(files);
     fileArray.forEach(file => {
@@ -58,10 +59,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           const newImg = {
             id: 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             url: e.target.result,
+            caption: 'Dokumentasi kegiatan Desa Tajemsari Tegowanu',
             isCover: false
           };
           setImagesList(prev => {
-            // If it's the very first image, set as cover automatically
             const shouldBeCover = prev.length === 0;
             return [...prev, { ...newImg, isCover: shouldBeCover }];
           });
@@ -76,10 +77,16 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     const newImg = {
       id: 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
       url: manualUrlInput.trim(),
+      caption: manualCaptionInput.trim() || 'Dokumentasi kegiatan Desa Tajemsari',
       isCover: imagesList.length === 0
     };
     setImagesList(prev => [...prev, newImg]);
     setManualUrlInput('');
+    setManualCaptionInput('');
+  };
+
+  const handleCaptionChange = (id, newCaption) => {
+    setImagesList(prev => prev.map(img => img.id === id ? { ...img, caption: newCaption } : img));
   };
 
   const handleSetCover = (id) => {
@@ -92,7 +99,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const handleDeleteImage = (id) => {
     setImagesList(prev => {
       const filtered = prev.filter(img => img.id !== id);
-      // If deleted image was cover and there are remaining images, set first as cover
       if (filtered.length > 0 && !filtered.some(img => img.isCover)) {
         filtered[0].isCover = true;
       }
@@ -131,10 +137,14 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const handleCreateBerita = async (e) => {
     e.preventDefault();
 
-    // Determine Cover Image & Gallery Array
     const coverObj = imagesList.find(img => img.isCover) || imagesList[0];
     const coverUrl = coverObj ? coverObj.url : 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80';
-    const galeriUrls = imagesList.map(img => img.url);
+    
+    // Galeri menyimpan array object { url, caption }
+    const galeriObjects = imagesList.map(img => ({
+      url: img.url,
+      caption: img.caption || 'Dokumentasi kegiatan Desa Tajemsari'
+    }));
 
     await apiService.addBerita({
       judul: newJudul,
@@ -142,11 +152,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
       ringkasan: newRingkasan,
       isi: newIsi,
       gambar: coverUrl,
-      galeri: galeriUrls.length > 0 ? galeriUrls : [coverUrl],
+      galeri: galeriObjects.length > 0 ? galeriObjects : [{ url: coverUrl, caption: newJudul }],
       penulis: 'Admin Tajemsari'
     });
 
-    // Reset Form
     setNewJudul('');
     setNewRingkasan('');
     setNewIsi('');
@@ -255,58 +264,50 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           background: var(--color-primary-soft);
         }
 
-        .image-preview-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        .image-preview-list {
+          display: flex;
+          flex-direction: column;
           gap: 1rem;
           margin-top: 1rem;
           margin-bottom: 1.5rem;
         }
 
-        .image-preview-card {
-          position: relative;
-          background: #ffffff;
-          border-radius: 10px;
-          overflow: hidden;
-          border: 2px solid var(--color-border);
-          box-shadow: var(--shadow-sm);
+        .image-preview-row {
           display: flex;
-          flex-direction: column;
+          gap: 1rem;
+          align-items: center;
+          background: #ffffff;
+          border-radius: 12px;
+          padding: 0.85rem;
+          border: 1px solid var(--color-border);
+          box-shadow: var(--shadow-sm);
+          position: relative;
         }
 
-        .image-preview-card.is-cover {
+        .image-preview-row.is-cover {
           border-color: var(--color-gold);
-          box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+          box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+          background: #fffdf5;
         }
 
-        .preview-img-thumb {
-          width: 100%;
-          height: 100px;
+        .preview-img-square {
+          width: 90px;
+          height: 90px;
+          border-radius: 8px;
           object-fit: cover;
+          flex-shrink: 0;
         }
 
         .cover-tag-badge {
-          position: absolute;
-          top: 6px;
-          left: 6px;
           background: var(--color-gold);
           color: #ffffff;
           font-size: 0.68rem;
           font-weight: 800;
           padding: 0.2rem 0.5rem;
           border-radius: 4px;
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: 3px;
-        }
-
-        .preview-card-actions {
-          padding: 0.4rem;
-          background: #f8faf8;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          border-top: 1px solid #f1f5f9;
         }
 
         .data-table {
@@ -439,7 +440,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           </div>
         )}
 
-        {/* TAB 2: KELOLA BERITA (MULTIPLE IMAGE UPLOAD SUPPORT) */}
+        {/* TAB 2: KELOLA BERITA (MULTIPLE IMAGE UPLOAD WITH CAPTION SUPPORT) */}
         {activeTab === 'berita' && (
           <div className="grid-2">
             <div className="card-rural">
@@ -472,10 +473,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   <textarea className="form-input-custom" rows={4} value={newIsi} onChange={(e) => setNewIsi(e.target.value)} required />
                 </div>
 
-                {/* --- MULTIPLE IMAGE UPLOAD ZONE --- */}
+                {/* --- MULTIPLE IMAGE & CAPTION UPLOAD ZONE --- */}
                 <div style={{ marginBottom: '1.25rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'block', marginBottom: '0.4rem' }}>
-                    Foto Utama & Galeri Dokumentasi (Multiple Image Upload)
+                    Foto Utama & Galeri Dokumentasi (Dengan Caption/Keterangan Foto)
                   </label>
 
                   {/* Drag & Drop Box */}
@@ -503,15 +504,23 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     />
                   </div>
 
-                  {/* Input Manual URL Foto jika tidak via Upload */}
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                  {/* Input Manual URL Foto + Caption */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr auto', gap: '0.5rem', marginBottom: '1rem' }}>
                     <input 
                       type="url" 
                       className="form-input-custom" 
                       style={{ marginTop: 0 }}
-                      placeholder="Atau tempel URL gambar (https://...)" 
+                      placeholder="Tempel URL gambar (https://...)" 
                       value={manualUrlInput}
                       onChange={(e) => setManualUrlInput(e.target.value)}
+                    />
+                    <input 
+                      type="text" 
+                      className="form-input-custom" 
+                      style={{ marginTop: 0 }}
+                      placeholder="Keterangan foto..." 
+                      value={manualCaptionInput}
+                      onChange={(e) => setManualCaptionInput(e.target.value)}
                     />
                     <button 
                       type="button" 
@@ -519,45 +528,61 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       style={{ padding: '0 0.85rem', fontSize: '0.8rem' }}
                       onClick={handleAddManualUrl}
                     >
-                      + Tambah URL
+                      + Tambah
                     </button>
                   </div>
 
-                  {/* Uploaded Images Preview Grid & Reorder Controls */}
+                  {/* Uploaded Images List with Editable Caption Input */}
                   {imagesList.length > 0 && (
                     <div>
                       <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-                        Daftar Foto Terunggah ({imagesList.length}): Klik bintang untuk menjadikan Cover Utama
+                        Daftar Foto Dokumentasi ({imagesList.length}): Masukkan keterangan foto di setiap gambar
                       </div>
 
-                      <div className="image-preview-grid">
+                      <div className="image-preview-list">
                         {imagesList.map((img, idx) => (
-                          <div key={img.id} className={`image-preview-card ${img.isCover ? 'is-cover' : ''}`}>
-                            <img src={img.url} alt={`Foto ${idx+1}`} className="preview-img-thumb" />
+                          <div key={img.id} className={`image-preview-row ${img.isCover ? 'is-cover' : ''}`}>
+                            <img src={img.url} alt={`Foto ${idx+1}`} className="preview-img-square" />
                             
-                            {img.isCover && (
-                              <div className="cover-tag-badge">
-                                <Star size={10} fill="#fff" /> COVER UTAMA
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                {img.isCover ? (
+                                  <span className="cover-tag-badge">
+                                    <Star size={10} fill="#fff" /> COVER UTAMA
+                                  </span>
+                                ) : (
+                                  <button 
+                                    type="button"
+                                    onClick={() => handleSetCover(img.id)}
+                                    style={{ background: 'transparent', border: '1px solid var(--color-gold)', color: '#8a6d13', fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
+                                  >
+                                    Jadikan Cover
+                                  </button>
+                                )}
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Foto #{idx+1}</span>
                               </div>
-                            )}
 
-                            <div className="preview-card-actions">
-                              {!img.isCover && (
-                                <button 
-                                  type="button" 
-                                  title="Jadikan Cover Utama"
-                                  style={{ background: 'transparent', border: 'none', color: 'var(--color-gold)', cursor: 'pointer' }}
-                                  onClick={() => handleSetCover(img.id)}
-                                >
-                                  <Star size={14} />
-                                </button>
-                              )}
+                              {/* Caption Input */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <MessageSquare size={14} color="var(--color-text-muted)" />
+                                <input 
+                                  type="text"
+                                  className="form-input-custom"
+                                  style={{ marginTop: 0, padding: '0.35rem 0.65rem', fontSize: '0.82rem' }}
+                                  placeholder="Ketik keterangan/caption foto..."
+                                  value={img.caption || ''}
+                                  onChange={(e) => handleCaptionChange(img.id, e.target.value)}
+                                />
+                              </div>
+                            </div>
 
+                            {/* Controls: Order & Delete */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
                               <div style={{ display: 'flex', gap: 2 }}>
                                 <button 
                                   type="button"
                                   disabled={idx === 0}
-                                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.3 : 1 }}
+                                  style={{ background: '#f1f5f9', border: 'none', borderRadius: 4, padding: '0.2rem', cursor: 'pointer', opacity: idx === 0 ? 0.3 : 1 }}
                                   onClick={() => handleMoveImage(idx, -1)}
                                 >
                                   <ArrowUp size={14} />
@@ -565,17 +590,16 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                                 <button 
                                   type="button"
                                   disabled={idx === imagesList.length - 1}
-                                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === imagesList.length - 1 ? 0.3 : 1 }}
+                                  style={{ background: '#f1f5f9', border: 'none', borderRadius: 4, padding: '0.2rem', cursor: 'pointer', opacity: idx === imagesList.length - 1 ? 0.3 : 1 }}
                                   onClick={() => handleMoveImage(idx, 1)}
                                 >
                                   <ArrowDown size={14} />
                                 </button>
                               </div>
-
                               <button 
                                 type="button" 
                                 title="Hapus Gambar"
-                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                                style={{ background: '#fee2e2', border: 'none', color: '#ef4444', borderRadius: 4, padding: '0.25rem', cursor: 'pointer' }}
                                 onClick={() => handleDeleteImage(img.id)}
                               >
                                 <Trash2 size={14} />
@@ -607,7 +631,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                         <span className="badge-gold" style={{ fontSize: '0.72rem' }}>{item.kategori}</span>
                         <h4 style={{ fontSize: '0.95rem', color: 'var(--color-primary-dark)', marginTop: 2 }}>{item.judul}</h4>
                         <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                          {item.tanggal} • {item.galeri ? item.galeri.length : 1} Foto
+                          {item.tanggal} • {item.galeri ? item.galeri.length : 1} Foto Ber-caption
                         </span>
                       </div>
                     </div>
