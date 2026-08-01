@@ -972,65 +972,74 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
       {/* LEFT SIDEBAR */}
       <aside className="admin-sidebar">
-        <div>
-          {/* Brand Header */}
-          <div className="sidebar-brand">
+        {/* Brand Header */}
+        <div className="sidebar-brand">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div className="sidebar-brand-icon">
-              <ShieldCheck size={26} />
+              <ShieldCheck size={24} />
             </div>
             {!sidebarCollapsed && (
               <div>
-                <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.2 }}>
+                <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.2 }}>
                   Desa Tajemsari
                 </h2>
-                <span style={{ fontSize: '0.72rem', color: 'var(--color-gold)', fontWeight: 700 }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--color-gold)', fontWeight: 700 }}>
                   PANEL CMS ADMINISTRASI
                 </span>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Navigation Items */}
-          <div className="sidebar-nav-container">
-            {['UTAMA', 'MODUL UTAMA', 'PELAYANAN', 'KONTEN WEBSITE', 'SISTEM'].map((cat) => {
-              const catItems = menuItems.filter(m => m.category === cat);
-              if (!catItems.length) return null;
-              return (
-                <div key={cat} style={{ marginBottom: '1.25rem' }}>
-                  <div className="sidebar-category-title">{cat}</div>
-                  {catItems.map((item) => {
-                    const IconComp = item.icon;
-                    const isActive = activeTab === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
-                        onClick={() => {
-                          setActiveTab(item.id);
-                          setMobileMenuOpen(false);
-                        }}
-                        title={item.label}
-                      >
-                        <IconComp size={20} style={{ flexShrink: 0 }} />
-                        {!sidebarCollapsed && <span>{item.label}</span>}
-                        {!sidebarCollapsed && item.count !== undefined && (
-                          <span className="sidebar-badge">{item.count}</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
+        {/* Navigation Items (Independent Vertical Scroll) */}
+        <div className="sidebar-nav-container">
+          {['UTAMA', 'PELAYANAN', 'KONTEN WEBSITE', 'MODUL UTAMA', 'SISTEM'].map((cat) => {
+            const catItems = menuItems.filter(m => m.category === cat);
+            if (!catItems.length) return null;
+            return (
+              <div key={cat} style={{ marginBottom: '1rem' }}>
+                <div className="sidebar-category-title">{cat}</div>
+                {catItems.map((item) => {
+                  const IconComp = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setMobileMenuOpen(false);
+                      }}
+                      title={item.label}
+                      style={{
+                        justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                        padding: sidebarCollapsed ? '0.75rem' : '0.75rem 1rem'
+                      }}
+                    >
+                      <IconComp size={20} style={{ flexShrink: 0 }} />
+                      {!sidebarCollapsed && <span>{item.label}</span>}
+                      {!sidebarCollapsed && item.count !== undefined && (
+                        <span className="sidebar-badge">{item.count}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
 
         {/* Sidebar Footer Logout Button */}
         <div className="sidebar-footer">
           <button
             className="sidebar-nav-item"
-            style={{ color: '#fca5a5' }}
+            style={{ 
+              color: '#fca5a5', 
+              justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+              padding: sidebarCollapsed ? '0.75rem' : '0.75rem 1rem' 
+            }}
             onClick={onLogout}
+            title="Logout"
           >
             <LogOut size={20} style={{ flexShrink: 0 }} />
             {!sidebarCollapsed && <span>Logout</span>}
