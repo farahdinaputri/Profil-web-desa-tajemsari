@@ -7,7 +7,7 @@ export default function Services() {
   const [namaWarga, setNamaWarga] = useState('');
   const [nik, setNik] = useState('');
   const [noHp, setNoHp] = useState('');
-  const [rtRw, setRtRw] = useState('RT 01 / RW 01');
+  const [alamatLengkap, setAlamatLengkap] = useState('');
   const [jenisSurat, setJenisSurat] = useState('Surat Keterangan Usaha (SKU)');
   const [keperluan, setKeperluan] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -34,7 +34,7 @@ export default function Services() {
         nama_warga: namaWarga,
         nik,
         no_hp: noHp,
-        rt_rw: rtRw,
+        alamat_lengkap: alamatLengkap,
         jenis_surat: jenisSurat,
         keperluan,
       });
@@ -44,6 +44,7 @@ export default function Services() {
       setNamaWarga('');
       setNik('');
       setNoHp('');
+      setAlamatLengkap('');
       setKeperluan('');
     } catch (err) {
       alert("Gagal mengirimkan pengajuan. Coba lagi.");
@@ -131,6 +132,7 @@ export default function Services() {
           border-radius: 10px;
           font-size: 0.95rem;
           margin-top: 0.35rem;
+          font-family: var(--font-body);
         }
 
         .form-input-custom:focus {
@@ -162,10 +164,11 @@ export default function Services() {
             <div className="step-card">
               <div className="step-number">1</div>
               <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: 6 }}>Isi Form Online</h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Lengkapi data NIK, Nama, dan jenis surat yang Anda butuhkan.</p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Lengkapi data NIK, Nama, Alamat, dan jenis surat yang Anda butuhkan.</p>
             </div>
 
             <div className="step-card">
+              <div className="step-number">2</div>
               <div className="step-number">2</div>
               <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: 6 }}>Dapatkan Tiket</h4>
               <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Simpan Kode Tiket unik untuk melacak status pengerjaan.</p>
@@ -216,7 +219,7 @@ export default function Services() {
             </p>
 
             {successResult ? (
-              <div style={{ background: '#f0fdf4', border: '2px solid var(--color-primary)', padding: '1.5rem', borderRadius: 16, textCenter: 'center' }}>
+              <div style={{ background: '#f0fdf4', border: '2px solid var(--color-primary)', padding: '1.5rem', borderRadius: 16, textAlign: 'center' }}>
                 <div style={{ width: 56, height: 56, background: 'var(--color-primary)', borderRadius: '50%', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
                   <CheckCircle size={32} />
                 </div>
@@ -236,46 +239,97 @@ export default function Services() {
               </div>
             ) : (
               <form onSubmit={handleFormSubmit}>
+                {/* 1. Nama Lengkap */}
                 <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>Nama Lengkap (Sesuai KTP)</label>
-                  <input type="text" className="form-input-custom" value={namaWarga} onChange={(e) => setNamaWarga(e.target.value)} placeholder="Contoh: Budi Santoso" required />
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                    Nama Lengkap (Sesuai KTP) *
+                  </label>
+                  <input 
+                    type="text" 
+                    className="form-input-custom" 
+                    value={namaWarga} 
+                    onChange={(e) => setNamaWarga(e.target.value)} 
+                    placeholder="Contoh: Budi Santoso" 
+                    required 
+                  />
                 </div>
 
+                {/* 2. NIK & 3. No. WhatsApp */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                   <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>NIK (16 Digit)</label>
-                    <input type="text" className="form-input-custom" value={nik} onChange={(e) => setNik(e.target.value)} placeholder="331508xxxxxx" required maxLength={16} />
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                      NIK (16 Digit) *
+                    </label>
+                    <input 
+                      type="text" 
+                      className="form-input-custom" 
+                      value={nik} 
+                      onChange={(e) => setNik(e.target.value)} 
+                      placeholder="331508xxxxxx" 
+                      required 
+                      maxLength={16} 
+                    />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>No. WhatsApp / HP</label>
-                    <input type="tel" className="form-input-custom" value={noHp} onChange={(e) => setNoHp(e.target.value)} placeholder="08123456789" required />
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                      No. WhatsApp / HP *
+                    </label>
+                    <input 
+                      type="tel" 
+                      className="form-input-custom" 
+                      value={noHp} 
+                      onChange={(e) => setNoHp(e.target.value)} 
+                      placeholder="08123456789" 
+                      required 
+                    />
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>Wilayah RT / RW</label>
-                    <select className="form-input-custom" value={rtRw} onChange={(e) => setRtRw(e.target.value)}>
-                      <option value="RT 01 / RW 01">RT 01 / RW 01 (Tajemsari)</option>
-                      <option value="RT 02 / RW 01">RT 02 / RW 01 (Tajemsari)</option>
-                      <option value="RT 03 / RW 02">RT 03 / RW 02 (Tajemsari)</option>
-                      <option value="RT 04 / RW 02">RT 04 / RW 02 (Tajemsari)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>Jenis Surat</label>
-                    <select className="form-input-custom" value={jenisSurat} onChange={(e) => setJenisSurat(e.target.value)}>
-                      <option value="Surat Keterangan Usaha (SKU)">Surat Keterangan Usaha (SKU)</option>
-                      <option value="Surat Keterangan Tidak Mampu (SKTM)">Surat Keterangan Tidak Mampu (SKTM)</option>
-                      <option value="Surat Keterangan Domisili">Surat Keterangan Domisili</option>
-                      <option value="Pengantar KTP & KK">Pengantar KTP & KK</option>
-                    </select>
-                  </div>
+                {/* 4. Alamat Lengkap (Textarea 2-3 baris) */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                    Alamat Lengkap *
+                  </label>
+                  <textarea 
+                    className="form-input-custom" 
+                    rows={2} 
+                    value={alamatLengkap} 
+                    onChange={(e) => setAlamatLengkap(e.target.value)} 
+                    placeholder="Contoh: Dusun Krajan, RT 01/RW 02, Desa Tajemsari, Kecamatan Tegowanu" 
+                    required 
+                  />
                 </div>
 
+                {/* 5. Jenis Surat */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                    Jenis Surat *
+                  </label>
+                  <select 
+                    className="form-input-custom" 
+                    value={jenisSurat} 
+                    onChange={(e) => setJenisSurat(e.target.value)}
+                  >
+                    <option value="Surat Keterangan Usaha (SKU)">Surat Keterangan Usaha (SKU)</option>
+                    <option value="Surat Keterangan Tidak Mampu (SKTM)">Surat Keterangan Tidak Mampu (SKTM)</option>
+                    <option value="Surat Keterangan Domisili">Surat Keterangan Domisili</option>
+                    <option value="Pengantar KTP & KK">Pengantar KTP & KK</option>
+                  </select>
+                </div>
+
+                {/* 6. Keperluan Pengajuan */}
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>Keperluan Pengajuan</label>
-                  <textarea className="form-input-custom" rows={3} value={keperluan} onChange={(e) => setKeperluan(e.target.value)} placeholder="Tuliskan alasan/keperluan pembuatan surat..." required />
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                    Keperluan Pengajuan *
+                  </label>
+                  <textarea 
+                    className="form-input-custom" 
+                    rows={3} 
+                    value={keperluan} 
+                    onChange={(e) => setKeperluan(e.target.value)} 
+                    placeholder="Tuliskan alasan/keperluan pembuatan surat..." 
+                    required 
+                  />
                 </div>
 
                 <button type="submit" className="btn btn-gold" style={{ width: '100%' }} disabled={submitting}>
@@ -291,7 +345,7 @@ export default function Services() {
               Lacak Status Permohonan Surat
             </h3>
             <p style={{ fontSize: '0.88rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
-              Masukkan Kode Tiket Anda (Contoh: <code>TJM-202607-001</code>) untuk mengetahui progress pengerjaan.
+              Masukkan Kode Tiket Anda (Contoh: <code>TJM-202607-001</code>) untuk mengecek status pengerjaan.
             </p>
 
             <form onSubmit={handleTrackTicket} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
@@ -321,6 +375,9 @@ export default function Services() {
                   <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)' }}>{trackedItem.jenis_surat}</h4>
                   <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
                     Nama Warga: <strong>{trackedItem.nama_warga}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
+                    Alamat: <strong>{trackedItem.alamat_lengkap || trackedItem.rt_rw}</strong>
                   </div>
                   {trackedItem.catatan_admin && (
                     <div style={{ marginTop: '0.75rem', background: '#fff', borderLeft: '3px solid var(--color-gold)', padding: '0.65rem', fontSize: '0.82rem', color: 'var(--color-text-main)' }}>
