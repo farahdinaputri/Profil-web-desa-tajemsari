@@ -61,6 +61,17 @@ export const apiService = {
     return item;
   },
 
+  async updateBerita(id, updatedBerita) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.from('berita').update(updatedBerita).eq('id', id).select();
+      if (!error && data?.length) return data[0];
+    }
+    const current = getStorageItem('berita', INITIAL_BERITA);
+    const updated = current.map(b => b.id === id ? { ...b, ...updatedBerita } : b);
+    setStorageItem('berita', updated);
+    return true;
+  },
+
   async deleteBerita(id) {
     if (isSupabaseConfigured) {
       await supabase.from('berita').delete().eq('id', id);
@@ -129,6 +140,27 @@ export const apiService = {
     const updated = [...current, item];
     setStorageItem('umkm', updated);
     return item;
+  },
+
+  async updateUMKM(id, updatedProduct) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.from('umkm').update(updatedProduct).eq('id', id).select();
+      if (!error && data?.length) return data[0];
+    }
+    const current = getStorageItem('umkm', INITIAL_UMKM);
+    const updated = current.map(u => u.id === id ? { ...u, ...updatedProduct } : u);
+    setStorageItem('umkm', updated);
+    return true;
+  },
+
+  async deleteUMKM(id) {
+    if (isSupabaseConfigured) {
+      await supabase.from('umkm').delete().eq('id', id);
+    }
+    const current = getStorageItem('umkm', INITIAL_UMKM);
+    const updated = current.filter(u => u.id !== id);
+    setStorageItem('umkm', updated);
+    return true;
   },
 
   // --- WISATA ---
