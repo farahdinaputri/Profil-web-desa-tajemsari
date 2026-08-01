@@ -9,6 +9,7 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
 
   const navItems = [
     { id: 'beranda', path: '/', label: 'Beranda' },
+    { id: 'berita', path: '/berita', label: 'Berita Desa' },
     { id: 'profil', path: '/profil', label: 'Profil Desa' },
     { id: 'layanan', path: '/layanan', label: 'Layanan Publik' },
     { id: 'potensi', path: '/potensi', label: 'Potensi & Wisata' },
@@ -21,7 +22,8 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
   };
 
   const isCurrentActive = (path) => {
-    if (path === '/') return location.pathname === '/' || location.pathname.startsWith('/berita');
+    if (path === '/') return location.pathname === '/';
+    if (path === '/berita') return location.pathname.startsWith('/berita');
     return location.pathname === path;
   };
 
@@ -83,12 +85,12 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
         .nav-links {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.35rem;
           list-style: none;
         }
 
         .nav-item-btn {
-          padding: 0.55rem 1.1rem;
+          padding: 0.55rem 1rem;
           border-radius: var(--radius-md);
           font-weight: 600;
           font-size: 0.92rem;
@@ -151,7 +153,7 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
           padding: 0.5rem;
         }
 
-        @media (max-width: 920px) {
+        @media (max-width: 960px) {
           .nav-links {
             display: none;
           }

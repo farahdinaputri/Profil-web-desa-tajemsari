@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Services from './pages/Services';
 import Showcase from './pages/Showcase';
+import NewsList from './pages/NewsList';
 import NewsDetail from './pages/NewsDetail';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -38,10 +39,11 @@ export default function App() {
       <main style={{ flex: 1 }}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/berita" element={<NewsList />} />
+          <Route path="/berita/:id" element={<NewsDetail />} />
           <Route path="/profil" element={<Profile />} />
           <Route path="/layanan" element={<Services />} />
           <Route path="/potensi" element={<Showcase />} />
-          <Route path="/berita/:id" element={<NewsDetail />} />
           <Route 
             path="/admin" 
             element={

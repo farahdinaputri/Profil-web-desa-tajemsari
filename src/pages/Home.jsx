@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
-import { Newspaper, ArrowRight, Calendar, User, Eye, Wheat, Users, Building, Sparkles } from 'lucide-react';
+import { Newspaper, ArrowRight, Calendar, User, Eye, Wheat, Users, Building, Sparkles, ChevronRight } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function Home() {
@@ -23,6 +23,9 @@ export default function Home() {
   const filteredBerita = activeCategory === 'Semua' 
     ? beritaList 
     : beritaList.filter(b => b.kategori === activeCategory);
+
+  // Home page displays the 3 latest news items
+  const homeBeritaList = filteredBerita.slice(0, 3);
 
   return (
     <div className="home-page animate-fade-in">
@@ -219,14 +222,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Berita Terkini & Pengumuman Desa */}
+      {/* Berita Terkini (Displays 3 Latest News Cards + Button "Lihat Berita Lainnya") */}
       <section className="section-padding" style={{ background: '#ffffff', borderTop: '1px solid var(--color-border)' }}>
         <div className="container">
           <div className="section-header">
             <span className="section-subtitle">
               <Newspaper size={14} /> Informasi Kunci & Kegiatan
             </span>
-            <h2 className="section-title">Berita & Kabar Desa Tajemsari</h2>
+            <h2 className="section-title">Berita Terkini Desa Tajemsari</h2>
             <p className="section-description">
               Simak berita kegiatan pembangunan, penyaluran bantuan, kesehatan, dan perkembangan hasil panen terkini di Tegowanu.
             </p>
@@ -255,12 +258,12 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid-3">
-            {filteredBerita.map((item) => (
+          <div className="grid-3" style={{ marginBottom: '2.5rem' }}>
+            {homeBeritaList.map((item) => (
               <div 
                 key={item.id} 
                 className="berita-card"
-                onClick={() => navigate(`/berita/${item.id}`)}
+                onClick={() => navigate(`/berita/${item.slug || item.id}`)}
               >
                 <img src={item.gambar} alt={item.judul} className="berita-img" />
                 <div className="berita-content">
@@ -284,7 +287,7 @@ export default function Home() {
                     style={{ width: '100%', padding: '0.55rem', fontSize: '0.85rem' }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/berita/${item.id}`);
+                      navigate(`/berita/${item.slug || item.id}`);
                     }}
                   >
                     <Eye size={16} /> Baca Selengkapnya <ArrowRight size={14} />
@@ -292,6 +295,18 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Button "Lihat Berita Lainnya" -> /berita */}
+          <div style={{ textAlign: 'center' }}>
+            <button 
+              id="home-all-news-btn"
+              className="btn btn-gold" 
+              style={{ padding: '0.9rem 2.2rem', fontSize: '1rem', borderRadius: '30px' }}
+              onClick={() => navigate('/berita')}
+            >
+              <Newspaper size={18} /> Lihat Berita Lainnya <ChevronRight size={18} />
+            </button>
           </div>
         </div>
       </section>
