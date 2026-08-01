@@ -4,7 +4,7 @@ import {
   ShoppingBag, LogOut, Upload, Image as ImageIcon, Star, ArrowUp, 
   ArrowDown, Sparkles, MessageSquare, Compass, MapPin, Clock, Ticket, 
   Tag, DollarSign, User, Phone, LayoutDashboard, Settings as SettingsIcon, 
-  Globe, Eye, Menu, ChevronRight, AlertCircle, Save, CheckCircle, RefreshCw, Mail
+  Globe, Eye, Menu, ChevronRight, AlertCircle, Save, CheckCircle, RefreshCw, Mail, Download, FileCheck
 } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
@@ -68,10 +68,13 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [wisataImagesList, setWisataImagesList] = useState([]);
   const [isDraggingWisata, setIsDraggingWisata] = useState(false);
 
-  // Status Note Modal for Permohonan
+  // Permohonan Status & Upload PDF Modal States
   const [selectedPermohonan, setSelectedPermohonan] = useState(null);
   const [catatanText, setCatatanText] = useState('');
-  const [targetStatus, setTargetStatus] = useState('Diproses');
+  const [targetStatus, setTargetStatus] = useState('Sedang Diproses');
+  const [modalFileUrl, setModalFileUrl] = useState('');
+  const [modalFileName, setModalFileName] = useState('');
+  const [modalMetode, setModalMetode] = useState('Digital');
 
   useEffect(() => {
     loadAllData();
@@ -532,18 +535,71 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   };
 
   // ==========================================
-  // PERMOHONAN STATUS MODAL LOGIC
+  // PERMOHONAN STATUS & UPLOAD PDF MODAL LOGIC
   // ==========================================
-  const handleOpenStatusModal = (item, status) => {
+  const getStatusBadgeStyle = (status) => {
+    switch (status) {
+      case 'Siap Diunduh': return { bg: '#dcfce7', color: '#15803d', label: '🟢 Siap Diunduh' };
+      case 'Siap Diambil di Balai Desa': return { bg: '#fef3c7', color: '#b45309', label: '📜 Siap Diambil di Balai Desa' };
+      case 'Sedang Diproses': return { bg: '#dbeafe', color: '#1d4ed8', label: '🔵 Sedang Diproses' };
+      case 'Menunggu Tanda Tangan': return { bg: '#f3e8ff', color: '#7e22ce', label: '🟣 Menunggu Tanda Tangan' };
+      case 'Ditolak': return { bg: '#fee2e2', color: '#b91c1c', label: '🔴 Ditolak' };
+      default: return { bg: '#fef9c3', color: '#a16207', label: '🟡 Menunggu Verifikasi' };
+    }
+  };
+
+  const handleOpenStatusModal = (item) => {
     setSelectedPermohonan(item);
-    setTargetStatus(status);
+    setTargetStatus(item.status || 'Menunggu Verifikasi');
     setCatatanText(item.catatan_admin || '');
+    setModalFileUrl(item.file_surat_url || '');
+    setModalFileName(item.file_surat_name || '');
+    setModalMetode(item.metode_pengambilan || 'Digital');
+  };
+
+  const handlePdfFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        alert('File harus berformat PDF!');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setModalFileUrl(event.target.result);
+        setModalFileName(file.name);
+        if (targetStatus !== 'Siap Diambil di Balai Desa') {
+          setTargetStatus('Siap Diunduh');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePdfFile = () => {
+    setModalFileUrl('');
+    setModalFileName('');
+    if (targetStatus === 'Siap Diunduh') {
+      setTargetStatus('Sedang Diproses');
+    }
+  };
+
+  const handlePreviewPdfFile = () => {
+    if (!modalFileUrl) return;
+    const win = window.open();
+    if (win) {
+      win.document.write(`<iframe width="100%" height="100%" style="border:none;" src="${modalFileUrl}"></iframe>`);
+    }
   };
 
   const handleUpdatePermohonanStatus = async () => {
     if (!selectedPermohonan) return;
-    await apiService.updateStatusPermohonan(selectedPermohonan.id, targetStatus, catatanText);
-    showToast(`Status tiket #${selectedPermohonan.nomor_tiket} diubah ke '${targetStatus}'!`);
+    await apiService.updateStatusPermohonan(selectedPermohonan.id, targetStatus, catatanText, {
+      file_surat_url: modalFileUrl,
+      file_surat_name: modalFileName,
+      metode_pengambilan: modalMetode
+    });
+    showToast(`Permohonan #${selectedPermohonan.nomor_tiket} berhasil diperbarui!`);
     setSelectedPermohonan(null);
     loadAllData();
   };
@@ -551,14 +607,14 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   // Navigation Items Definition
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, category: 'UTAMA' },
+    { id: 'permohonan', label: 'Pengajuan Surat', icon: FileText, count: permohonanList.length, category: 'PELAYANAN' },
     { id: 'hero', label: 'Kelola Hero Section', icon: ImageIcon, category: 'KONTEN WEBSITE' },
     { id: 'profil', label: 'Kelola Profil Desa', icon: Globe, category: 'KONTEN WEBSITE' },
     { id: 'berita', label: 'Kelola Berita', icon: Newspaper, count: beritaList.length, category: 'MODUL UTAMA' },
     { id: 'umkm', label: 'Kelola UMKM', icon: ShoppingBag, count: umkmList.length, category: 'MODUL UTAMA' },
     { id: 'wisata', label: 'Kelola Wisata', icon: Compass, count: wisataList.length, category: 'MODUL UTAMA' },
-    { id: 'permohonan', label: 'Pengajuan Surat', icon: FileText, count: permohonanList.length, category: 'PELAYANAN' },
     { id: 'footer', label: 'Kelola Footer', icon: MapPin, category: 'KONTEN WEBSITE' },
-    { id: 'settings', label: 'Pengaturan', icon: SettingsIcon, category: 'SISTEM' },
+    { id: 'settings', label: 'Pengaturan Website', icon: SettingsIcon, category: 'SISTEM' },
   ];
 
   return (
@@ -586,7 +642,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 1000;
           box-shadow: 4px 0 20px rgba(0,0,0,0.15);
           border-right: 1px solid rgba(212, 175, 55, 0.25);
@@ -594,13 +650,15 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         }
 
         .sidebar-brand {
-          padding: 1.5rem 1.25rem;
+          padding: 1.25rem 1rem;
           display: flex;
           align-items: center;
           gap: 0.85rem;
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           background-color: #0c1f0f !important;
           flex-shrink: 0;
+          height: 70px;
+          box-sizing: border-box;
         }
 
         .sidebar-brand-icon {
@@ -618,9 +676,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
         .sidebar-nav-container {
           flex: 1;
+          min-height: 0;
           overflow-y: auto;
           overflow-x: hidden;
-          padding: 1rem 0.75rem;
+          padding: 1rem 0.65rem;
           background-color: #112a14 !important;
           scroll-behavior: smooth;
           -webkit-overflow-scrolling: touch;
@@ -692,7 +751,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         }
 
         .sidebar-footer {
-          padding: 1rem;
+          padding: 1rem 0.75rem;
           border-top: 1px solid rgba(255, 255, 255, 0.1);
           background-color: #0c1f0f !important;
           flex-shrink: 0;
@@ -723,6 +782,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           top: 0;
           z-index: 900;
           box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+          flex-shrink: 0;
         }
 
         .admin-content-area {
@@ -850,32 +910,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           padding: 0.85rem;
           border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
-        }
-
-        .image-preview-row.is-cover {
-          border-color: var(--color-gold);
-          box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
-          background: #fffdf5;
-        }
-
-        .preview-img-square {
-          width: 80px;
-          height: 80px;
-          border-radius: 10px;
-          object-fit: cover;
-          flex-shrink: 0;
-        }
-
-        .cover-tag-badge {
-          background: var(--color-gold);
-          color: #ffffff;
-          font-size: 0.68rem;
-          font-weight: 800;
-          padding: 0.2rem 0.55rem;
-          border-radius: 6px;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
         }
 
         .admin-item-card {
@@ -1156,7 +1190,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
               {/* Two Column Layout for Dashboard Widgets */}
               <div className="grid-2">
-                {/* Permohonan Terbaru */}
                 <div className="card-rural">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>Permohonan Surat Terbaru</h4>
@@ -1166,21 +1199,23 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {permohonanList.slice(0, 4).map((p) => (
-                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#ffffff', padding: '0.85rem 1rem', borderRadius: 12, border: '1px solid var(--color-border)' }}>
-                        <div>
-                          <strong style={{ fontSize: '0.9rem', color: 'var(--color-primary-dark)' }}>{p.nama_warga}</strong>
-                          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{p.jenis_surat} • {p.nomor_tiket}</div>
+                    {permohonanList.slice(0, 4).map((p) => {
+                      const badgeInfo = getStatusBadgeStyle(p.status);
+                      return (
+                        <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#ffffff', padding: '0.85rem 1rem', borderRadius: 12, border: '1px solid var(--color-border)' }}>
+                          <div>
+                            <strong style={{ fontSize: '0.9rem', color: 'var(--color-primary-dark)' }}>{p.nama_warga}</strong>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{p.jenis_surat} • {p.nomor_tiket}</div>
+                          </div>
+                          <span style={{ background: badgeInfo.bg, color: badgeInfo.color, padding: '0.2rem 0.6rem', borderRadius: 12, fontSize: '0.72rem', fontWeight: 700 }}>
+                            {badgeInfo.label}
+                          </span>
                         </div>
-                        <span className={p.status === 'Selesai' ? 'badge-green' : 'badge-gold'}>
-                          {p.status}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Quick Action CMS Cards */}
                 <div className="card-rural">
                   <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>Aksi Cepat CMS Admin</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -1209,66 +1244,33 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               <form onSubmit={handleSaveHero}>
                 <div className="admin-form-group">
                   <label className="admin-form-label">Teks Badge Top (Pill Badge)</label>
-                  <input 
-                    type="text" 
-                    className="form-input-custom" 
-                    value={heroState.badge} 
-                    onChange={(e) => setHeroState({ ...heroState, badge: e.target.value })} 
-                    placeholder="Contoh: Website Resmi Desa Tajemsari • Kec. Tegowanu" 
-                  />
+                  <input type="text" className="form-input-custom" value={heroState.badge} onChange={(e) => setHeroState({ ...heroState, badge: e.target.value })} placeholder="Contoh: Website Resmi Desa Tajemsari • Kec. Tegowanu" />
                 </div>
 
                 <div className="admin-form-group">
                   <label className="admin-form-label">Judul Utama Hero Section *</label>
-                  <input 
-                    type="text" 
-                    className="form-input-custom" 
-                    value={heroState.judul} 
-                    onChange={(e) => setHeroState({ ...heroState, judul: e.target.value })} 
-                    required 
-                  />
+                  <input type="text" className="form-input-custom" value={heroState.judul} onChange={(e) => setHeroState({ ...heroState, judul: e.target.value })} required />
                 </div>
 
                 <div className="admin-form-group">
                   <label className="admin-form-label">Deskripsi Singkat Profil Desa *</label>
-                  <textarea 
-                    className="form-input-custom" 
-                    rows={4} 
-                    value={heroState.deskripsi} 
-                    onChange={(e) => setHeroState({ ...heroState, deskripsi: e.target.value })} 
-                    required 
-                  />
+                  <textarea className="form-input-custom" rows={4} value={heroState.deskripsi} onChange={(e) => setHeroState({ ...heroState, deskripsi: e.target.value })} required />
                 </div>
 
                 <div className="form-grid-2col">
                   <div className="admin-form-group">
                     <label className="admin-form-label">Label Tombol Utama (CTA 1)</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={heroState.ctaPrimary} 
-                      onChange={(e) => setHeroState({ ...heroState, ctaPrimary: e.target.value })} 
-                    />
+                    <input type="text" className="form-input-custom" value={heroState.ctaPrimary} onChange={(e) => setHeroState({ ...heroState, ctaPrimary: e.target.value })} />
                   </div>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Label Tombol Sekunder (CTA 2)</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={heroState.ctaSecondary} 
-                      onChange={(e) => setHeroState({ ...heroState, ctaSecondary: e.target.value })} 
-                    />
+                    <input type="text" className="form-input-custom" value={heroState.ctaSecondary} onChange={(e) => setHeroState({ ...heroState, ctaSecondary: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="admin-form-group">
                   <label className="admin-form-label">URL Gambar Background Hero</label>
-                  <input 
-                    type="text" 
-                    className="form-input-custom" 
-                    value={heroState.bgImage} 
-                    onChange={(e) => setHeroState({ ...heroState, bgImage: e.target.value })} 
-                  />
+                  <input type="text" className="form-input-custom" value={heroState.bgImage} onChange={(e) => setHeroState({ ...heroState, bgImage: e.target.value })} />
                 </div>
 
                 <button type="submit" className="btn btn-gold" style={{ padding: '0.85rem 2rem' }}>
@@ -1289,46 +1291,22 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 <div className="form-grid-2col">
                   <div className="admin-form-group">
                     <label className="admin-form-label">Nama Kepala Desa *</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={profilState.namaKades} 
-                      onChange={(e) => setProfilState({ ...profilState, namaKades: e.target.value })} 
-                      required 
-                    />
+                    <input type="text" className="form-input-custom" value={profilState.namaKades} onChange={(e) => setProfilState({ ...profilState, namaKades: e.target.value })} required />
                   </div>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Jabatan *</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={profilState.jabatanKades} 
-                      onChange={(e) => setProfilState({ ...profilState, jabatanKades: e.target.value })} 
-                      required 
-                    />
+                    <input type="text" className="form-input-custom" value={profilState.jabatanKades} onChange={(e) => setProfilState({ ...profilState, jabatanKades: e.target.value })} required />
                   </div>
                 </div>
 
                 <div className="admin-form-group">
                   <label className="admin-form-label">Naskah Sambutan Kepala Desa *</label>
-                  <textarea 
-                    className="form-input-custom" 
-                    rows={4} 
-                    value={profilState.sambutanKades} 
-                    onChange={(e) => setProfilState({ ...profilState, sambutanKades: e.target.value })} 
-                    required 
-                  />
+                  <textarea className="form-input-custom" rows={4} value={profilState.sambutanKades} onChange={(e) => setProfilState({ ...profilState, sambutanKades: e.target.value })} required />
                 </div>
 
                 <div className="admin-form-group">
                   <label className="admin-form-label">Teks Visi Desa Tajemsari *</label>
-                  <textarea 
-                    className="form-input-custom" 
-                    rows={2} 
-                    value={profilState.visi} 
-                    onChange={(e) => setProfilState({ ...profilState, visi: e.target.value })} 
-                    required 
-                  />
+                  <textarea className="form-input-custom" rows={2} value={profilState.visi} onChange={(e) => setProfilState({ ...profilState, visi: e.target.value })} required />
                 </div>
 
                 <button type="submit" className="btn btn-gold" style={{ padding: '0.85rem 2rem' }}>
@@ -1344,8 +1322,8 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               <div className="admin-form-card">
                 {editingBeritaId ? (
                   <div className="editing-banner">
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Edit3 size={16} /> Sedang Mengedit Berita: <strong>"{newJudul || 'Tanpa Judul'}"</strong>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13' }}>
+                      Sedang Mengedit Berita: <strong>"{newJudul}"</strong>
                     </div>
                     <button onClick={handleCancelEditBerita} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.3rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>
                       Batal Edit
@@ -1383,7 +1361,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     <textarea className="form-input-custom" rows={5} value={newIsi} onChange={(e) => setNewIsi(e.target.value)} placeholder="Tuliskan berita lengkap..." required />
                   </div>
 
-                  {/* Multiple Image Upload Zone */}
                   <div className="admin-form-group">
                     <label className="admin-form-label"><ImageIcon size={15} /> Foto Utama & Galeri Dokumentasi (Multiple Upload)</label>
                     <div 
@@ -1394,8 +1371,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       onClick={() => document.getElementById('berita-file-input').click()}
                     >
                       <Upload size={30} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
-                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem', display: 'block' }}>Tarik & Lepas foto ke sini, atau klik untuk memilih file</strong>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Mendukung multiple upload (JPG, PNG, WEBP)</span>
+                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem' }}>Tarik & Lepas foto ke sini, atau klik untuk memilih</strong>
                       <input id="berita-file-input" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => handleBeritaFilesAdded(e.target.files)} />
                     </div>
 
@@ -1404,21 +1380,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                         {beritaImagesList.map((img, idx) => (
                           <div key={img.id} className={`image-preview-row ${img.isCover ? 'is-cover' : ''}`}>
                             <img src={img.url} alt={`Foto ${idx+1}`} className="preview-img-square" />
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                {img.isCover ? (
-                                  <span className="cover-tag-badge"><Star size={10} fill="#fff" /> COVER UTAMA</span>
-                                ) : (
-                                  <button type="button" onClick={() => handleBeritaSetCover(img.id)} style={{ background: 'transparent', border: '1px solid var(--color-gold)', color: '#8a6d13', fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}>
-                                    Jadikan Cover
-                                  </button>
-                                )}
-                              </div>
-                              <input type="text" className="form-input-custom" style={{ marginTop: 0, padding: '0.35rem 0.65rem', fontSize: '0.82rem' }} placeholder="Caption foto..." value={img.caption || ''} onChange={(e) => handleBeritaCaptionChange(img.id, e.target.value)} />
+                            <div style={{ flex: 1 }}>
+                              {img.isCover ? <span className="cover-tag-badge"><Star size={10} fill="#fff" /> COVER UTAMA</span> : <button type="button" onClick={() => handleBeritaSetCover(img.id)} style={{ background: 'transparent', border: '1px solid var(--color-gold)', color: '#8a6d13', fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 4, cursor: 'pointer' }}>Jadikan Cover</button>}
                             </div>
-                            <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 4, padding: '0.25rem 0.4rem', cursor: 'pointer' }} onClick={() => handleBeritaDeleteImage(img.id)}>
-                              <Trash2 size={14} />
-                            </button>
+                            <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 4, padding: '0.25rem 0.4rem', cursor: 'pointer' }} onClick={() => handleBeritaDeleteImage(img.id)}><Trash2 size={14} /></button>
                           </div>
                         ))}
                       </div>
@@ -1442,7 +1407,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                         <img src={item.gambar} alt={item.judul} style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover' }} />
                         <div>
                           <span className="badge-gold" style={{ fontSize: '0.72rem' }}>{item.kategori}</span>
-                          <h4 style={{ fontSize: '0.98rem', color: 'var(--color-primary-dark)', marginTop: 2, marginBottom: 2 }}>{item.judul}</h4>
+                          <h4 style={{ fontSize: '0.98rem', color: 'var(--color-primary-dark)', marginTop: 2 }}>{item.judul}</h4>
                           <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{item.tanggal}</span>
                         </div>
                       </div>
@@ -1518,7 +1483,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     <textarea className="form-input-custom" rows={3} value={newProdukDesc} onChange={(e) => setNewProdukDesc(e.target.value)} placeholder="Deskripsi produk..." required />
                   </div>
 
-                  {/* Multiple Upload UMKM */}
                   <div className="admin-form-group">
                     <label className="admin-form-label"><ImageIcon size={15} /> Foto Produk UMKM (Multiple Upload)</label>
                     <div 
@@ -1641,7 +1605,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     <textarea className="form-input-custom" rows={3} value={newWisataDesc} onChange={(e) => setNewWisataDesc(e.target.value)} placeholder="Tuliskan keindahan lokasi..." required />
                   </div>
 
-                  {/* Multiple Upload Wisata */}
                   <div className="admin-form-group">
                     <label className="admin-form-label"><ImageIcon size={15} /> Foto Destinasi (Multiple Upload)</label>
                     <div 
@@ -1664,7 +1627,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                             <div style={{ flex: 1 }}>
                               {img.isCover ? <span className="cover-tag-badge"><Star size={10} fill="#fff" /> UTAMA</span> : <button type="button" onClick={() => handleWisataSetCover(img.id)} style={{ background: 'transparent', border: '1px solid var(--color-gold)', color: '#8a6d13', fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 4, cursor: 'pointer' }}>Jadikan Utama</button>}
                             </div>
-                            <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 4, padding: '0.25rem 0.4rem', cursor: 'pointer' }} onClick={() => handleWisataDeleteImage(img.id)}><Trash2 size={14} /></button>
+                            <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 4, padding: '0.25rem 0.4rem', cursor: 'pointer' }} onClick={() => handleDeleteWisata(img.id)}><Trash2 size={14} /></button>
                           </div>
                         ))}
                       </div>
@@ -1707,12 +1670,20 @@ export default function AdminDashboard({ adminUser, onLogout }) {
             </div>
           )}
 
-          {/* TAB 7: PENGAJUAN SURAT WARGA */}
+          {/* TAB 7: PENGAJUAN SURAT WARGA & UPLOAD SURAT JADI (PDF) */}
           {activeTab === 'permohonan' && (
             <div>
-              <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
-                Kelola Seluruh Pengajuan Surat Masyarakat Tajemsari
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)' }}>
+                    Kelola Seluruh Pengajuan Surat Masyarakat Tajemsari
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                    Verifikasi berkas, ubah status pengerjaan, dan unggah file surat PDF yang sudah jadi untuk diunduh warga.
+                  </p>
+                </div>
+              </div>
+
               <div style={{ overflowX: 'auto' }}>
                 <table className="data-table">
                   <thead>
@@ -1721,46 +1692,64 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       <th>Detail Pemohon</th>
                       <th>Jenis Surat</th>
                       <th>Keperluan</th>
-                      <th>Status</th>
+                      <th>Status & Metode</th>
+                      <th>Dokumen PDF</th>
                       <th>Aksi Admin</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {permohonanList.map((item) => (
-                      <tr key={item.id}>
-                        <td>
-                          <strong>{item.nomor_tiket}</strong><br />
-                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{item.tanggal_pengajuan}</span>
-                        </td>
-                        <td>
-                          <strong>{item.nama_warga}</strong><br />
-                          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                            NIK: {item.nik} • HP: {item.no_hp}<br />
-                            Alamat: {item.alamat_lengkap || item.rt_rw || '-'}
-                          </span>
-                        </td>
-                        <td><span className="badge-green">{item.jenis_surat}</span></td>
-                        <td style={{ maxWidth: 220 }}>{item.keperluan}</td>
-                        <td>
-                          <span className={item.status === 'Selesai' ? 'badge-green' : item.status === 'Ditolak' ? 'badge-gold' : 'badge-gold'}>
-                            {item.status}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '0.4rem' }}>
-                            <button style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '0.35rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', cursor: 'pointer' }} onClick={() => handleOpenStatusModal(item, 'Diproses')}>
-                              Proses
+                    {permohonanList.map((item) => {
+                      const badgeInfo = getStatusBadgeStyle(item.status);
+                      return (
+                        <tr key={item.id}>
+                          <td>
+                            <strong>#{item.nomor_tiket}</strong><br />
+                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{item.tanggal_pengajuan}</span>
+                          </td>
+                          <td>
+                            <strong>{item.nama_warga}</strong><br />
+                            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                              NIK: {item.nik} • HP: {item.no_hp}<br />
+                              Alamat: {item.alamat_lengkap || item.rt_rw || '-'}
+                            </span>
+                          </td>
+                          <td><span className="badge-green">{item.jenis_surat}</span></td>
+                          <td style={{ maxWidth: 200 }}>{item.keperluan}</td>
+                          <td>
+                            <span style={{ background: badgeInfo.bg, color: badgeInfo.color, padding: '0.3rem 0.65rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, display: 'inline-block', marginBottom: 4 }}>
+                              {badgeInfo.label}
+                            </span><br />
+                            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                              Metode: <strong>{item.metode_pengambilan || 'Digital'}</strong>
+                            </span>
+                          </td>
+                          <td>
+                            {item.file_surat_url ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <FileCheck size={14} /> PDF Terunggah
+                                </span>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {item.file_surat_name || 'Dokumen_Surat.pdf'}
+                                </span>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: '#94a3b8', italic: 'true' }}>
+                                Belum Ada File PDF
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <button 
+                              style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, #1b5e20 100%)', color: '#fff', border: 'none', padding: '0.5rem 0.85rem', borderRadius: 8, fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 6px rgba(46,125,50,0.25)' }}
+                              onClick={() => handleOpenStatusModal(item)}
+                            >
+                              <Upload size={14} /> Kelola & Upload PDF
                             </button>
-                            <button style={{ background: '#10b981', color: '#fff', border: 'none', padding: '0.35rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', cursor: 'pointer' }} onClick={() => handleOpenStatusModal(item, 'Selesai')}>
-                              Setujui
-                            </button>
-                            <button style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '0.35rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', cursor: 'pointer' }} onClick={() => handleOpenStatusModal(item, 'Ditolak')}>
-                              Tolak
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1777,65 +1766,34 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               <form onSubmit={handleSaveFooter}>
                 <div className="admin-form-group">
                   <label className="admin-form-label">Alamat Lengkap Balai Desa *</label>
-                  <textarea 
-                    className="form-input-custom" 
-                    rows={2} 
-                    value={footerState.alamat} 
-                    onChange={(e) => setFooterState({ ...footerState, alamat: e.target.value })} 
-                    required 
-                  />
+                  <textarea className="form-input-custom" rows={2} value={footerState.alamat} onChange={(e) => setFooterState({ ...footerState, alamat: e.target.value })} required />
                 </div>
 
                 <div className="form-grid-2col">
                   <div className="admin-form-group">
                     <label className="admin-form-label">No. Telepon Kantor</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={footerState.telepon} 
-                      onChange={(e) => setFooterState({ ...footerState, telepon: e.target.value })} 
-                    />
+                    <input type="text" className="form-input-custom" value={footerState.telepon} onChange={(e) => setFooterState({ ...footerState, telepon: e.target.value })} />
                   </div>
                   <div className="admin-form-group">
                     <label className="admin-form-label">WhatsApp Official Desa</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={footerState.whatsapp} 
-                      onChange={(e) => setFooterState({ ...footerState, whatsapp: e.target.value })} 
-                    />
+                    <input type="text" className="form-input-custom" value={footerState.whatsapp} onChange={(e) => setFooterState({ ...footerState, whatsapp: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="form-grid-2col">
                   <div className="admin-form-group">
                     <label className="admin-form-label">Email Resmi Desa</label>
-                    <input 
-                      type="email" 
-                      className="form-input-custom" 
-                      value={footerState.email} 
-                      onChange={(e) => setFooterState({ ...footerState, email: e.target.value })} 
-                    />
+                    <input type="email" className="form-input-custom" value={footerState.email} onChange={(e) => setFooterState({ ...footerState, email: e.target.value })} />
                   </div>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Jam Pelayanan Kantor</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={footerState.jamPelayanan} 
-                      onChange={(e) => setFooterState({ ...footerState, jamPelayanan: e.target.value })} 
-                    />
+                    <input type="text" className="form-input-custom" value={footerState.jamPelayanan} onChange={(e) => setFooterState({ ...footerState, jamPelayanan: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="admin-form-group">
                   <label className="admin-form-label">Tautan Google Maps Desa Tajemsari</label>
-                  <input 
-                    type="text" 
-                    className="form-input-custom" 
-                    value={footerState.mapsUrl} 
-                    onChange={(e) => setFooterState({ ...footerState, mapsUrl: e.target.value })} 
-                  />
+                  <input type="text" className="form-input-custom" value={footerState.mapsUrl} onChange={(e) => setFooterState({ ...footerState, mapsUrl: e.target.value })} />
                 </div>
 
                 <button type="submit" className="btn btn-gold" style={{ padding: '0.85rem 2rem' }}>
@@ -1856,56 +1814,28 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 <div className="form-grid-2col">
                   <div className="admin-form-group">
                     <label className="admin-form-label">Nama Desa *</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={settingsState.namaDesa} 
-                      onChange={(e) => setSettingsState({ ...settingsState, namaDesa: e.target.value })} 
-                      required 
-                    />
+                    <input type="text" className="form-input-custom" value={settingsState.namaDesa} onChange={(e) => setSettingsState({ ...settingsState, namaDesa: e.target.value })} required />
                   </div>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Kecamatan *</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={settingsState.kecamatan} 
-                      onChange={(e) => setSettingsState({ ...settingsState, kecamatan: e.target.value })} 
-                      required 
-                    />
+                    <input type="text" className="form-input-custom" value={settingsState.kecamatan} onChange={(e) => setSettingsState({ ...settingsState, kecamatan: e.target.value })} required />
                   </div>
                 </div>
 
                 <div className="form-grid-2col">
                   <div className="admin-form-group">
                     <label className="admin-form-label">Kabupaten *</label>
-                    <input 
-                      type="text" 
-                      className="form-input-custom" 
-                      value={settingsState.kabupaten} 
-                      onChange={(e) => setSettingsState({ ...settingsState, kabupaten: e.target.value })} 
-                      required 
-                    />
+                    <input type="text" className="form-input-custom" value={settingsState.kabupaten} onChange={(e) => setSettingsState({ ...settingsState, kabupaten: e.target.value })} required />
                   </div>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Email Admin Login</label>
-                    <input 
-                      type="email" 
-                      className="form-input-custom" 
-                      value={settingsState.emailAdmin} 
-                      onChange={(e) => setSettingsState({ ...settingsState, emailAdmin: e.target.value })} 
-                    />
+                    <input type="email" className="form-input-custom" value={settingsState.emailAdmin} onChange={(e) => setSettingsState({ ...settingsState, emailAdmin: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="admin-form-group">
                   <label className="admin-form-label">Pengumuman / Teks Berjalan Running Text</label>
-                  <textarea 
-                    className="form-input-custom" 
-                    rows={2} 
-                    value={settingsState.runningText} 
-                    onChange={(e) => setSettingsState({ ...settingsState, runningText: e.target.value })} 
-                  />
+                  <textarea className="form-input-custom" rows={2} value={settingsState.runningText} onChange={(e) => setSettingsState({ ...settingsState, runningText: e.target.value })} />
                 </div>
 
                 <button type="submit" className="btn btn-gold" style={{ padding: '0.85rem 2rem' }}>
@@ -1917,34 +1847,169 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         </div>
       </main>
 
-      {/* Modal Status Note untuk Permohonan Surat */}
+      {/* MODAL KELOLA PERMOHONAN & UPLOAD SURAT PDF */}
       {selectedPermohonan && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-          <div style={{ background: '#ffffff', borderRadius: 20, padding: '2rem', maxWidth: 480, width: '90%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-            <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary-dark)', marginBottom: '0.5rem' }}>
-              Ubah Status Tiket #{selectedPermohonan.nomor_tiket}
-            </h3>
-            <p style={{ fontSize: '0.88rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
-              Status baru: <strong style={{ color: 'var(--color-primary)' }}>{targetStatus}</strong>
-            </p>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, backdropFilter: 'blur(4px)' }}>
+          <div style={{ background: '#ffffff', borderRadius: 24, padding: '2rem', maxWidth: 560, width: '92%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', border: '2px solid var(--color-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary-dark)', margin: 0 }}>
+                  Kelola Surat #{selectedPermohonan.nomor_tiket}
+                </h3>
+                <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                  Pemohon: <strong>{selectedPermohonan.nama_warga}</strong> • {selectedPermohonan.jenis_surat}
+                </span>
+              </div>
+              <button onClick={() => setSelectedPermohonan(null)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
 
+            {/* Pilihan Status Pengajuan */}
             <div className="admin-form-group">
-              <label className="admin-form-label">Catatan Petugas (Tampil pada Lacak Warga)</label>
+              <label className="admin-form-label">
+                <Tag size={15} /> Update Status Permohonan *
+              </label>
+              <select className="form-input-custom" value={targetStatus} onChange={(e) => setTargetStatus(e.target.value)}>
+                <option value="Menunggu Verifikasi">🟡 Menunggu Verifikasi</option>
+                <option value="Sedang Diproses">🔵 Sedang Diproses</option>
+                <option value="Menunggu Tanda Tangan">🟣 Menunggu Tanda Tangan</option>
+                <option value="Siap Diunduh">🟢 Siap Diunduh (Digital PDF)</option>
+                <option value="Siap Diambil di Balai Desa">📜 Siap Diambil di Balai Desa (Fisik)</option>
+                <option value="Ditolak">🔴 Ditolak</option>
+              </select>
+            </div>
+
+            {/* Metode Pengambilan */}
+            <div className="admin-form-group">
+              <label className="admin-form-label">
+                <FileCheck size={15} /> Metode Layanan Hasil Surat *
+              </label>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem' }}>
+                <label style={{ fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="metode" 
+                    value="Digital" 
+                    checked={modalMetode === 'Digital'} 
+                    onChange={() => setModalMetode('Digital')} 
+                  />
+                  <span>Digital (Warga Unduh PDF Online)</span>
+                </label>
+                <label style={{ fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="metode" 
+                    value="Fisik" 
+                    checked={modalMetode === 'Fisik'} 
+                    onChange={() => {
+                      setModalMetode('Fisik');
+                      setTargetStatus('Siap Diambil di Balai Desa');
+                    }} 
+                  />
+                  <span>Fisik (Dokumen di Balai Desa)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Section Upload File Surat PDF Jadi */}
+            <div className="admin-form-group" style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 16, padding: '1.25rem' }}>
+              <label className="admin-form-label" style={{ marginBottom: '0.5rem' }}>
+                <Upload size={16} /> Unggah File Surat Selesai (Format PDF)
+              </label>
+
+              {modalFileUrl ? (
+                <div style={{ background: '#f0fdf4', border: '1.5px solid #10b981', borderRadius: 12, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+                    <div style={{ width: 40, height: 40, background: '#10b981', borderRadius: 10, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <FileText size={22} />
+                    </div>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <strong style={{ fontSize: '0.88rem', color: '#065f46', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {modalFileName || 'Surat_Jadi.pdf'}
+                      </strong>
+                      <span style={{ fontSize: '0.75rem', color: '#047857' }}>Format PDF Terunggah</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.35rem' }}>
+                    <button 
+                      type="button" 
+                      onClick={handlePreviewPdfFile}
+                      style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '0.4rem 0.65rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                      title="Lihat PDF"
+                    >
+                      <Eye size={14} /> Lihat PDF
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => document.getElementById('pdf-file-change-input').click()}
+                      style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '0.4rem 0.65rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                      title="Ganti File"
+                    >
+                      <RefreshCw size={14} /> Ganti
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={handleRemovePdfFile}
+                      style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.4rem 0.5rem', borderRadius: 8, cursor: 'pointer' }}
+                      title="Hapus File PDF"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+
+                    <input 
+                      id="pdf-file-change-input"
+                      type="file" 
+                      accept="application/pdf" 
+                      style={{ display: 'none' }} 
+                      onChange={handlePdfFileChange}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  className="dropzone-box" 
+                  style={{ marginBottom: 0, padding: '1.25rem 1rem' }}
+                  onClick={() => document.getElementById('pdf-file-input').click()}
+                >
+                  <Upload size={28} color="var(--color-primary)" style={{ margin: '0 auto 0.35rem auto', display: 'block' }} />
+                  <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.9rem', display: 'block' }}>
+                    Klik untuk Unggah Berkas Surat PDF
+                  </strong>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                    Format file harus .pdf (Maksimal 10MB)
+                  </span>
+
+                  <input 
+                    id="pdf-file-input"
+                    type="file" 
+                    accept="application/pdf" 
+                    style={{ display: 'none' }} 
+                    onChange={handlePdfFileChange}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Catatan Petugas Admin */}
+            <div className="admin-form-group">
+              <label className="admin-form-label"><MessageSquare size={15} /> Catatan Petugas (Tampil pada Lacak Warga)</label>
               <textarea 
                 className="form-input-custom" 
                 rows={3} 
                 value={catatanText} 
                 onChange={(e) => setCatatanText(e.target.value)} 
-                placeholder="Contoh: Berkas telah disetujui Kades. Silakan ambil di Balai Desa..."
+                placeholder="Contoh: Berkas Surat Keterangan telah terverifikasi dan ditandatangani..."
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
               <button className="btn btn-outline" onClick={() => setSelectedPermohonan(null)}>
                 Batal
               </button>
-              <button className="btn btn-primary" onClick={handleUpdatePermohonanStatus}>
-                Simpan Status Tiket
+              <button className="btn btn-primary" onClick={handleUpdatePermohonanStatus} style={{ padding: '0.75rem 1.5rem' }}>
+                <Save size={16} /> Simpan & Perbarui Tiket
               </button>
             </div>
           </div>

@@ -147,12 +147,15 @@ export const INITIAL_PERMOHONAN = [
     nama_warga: "Budi Santoso",
     nik: "3315082405900001",
     no_hp: "08123456789",
-    rt_rw: "RT 01 / RW 02",
+    alamat_lengkap: "Dusun Krajan RT 01 / RW 02, Desa Tajemsari, Tegowanu",
     jenis_surat: "Surat Keterangan Usaha (SKU)",
     keperluan: "Syarat pengajuan KUR Bank Jateng untuk warung makan.",
-    status: "Selesai",
-    catatan_admin: "Surat telah ditandatangani Kepala Desa dan siap diambil di Balai Desa.",
-    tanggal_pengajuan: "2026-07-28 09:30"
+    status: "Siap Diunduh",
+    catatan_admin: "Surat Keterangan Usaha telah terverifikasi dan ditandatangani secara digital.",
+    tanggal_pengajuan: "2026-07-28 09:30",
+    file_surat_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    file_surat_name: "SKU_Budi_Santoso_TJM-202607-001.pdf",
+    metode_pengambilan: "Digital"
   },
   {
     id: 2,
@@ -160,12 +163,31 @@ export const INITIAL_PERMOHONAN = [
     nama_warga: "Siti Rahayu",
     nik: "3315085611950003",
     no_hp: "08571234567",
-    rt_rw: "RT 03 / RW 01",
+    alamat_lengkap: "Dusun Mlangi RT 03 / RW 01, Desa Tajemsari, Tegowanu",
     jenis_surat: "Surat Keterangan Tidak Mampu (SKTM)",
     keperluan: "Pengajuan beasiswa pendidikan universitas.",
-    status: "Diproses",
-    catatan_admin: "Sedang dilakukan verifikasi berkas oleh Kasi Kesejahteraan.",
-    tanggal_pengajuan: "2026-07-29 14:15"
+    status: "Sedang Diproses",
+    catatan_admin: "Sedang dilakukan verifikasi berkas administrasi oleh Kasi Kesejahteraan Desa.",
+    tanggal_pengajuan: "2026-07-29 14:15",
+    file_surat_url: "",
+    file_surat_name: "",
+    metode_pengambilan: "Digital"
+  },
+  {
+    id: 3,
+    nomor_tiket: "TJM-202607-003",
+    nama_warga: "Slamet Widodo",
+    nik: "3315081203880002",
+    no_hp: "08139876543",
+    alamat_lengkap: "Dusun Plosorejo RT 02 / RW 03, Desa Tajemsari",
+    jenis_surat: "Surat Keterangan Domisili",
+    keperluan: "Pendaftaran jaminan sosial dan kelengkapan domisili usaha.",
+    status: "Siap Diambil di Balai Desa",
+    catatan_admin: "Dokumen fisik surat keterangan domisili dengan cap dan tanda tangan basah Kades telah selesai. Silakan ambil di Balai Desa pada jam kerja.",
+    tanggal_pengajuan: "2026-07-30 11:00",
+    file_surat_url: "",
+    file_surat_name: "",
+    metode_pengambilan: "Fisik"
   }
 ];
 

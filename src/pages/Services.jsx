@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Send, Search, CheckCircle, Clock, AlertCircle, ShieldCheck, Download, ArrowRight, Check } from 'lucide-react';
+import { FileText, Send, Search, CheckCircle, Clock, AlertCircle, ShieldCheck, Download, ArrowRight, Check, FileCheck, MapPin } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function Services() {
@@ -40,7 +40,6 @@ export default function Services() {
       });
 
       setSuccessResult(result);
-      // Reset form
       setNamaWarga('');
       setNik('');
       setNoHp('');
@@ -59,6 +58,17 @@ export default function Services() {
     const list = await apiService.getPermohonan();
     const found = list.find(p => p.nomor_tiket?.toLowerCase() === searchTicket.trim().toLowerCase());
     setTrackedItem(found || null);
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'Siap Diunduh': return { bg: '#dcfce7', color: '#15803d', label: '🟢 Siap Diunduh (Digital)' };
+      case 'Siap Diambil di Balai Desa': return { bg: '#fef3c7', color: '#b45309', label: '📜 Siap Diambil di Balai Desa' };
+      case 'Sedang Diproses': return { bg: '#dbeafe', color: '#1d4ed8', label: '🔵 Sedang Diproses' };
+      case 'Menunggu Tanda Tangan': return { bg: '#f3e8ff', color: '#7e22ce', label: '🟣 Menunggu Tanda Tangan' };
+      case 'Ditolak': return { bg: '#fee2e2', color: '#b91c1c', label: '🔴 Ditolak' };
+      default: return { bg: '#fef9c3', color: '#a16207', label: '🟡 Menunggu Verifikasi' };
+    }
   };
 
   return (
@@ -169,7 +179,6 @@ export default function Services() {
 
             <div className="step-card">
               <div className="step-number">2</div>
-              <div className="step-number">2</div>
               <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: 6 }}>Dapatkan Tiket</h4>
               <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Simpan Kode Tiket unik untuk melacak status pengerjaan.</p>
             </div>
@@ -177,13 +186,13 @@ export default function Services() {
             <div className="step-card">
               <div className="step-number">3</div>
               <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: 6 }}>Verifikasi Admin</h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Perangkat Desa memeriksa kelengkapan syarat administrasi.</p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Perangkat Desa memeriksa berkas & memproses dokumen surat.</p>
             </div>
 
             <div className="step-card">
               <div className="step-number">4</div>
-              <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: 6 }}>Ambil Surat</h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Ambil fisik surat di Balai Desa Tajemsari dengan menunjukkan Kode Tiket.</p>
+              <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: 6 }}>Unduh / Ambil Surat</h4>
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Unduh PDF surat langsung atau ambil fisik surat di Balai Desa Tajemsari.</p>
             </div>
           </div>
         </div>
@@ -239,7 +248,6 @@ export default function Services() {
               </div>
             ) : (
               <form onSubmit={handleFormSubmit}>
-                {/* 1. Nama Lengkap */}
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
                     Nama Lengkap (Sesuai KTP) *
@@ -254,7 +262,6 @@ export default function Services() {
                   />
                 </div>
 
-                {/* 2. NIK & 3. No. WhatsApp */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                   <div>
                     <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
@@ -285,7 +292,6 @@ export default function Services() {
                   </div>
                 </div>
 
-                {/* 4. Alamat Lengkap (Textarea 2-3 baris) */}
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
                     Alamat Lengkap *
@@ -300,7 +306,6 @@ export default function Services() {
                   />
                 </div>
 
-                {/* 5. Jenis Surat */}
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
                     Jenis Surat *
@@ -317,7 +322,6 @@ export default function Services() {
                   </select>
                 </div>
 
-                {/* 6. Keperluan Pengajuan */}
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
                     Keperluan Pengajuan *
@@ -365,23 +369,70 @@ export default function Services() {
 
             {trackingSearched && (
               trackedItem ? (
-                <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>{trackedItem.nomor_tiket}</span>
-                    <span className={trackedItem.status === 'Selesai' ? 'badge-green' : 'badge-gold'}>
-                      {trackedItem.status}
-                    </span>
+                <div style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: 16, padding: '1.5rem', boxShadow: 'var(--shadow-sm)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>#{trackedItem.nomor_tiket}</span>
+                    {(() => {
+                      const badgeInfo = getStatusBadgeClass(trackedItem.status);
+                      return (
+                        <span style={{ background: badgeInfo.bg, color: badgeInfo.color, padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700 }}>
+                          {badgeInfo.label}
+                        </span>
+                      );
+                    })()}
                   </div>
-                  <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)' }}>{trackedItem.jenis_surat}</h4>
+
+                  <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '0.5rem' }}>{trackedItem.jenis_surat}</h4>
+                  
                   <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
-                    Nama Warga: <strong>{trackedItem.nama_warga}</strong>
+                    Pemohon: <strong>{trackedItem.nama_warga}</strong>
                   </div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
                     Alamat: <strong>{trackedItem.alamat_lengkap || trackedItem.rt_rw}</strong>
                   </div>
+
                   {trackedItem.catatan_admin && (
-                    <div style={{ marginTop: '0.75rem', background: '#fff', borderLeft: '3px solid var(--color-gold)', padding: '0.65rem', fontSize: '0.82rem', color: 'var(--color-text-main)' }}>
+                    <div style={{ marginTop: '0.85rem', background: '#f8faf8', borderLeft: '4px solid var(--color-gold)', padding: '0.75rem 1rem', borderRadius: '0 10px 10px 0', fontSize: '0.85rem', color: 'var(--color-text-main)' }}>
                       <strong>Catatan Petugas:</strong> {trackedItem.catatan_admin}
+                    </div>
+                  )}
+
+                  {/* DIGITAL DOWNLOAD BOX IF STATUS IS "Siap Diunduh" */}
+                  {trackedItem.status === 'Siap Diunduh' && trackedItem.file_surat_url ? (
+                    <div style={{ marginTop: '1.25rem', background: '#f0fdf4', border: '2px solid #10b981', borderRadius: 14, padding: '1.25rem', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#065f46', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <CheckCircle size={20} color="#10b981" /> Surat Resmi PDF Siap Diunduh!
+                      </div>
+                      <p style={{ fontSize: '0.82rem', color: '#047857', marginBottom: '1rem' }}>
+                        Dokumen surat Anda telah selesai ditandatangani dan siap diunduh secara digital.
+                      </p>
+                      <a 
+                        href={trackedItem.file_surat_url} 
+                        download={trackedItem.file_surat_name || `Surat_${trackedItem.nomor_tiket}.pdf`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="btn btn-primary"
+                        style={{ width: '100%', justifyContent: 'center', padding: '0.75rem 1.25rem', textDecoration: 'none', background: '#10b981', borderColor: '#10b981' }}
+                      >
+                        <Download size={18} /> Unduh File Surat PDF ({trackedItem.file_surat_name || 'Dokumen_Surat.pdf'})
+                      </a>
+                    </div>
+                  ) : trackedItem.status === 'Siap Diambil di Balai Desa' ? (
+                    <div style={{ marginTop: '1.25rem', background: '#fffdf5', border: '2px solid var(--color-gold)', borderRadius: 14, padding: '1.25rem', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#8a6d13', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <MapPin size={20} color="var(--color-gold)" /> Surat Fisik Siap Diambil
+                      </div>
+                      <p style={{ fontSize: '0.82rem', color: '#78350f' }}>
+                        Dokumen fisik surat keterangan Anda telah dicap stempel desa & ditandatangani basah oleh Kades. Silakan ambil di Kantor Balai Desa Tajemsari pada jam kerja.
+                      </p>
+                    </div>
+                  ) : trackedItem.status === 'Ditolak' ? (
+                    <div style={{ marginTop: '1.25rem', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 12, padding: '1rem', color: '#991b1b', fontSize: '0.85rem' }}>
+                      Mohon maaf, pengajuan surat Anda ditolak. Silakan baca catatan petugas di atas.
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: '1.25rem', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '1rem', color: '#1e40af', fontSize: '0.85rem', textAlign: 'center' }}>
+                      <Clock size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> Surat Anda sedang diproses oleh petugas Balai Desa Tajemsari. Silakan cek kembali secara berkala.
                     </div>
                   )}
                 </div>
