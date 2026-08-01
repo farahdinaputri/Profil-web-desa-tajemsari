@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminLoginModal from './components/AdminLoginModal';
@@ -13,8 +13,11 @@ import AdminDashboard from './pages/AdminDashboard';
 
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
+
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   const handleAdminLoginSuccess = (user) => {
     setAdminUser(user);
@@ -28,12 +31,14 @@ export default function App() {
 
   return (
     <div className="app-root" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Header & Navbar dengan Routing */}
-      <Navbar 
-        onOpenAdminLogin={() => setIsLoginModalOpen(true)}
-        isAdminLoggedIn={Boolean(adminUser)}
-        onLogoutAdmin={handleAdminLogout}
-      />
+      {/* Tampilkan Navbar Publik Hanya Jika BUKAN Halaman Admin */}
+      {!isAdminRoute && (
+        <Navbar 
+          onOpenAdminLogin={() => setIsLoginModalOpen(true)}
+          isAdminLoggedIn={Boolean(adminUser)}
+          onLogoutAdmin={handleAdminLogout}
+        />
+      )}
 
       {/* Main Page View Routes */}
       <main style={{ flex: 1 }}>
@@ -65,11 +70,13 @@ export default function App() {
         </Routes>
       </main>
 
-      {/* Footer */}
-      <Footer 
-        onOpenAdminLogin={() => setIsLoginModalOpen(true)}
-        isAdminLoggedIn={Boolean(adminUser)}
-      />
+      {/* Tampilkan Footer Publik Hanya Jika BUKAN Halaman Admin */}
+      {!isAdminRoute && (
+        <Footer 
+          onOpenAdminLogin={() => setIsLoginModalOpen(true)}
+          isAdminLoggedIn={Boolean(adminUser)}
+        />
+      )}
 
       {/* Admin Login Modal Pop-up */}
       <AdminLoginModal 
