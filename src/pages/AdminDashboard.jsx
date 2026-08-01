@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, Plus, Trash2, Edit3, Check, X, FileText, Newspaper, 
   ShoppingBag, LogOut, Upload, Image as ImageIcon, Star, ArrowUp, 
-  ArrowDown, Sparkles, MessageSquare, AlertCircle, RefreshCw 
+  ArrowDown, Sparkles, MessageSquare, Compass, MapPin, Clock, Ticket
 } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
@@ -13,6 +13,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [permohonanList, setPermohonanList] = useState([]);
   const [beritaList, setBeritaList] = useState([]);
   const [umkmList, setUmkmList] = useState([]);
+  const [wisataList, setWisataList] = useState([]);
 
   // --- BERITA FORM STATES (CREATE & EDIT) ---
   const [editingBeritaId, setEditingBeritaId] = useState(null);
@@ -20,8 +21,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [newKategori, setNewKategori] = useState('Pembangunan');
   const [newRingkasan, setNewRingkasan] = useState('');
   const [newIsi, setNewIsi] = useState('');
-  
-  // Image List for Berita: Array of { id, url, caption, isCover }
   const [beritaImagesList, setBeritaImagesList] = useState([]);
   const [isDraggingBerita, setIsDraggingBerita] = useState(false);
 
@@ -33,10 +32,19 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [newProdukHarga, setNewProdukHarga] = useState('');
   const [newProdukWa, setNewProdukWa] = useState('');
   const [newProdukDesc, setNewProdukDesc] = useState('');
-  
-  // Image List for UMKM: Array of { id, url, caption, isCover }
   const [umkmImagesList, setUmkmImagesList] = useState([]);
   const [isDraggingUmkm, setIsDraggingUmkm] = useState(false);
+
+  // --- WISATA FORM STATES (CREATE & EDIT + MULTI IMAGE) ---
+  const [editingWisataId, setEditingWisataId] = useState(null);
+  const [newWisataNama, setNewWisataNama] = useState('');
+  const [newWisataKategori, setNewWisataKategori] = useState('Wisata Alam');
+  const [newWisataLokasi, setNewWisataLokasi] = useState('');
+  const [newWisataJamBuka, setNewWisataJamBuka] = useState('');
+  const [newWisataTiket, setNewWisataTiket] = useState('');
+  const [newWisataDesc, setNewWisataDesc] = useState('');
+  const [wisataImagesList, setWisataImagesList] = useState([]);
+  const [isDraggingWisata, setIsDraggingWisata] = useState(false);
 
   // Status Note Modal for Permohonan
   const [selectedPermohonan, setSelectedPermohonan] = useState(null);
@@ -51,9 +59,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     const pData = await apiService.getPermohonan();
     const bData = await apiService.getBerita();
     const uData = await apiService.getUMKM();
+    const wData = await apiService.getWisata();
     setPermohonanList(pData);
     setBeritaList(bData);
     setUmkmList(uData);
+    setWisataList(wData);
   };
 
   // ==========================================
@@ -109,7 +119,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     setBeritaImagesList(updated);
   };
 
-  // BERITA CRUD ACTIONS
   const handleEditBeritaClick = (item) => {
     setEditingBeritaId(item.id);
     setNewJudul(item.judul || '');
@@ -117,7 +126,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     setNewRingkasan(item.ringkasan || '');
     setNewIsi(item.isi || '');
 
-    // Normalize galeri objects
     if (Array.isArray(item.galeri) && item.galeri.length > 0) {
       const formatted = item.galeri.map((g, idx) => ({
         id: 'b_img_' + idx + '_' + Date.now(),
@@ -319,6 +327,139 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   };
 
   // ==========================================
+  // WISATA MULTI-IMAGE & CRUD LOGIC
+  // ==========================================
+  const handleWisataFilesAdded = (files) => {
+    const fileArray = Array.from(files);
+    fileArray.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const newImg = {
+            id: 'w_img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            url: e.target.result,
+            caption: 'Dokumentasi Wisata Desa Tajemsari',
+            isCover: false
+          };
+          setWisataImagesList(prev => {
+            const shouldBeCover = prev.length === 0;
+            return [...prev, { ...newImg, isCover: shouldBeCover }];
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const handleWisataCaptionChange = (id, caption) => {
+    setWisataImagesList(prev => prev.map(img => img.id === id ? { ...img, caption } : img));
+  };
+
+  const handleWisataSetCover = (id) => {
+    setWisataImagesList(prev => prev.map(img => ({ ...img, isCover: img.id === id })));
+  };
+
+  const handleWisataDeleteImage = (id) => {
+    setWisataImagesList(prev => {
+      const filtered = prev.filter(img => img.id !== id);
+      if (filtered.length > 0 && !filtered.some(img => img.isCover)) {
+        filtered[0].isCover = true;
+      }
+      return filtered;
+    });
+  };
+
+  const handleWisataMoveImage = (index, direction) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= wisataImagesList.length) return;
+    const updated = [...wisataImagesList];
+    const temp = updated[index];
+    updated[index] = updated[newIndex];
+    updated[newIndex] = temp;
+    setWisataImagesList(updated);
+  };
+
+  const handleEditWisataClick = (item) => {
+    setEditingWisataId(item.id);
+    setNewWisataNama(item.nama_tempat || '');
+    setNewWisataKategori(item.kategori || 'Wisata Alam');
+    setNewWisataLokasi(item.lokasi || '');
+    setNewWisataJamBuka(item.jam_buka || '');
+    setNewWisataTiket(item.tiket_masuk || '');
+    setNewWisataDesc(item.deskripsi || '');
+
+    if (Array.isArray(item.galeri) && item.galeri.length > 0) {
+      const formatted = item.galeri.map((g, idx) => ({
+        id: 'w_img_' + idx + '_' + Date.now(),
+        url: typeof g === 'string' ? g : g.url,
+        caption: typeof g === 'object' && g.caption ? g.caption : 'Foto Destinasi Wisata',
+        isCover: (typeof g === 'string' ? g : g.url) === item.gambar || idx === 0
+      }));
+      setWisataImagesList(formatted);
+    } else if (item.gambar) {
+      setWisataImagesList([{
+        id: 'w_img_0_' + Date.now(),
+        url: item.gambar,
+        caption: 'Foto Utama Destinasi',
+        isCover: true
+      }]);
+    } else {
+      setWisataImagesList([]);
+    }
+
+    window.scrollTo({ top: 250, behavior: 'smooth' });
+  };
+
+  const handleCancelEditWisata = () => {
+    setEditingWisataId(null);
+    setNewWisataNama('');
+    setNewWisataKategori('Wisata Alam');
+    setNewWisataLokasi('');
+    setNewWisataJamBuka('');
+    setNewWisataTiket('');
+    setNewWisataDesc('');
+    setWisataImagesList([]);
+  };
+
+  const handleSaveWisata = async (e) => {
+    e.preventDefault();
+    const coverObj = wisataImagesList.find(img => img.isCover) || wisataImagesList[0];
+    const coverUrl = coverObj ? coverObj.url : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80';
+
+    const galeriObjects = wisataImagesList.map(img => ({
+      url: img.url,
+      caption: img.caption || 'Dokumentasi Wisata Desa Tajemsari'
+    }));
+
+    const payload = {
+      nama_tempat: newWisataNama,
+      kategori: newWisataKategori,
+      lokasi: newWisataLokasi,
+      jam_buka: newWisataJamBuka,
+      tiket_masuk: newWisataTiket,
+      deskripsi: newWisataDesc,
+      gambar: coverUrl,
+      galeri: galeriObjects
+    };
+
+    if (editingWisataId) {
+      await apiService.updateWisata(editingWisataId, payload);
+    } else {
+      await apiService.addWisata(payload);
+    }
+
+    handleCancelEditWisata();
+    loadAllData();
+  };
+
+  const handleDeleteWisata = async (id) => {
+    if (window.confirm('Yakin ingin menghapus destinasi wisata ini secara permanen?')) {
+      await apiService.deleteWisata(id);
+      loadAllData();
+    }
+  };
+
+  // ==========================================
   // PERMOHONAN STATUS MODAL LOGIC
   // ==========================================
   const handleOpenStatusModal = (item, status) => {
@@ -377,6 +518,17 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           background: var(--color-primary);
           color: #ffffff;
           box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+        }
+
+        .editing-banner {
+          background: linear-gradient(135deg, #fef9e7 0%, #fffdf5 100%);
+          border: 1.5px solid var(--color-gold);
+          border-radius: 14px;
+          padding: 0.85rem 1.25rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1.25rem;
         }
 
         .dropzone-box {
@@ -516,6 +668,9 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           <button className={`tab-btn ${activeTab === 'umkm' ? 'active' : ''}`} onClick={() => setActiveTab('umkm')}>
             <ShoppingBag size={18} /> Kelola UMKM Desa ({umkmList.length})
           </button>
+          <button className={`tab-btn ${activeTab === 'wisata' ? 'active' : ''}`} onClick={() => setActiveTab('wisata')}>
+            <Compass size={18} /> Kelola Wisata Desa ({wisataList.length})
+          </button>
         </div>
 
         {/* TAB 1: PERMOHONAN SURAT */}
@@ -594,19 +749,23 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           <div className="grid-2">
             {/* Form Create / Edit Berita */}
             <div className="card-rural">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)' }}>
-                  {editingBeritaId ? '✏️ Edit Berita' : '✨ Tambah Berita Baru'}
-                </h3>
-                {editingBeritaId && (
+              {editingBeritaId ? (
+                <div className="editing-banner">
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Edit3 size={16} /> Sedang Mengedit Berita: <strong>"{newJudul || 'Tanpa Judul'}"</strong>
+                  </div>
                   <button 
                     onClick={handleCancelEditBerita}
-                    style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.35rem 0.75rem', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.3rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
                   >
                     Batal Edit
                   </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.25rem' }}>
+                  ✨ Tambah Berita / Pengumuman Baru
+                </h3>
+              )}
 
               <form onSubmit={handleSaveBerita}>
                 <div style={{ marginBottom: '0.85rem' }}>
@@ -659,7 +818,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   />
                 </div>
 
-                {/* Multiple Image Upload Zone (Manual File Upload & Drag-Drop) */}
+                {/* Multiple Image Upload Zone */}
                 <div style={{ marginBottom: '1.25rem' }}>
                   <label style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'block', marginBottom: 4 }}>
                     Foto Utama & Galeri Dokumentasi (Multiple Upload)
@@ -676,12 +835,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     }}
                     onClick={() => document.getElementById('berita-file-input').click()}
                   >
-                    <Upload size={32} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
-                    <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.95rem', display: 'block' }}>
-                      Tarik & Lepas beberapa foto ke sini, atau klik untuk memilih file
+                    <Upload size={30} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
+                    <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem', display: 'block' }}>
+                      Tarik & Lepas foto ke sini, atau klik untuk memilih file
                     </strong>
                     <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                      Mendukung JPG, PNG, WEBP (Bisa unggah lebih dari 1 foto sekaligus)
+                      Unggah beberapa foto sekaligus (JPG, PNG, WEBP)
                     </span>
 
                     <input 
@@ -694,7 +853,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     />
                   </div>
 
-                  {/* List Foto Berita Uploaded */}
+                  {/* List Foto Berita */}
                   {beritaImagesList.length > 0 && (
                     <div className="image-preview-list">
                       {beritaImagesList.map((img, idx) => (
@@ -719,7 +878,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                               <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Foto #{idx+1}</span>
                             </div>
 
-                            {/* Caption Input */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <MessageSquare size={14} color="var(--color-text-muted)" />
                               <input 
@@ -733,7 +891,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                             </div>
                           </div>
 
-                          {/* Reorder & Delete Controls */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
                             <div style={{ display: 'flex', gap: 2 }}>
                               <button 
@@ -820,19 +977,23 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           <div className="grid-2">
             {/* Form Create / Edit UMKM */}
             <div className="card-rural">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)' }}>
-                  {editingUmkmId ? '✏️ Edit Produk UMKM' : '🛍️ Tambah Produk UMKM Baru'}
-                </h3>
-                {editingUmkmId && (
+              {editingUmkmId ? (
+                <div className="editing-banner">
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Edit3 size={16} /> Sedang Mengedit UMKM: <strong>"{newProdukNama || 'Tanpa Nama'}"</strong>
+                  </div>
                   <button 
                     onClick={handleCancelEditUmkm}
-                    style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.35rem 0.75rem', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.3rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
                   >
                     Batal Edit
                   </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.25rem' }}>
+                  🛍️ Tambah Produk UMKM Baru
+                </h3>
+              )}
 
               <form onSubmit={handleSaveUmkm}>
                 <div style={{ marginBottom: '0.85rem' }}>
@@ -928,12 +1089,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     }}
                     onClick={() => document.getElementById('umkm-file-input').click()}
                   >
-                    <Upload size={32} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
-                    <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.95rem', display: 'block' }}>
-                      Tarik & Lepas foto produk UMKM di sini, atau klik untuk memilih
+                    <Upload size={30} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
+                    <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem', display: 'block' }}>
+                      Tarik & Lepas foto produk di sini, atau klik untuk memilih
                     </strong>
                     <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                      Unggah lebih dari satu foto untuk galeri varian/tampilan produk
+                      Unggah beberapa foto sekaligus untuk varian/tampilan produk
                     </span>
 
                     <input 
@@ -971,7 +1132,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                               <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Foto #{idx+1}</span>
                             </div>
 
-                            {/* Caption Input */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <MessageSquare size={14} color="var(--color-text-muted)" />
                               <input 
@@ -985,7 +1145,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                             </div>
                           </div>
 
-                          {/* Reorder & Delete Controls */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
                             <div style={{ display: 'flex', gap: 2 }}>
                               <button 
@@ -1054,6 +1213,258 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                         style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.5rem', borderRadius: 8, cursor: 'pointer' }} 
                         onClick={() => handleDeleteUmkm(item.id)}
                         title="Hapus UMKM"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: KELOLA DESTINASI WISATA DESA (FULL CRUD & MULTI-IMAGE UPLOAD) */}
+        {activeTab === 'wisata' && (
+          <div className="grid-2">
+            {/* Form Create / Edit Wisata */}
+            <div className="card-rural">
+              {editingWisataId ? (
+                <div className="editing-banner">
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Edit3 size={16} /> Sedang Mengedit Destinasi: <strong>"{newWisataNama || 'Tanpa Nama'}"</strong>
+                  </div>
+                  <button 
+                    onClick={handleCancelEditWisata}
+                    style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.3rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Batal Edit
+                  </button>
+                </div>
+              ) : (
+                <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.25rem' }}>
+                  🏞️ Tambah Destinasi Wisata Baru
+                </h3>
+              )}
+
+              <form onSubmit={handleSaveWisata}>
+                <div style={{ marginBottom: '0.85rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Nama Tempat / Destinasi *</label>
+                  <input 
+                    type="text" 
+                    className="form-input-custom" 
+                    value={newWisataNama} 
+                    onChange={(e) => setNewWisataNama(e.target.value)} 
+                    placeholder="Contoh: Agrowisata Sunset Sawah Tajemsari" 
+                    required 
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Kategori *</label>
+                    <select 
+                      className="form-input-custom" 
+                      value={newWisataKategori} 
+                      onChange={(e) => setNewWisataKategori(e.target.value)}
+                    >
+                      <option value="Wisata Alam">Wisata Alam</option>
+                      <option value="Wisata Edukasi">Wisata Edukasi</option>
+                      <option value="Wisata Budaya">Wisata Budaya</option>
+                      <option value="Kuliner Desa">Kuliner Desa</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Tiket Masuk *</label>
+                    <input 
+                      type="text" 
+                      className="form-input-custom" 
+                      value={newWisataTiket} 
+                      onChange={(e) => setNewWisataTiket(e.target.value)} 
+                      placeholder="Contoh: Gratis / Rp 5.000" 
+                      required 
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Lokasi / Dusun *</label>
+                    <input 
+                      type="text" 
+                      className="form-input-custom" 
+                      value={newWisataLokasi} 
+                      onChange={(e) => setNewWisataLokasi(e.target.value)} 
+                      placeholder="Contoh: Dusun Tajemsari RT 02 / RW 01" 
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Jam Buka *</label>
+                    <input 
+                      type="text" 
+                      className="form-input-custom" 
+                      value={newWisataJamBuka} 
+                      onChange={(e) => setNewWisataJamBuka(e.target.value)} 
+                      placeholder="Contoh: 06.00 - 18.00 WIB" 
+                      required 
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Deskripsi Destinasi Wisata *</label>
+                  <textarea 
+                    className="form-input-custom" 
+                    rows={3} 
+                    value={newWisataDesc} 
+                    onChange={(e) => setNewWisataDesc(e.target.value)} 
+                    placeholder="Tuliskan keindahan dan fasilitas wisata..." 
+                    required 
+                  />
+                </div>
+
+                {/* Multiple Image Upload Zone for Wisata */}
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <label style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'block', marginBottom: 4 }}>
+                    Foto Destinasi & Dokumentasi (Multiple Upload)
+                  </label>
+                  
+                  <div 
+                    className={`dropzone-box ${isDraggingWisata ? 'dragging' : ''}`}
+                    onDragOver={(e) => { e.preventDefault(); setIsDraggingWisata(true); }}
+                    onDragLeave={() => setIsDraggingWisata(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingWisata(false);
+                      if (e.dataTransfer.files?.length) handleWisataFilesAdded(e.dataTransfer.files);
+                    }}
+                    onClick={() => document.getElementById('wisata-file-input').click()}
+                  >
+                    <Upload size={30} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
+                    <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem', display: 'block' }}>
+                      Tarik & Lepas foto destinasi wisata ke sini, atau klik untuk memilih
+                    </strong>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                      Unggah beberapa foto lokasi wisata sekaligus
+                    </span>
+
+                    <input 
+                      id="wisata-file-input"
+                      type="file" 
+                      multiple 
+                      accept="image/*" 
+                      style={{ display: 'none' }} 
+                      onChange={(e) => handleWisataFilesAdded(e.target.files)}
+                    />
+                  </div>
+
+                  {/* List Foto Wisata Uploaded */}
+                  {wisataImagesList.length > 0 && (
+                    <div className="image-preview-list">
+                      {wisataImagesList.map((img, idx) => (
+                        <div key={img.id} className={`image-preview-row ${img.isCover ? 'is-cover' : ''}`}>
+                          <img src={img.url} alt={`Foto Wisata ${idx+1}`} className="preview-img-square" />
+                          
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {img.isCover ? (
+                                <span className="cover-tag-badge">
+                                  <Star size={10} fill="#fff" /> FOTO UTAMA
+                                </span>
+                              ) : (
+                                <button 
+                                  type="button"
+                                  onClick={() => handleWisataSetCover(img.id)}
+                                  style={{ background: 'transparent', border: '1px solid var(--color-gold)', color: '#8a6d13', fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
+                                >
+                                  Jadikan Utama
+                                </button>
+                              )}
+                              <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Foto #{idx+1}</span>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <MessageSquare size={14} color="var(--color-text-muted)" />
+                              <input 
+                                type="text"
+                                className="form-input-custom"
+                                style={{ marginTop: 0, padding: '0.35rem 0.65rem', fontSize: '0.82rem' }}
+                                placeholder="Keterangan foto lokasi..."
+                                value={img.caption || ''}
+                                onChange={(e) => handleWisataCaptionChange(img.id, e.target.value)}
+                              />
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: 2 }}>
+                              <button 
+                                type="button"
+                                disabled={idx === 0}
+                                style={{ background: '#f1f5f9', border: 'none', borderRadius: 4, padding: '0.2rem', cursor: 'pointer', opacity: idx === 0 ? 0.3 : 1 }}
+                                onClick={() => handleWisataMoveImage(idx, -1)}
+                              >
+                                <ArrowUp size={14} />
+                              </button>
+                              <button 
+                                type="button"
+                                disabled={idx === wisataImagesList.length - 1}
+                                style={{ background: '#f1f5f9', border: 'none', borderRadius: 4, padding: '0.2rem', cursor: 'pointer', opacity: idx === wisataImagesList.length - 1 ? 0.3 : 1 }}
+                                onClick={() => handleWisataMoveImage(idx, 1)}
+                              >
+                                <ArrowDown size={14} />
+                              </button>
+                            </div>
+                            <button 
+                              type="button" 
+                              style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 4, padding: '0.25rem 0.4rem', cursor: 'pointer' }}
+                              onClick={() => handleWisataDeleteImage(img.id)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <button type="submit" className="btn btn-gold" style={{ width: '100%' }}>
+                  {editingWisataId ? <><Check size={18} /> Simpan Perubahan Wisata</> : <><Plus size={18} /> Tambah Destinasi Wisata</>}
+                </button>
+              </form>
+            </div>
+
+            {/* List Wisata Terdaftar */}
+            <div>
+              <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
+                Katalog Wisata Terdaftar ({wisataList.length})
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {wisataList.map((item) => (
+                  <div key={item.id} className="admin-item-card">
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1 }}>
+                      <img src={item.gambar} alt={item.nama_tempat} style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover' }} />
+                      <div style={{ flex: 1 }}>
+                        <span className="badge-green" style={{ fontSize: '0.72rem' }}>{item.kategori}</span>
+                        <h4 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)', marginTop: 2, marginBottom: 2 }}>{item.nama_tempat}</h4>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-gold)', fontWeight: 700 }}>Tiket: {item.tiket_masuk}</span> • <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{item.lokasi}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <button 
+                        style={{ background: '#3b82f6', color: '#ffffff', border: 'none', padding: '0.5rem 0.75rem', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem', fontWeight: 600 }} 
+                        onClick={() => handleEditWisataClick(item)}
+                        title="Edit Destinasi Wisata"
+                      >
+                        <Edit3 size={15} /> Edit
+                      </button>
+                      <button 
+                        style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.5rem', borderRadius: 8, cursor: 'pointer' }} 
+                        onClick={() => handleDeleteWisata(item.id)}
+                        title="Hapus Wisata"
                       >
                         <Trash2 size={16} />
                       </button>

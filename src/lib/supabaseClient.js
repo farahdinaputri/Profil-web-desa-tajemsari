@@ -182,5 +182,26 @@ export const apiService = {
     const updated = [...current, item];
     setStorageItem('wisata', updated);
     return item;
+  },
+
+  async updateWisata(id, updatedSpot) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.from('wisata').update(updatedSpot).eq('id', id).select();
+      if (!error && data?.length) return data[0];
+    }
+    const current = getStorageItem('wisata', INITIAL_WISATA);
+    const updated = current.map(w => w.id === id ? { ...w, ...updatedSpot } : w);
+    setStorageItem('wisata', updated);
+    return true;
+  },
+
+  async deleteWisata(id) {
+    if (isSupabaseConfigured) {
+      await supabase.from('wisata').delete().eq('id', id);
+    }
+    const current = getStorageItem('wisata', INITIAL_WISATA);
+    const updated = current.filter(w => w.id !== id);
+    setStorageItem('wisata', updated);
+    return true;
   }
 };
