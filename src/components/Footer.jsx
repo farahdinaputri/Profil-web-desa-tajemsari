@@ -1,7 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Leaf, MapPin, Phone, Mail, Clock, Lock } from 'lucide-react';
 
-export default function Footer({ onNavigate, onOpenAdminLogin, isAdminLoggedIn }) {
+export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
+  const navigate = useNavigate();
+
+  const handleNavClick = (path) => {
+    navigate(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <footer className="footer-wrap">
       <style>{`
@@ -116,10 +124,10 @@ export default function Footer({ onNavigate, onOpenAdminLogin, isAdminLoggedIn }
           <div>
             <h4 className="footer-col-title">Navigasi Utama</h4>
             <ul className="footer-links-list">
-              <li className="footer-link-item" onClick={() => onNavigate('beranda')}>Beranda Utama</li>
-              <li className="footer-link-item" onClick={() => onNavigate('profil')}>Profil & Struktur Desa</li>
-              <li className="footer-link-item" onClick={() => onNavigate('layanan')}>Katalog Layanan Publik</li>
-              <li className="footer-link-item" onClick={() => onNavigate('potensi')}>Potensi UMKM & Wisata</li>
+              <li className="footer-link-item" onClick={() => handleNavClick('/')}>Beranda Utama</li>
+              <li className="footer-link-item" onClick={() => handleNavClick('/profil')}>Profil & Struktur Desa</li>
+              <li className="footer-link-item" onClick={() => handleNavClick('/layanan')}>Katalog Layanan Publik</li>
+              <li className="footer-link-item" onClick={() => handleNavClick('/potensi')}>Potensi UMKM & Wisata</li>
             </ul>
           </div>
 

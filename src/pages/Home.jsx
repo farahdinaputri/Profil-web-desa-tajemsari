@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
-import { Newspaper, ArrowRight, Calendar, User, Eye, Wheat, Users, Building, ShieldAlert, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Newspaper, ArrowRight, Calendar, User, Eye, Wheat, Users, Building, Sparkles } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
-export default function Home({ onNavigate }) {
+export default function Home() {
+  const navigate = useNavigate();
   const [beritaList, setBeritaList] = useState([]);
-  const [selectedBerita, setSelectedBerita] = useState(null);
   const [activeCategory, setActiveCategory] = useState('Semua');
 
   useEffect(() => {
@@ -111,11 +112,13 @@ export default function Home({ onNavigate }) {
           transition: var(--transition-normal);
           display: flex;
           flex-direction: column;
+          cursor: pointer;
         }
 
         .berita-card:hover {
           transform: translateY(-6px);
           box-shadow: var(--shadow-md);
+          border-color: rgba(212, 175, 55, 0.4);
         }
 
         .berita-img {
@@ -143,7 +146,7 @@ export default function Home({ onNavigate }) {
       `}</style>
 
       {/* Hero Banner */}
-      <HeroSection onNavigate={onNavigate} />
+      <HeroSection onNavigate={(path) => navigate(path.startsWith('/') ? path : `/${path}`)} />
 
       {/* Live Statistics Counter */}
       <div className="container">
@@ -254,7 +257,11 @@ export default function Home({ onNavigate }) {
 
           <div className="grid-3">
             {filteredBerita.map((item) => (
-              <div key={item.id} className="berita-card">
+              <div 
+                key={item.id} 
+                className="berita-card"
+                onClick={() => navigate(`/berita/${item.id}`)}
+              >
                 <img src={item.gambar} alt={item.judul} className="berita-img" />
                 <div className="berita-content">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
@@ -268,16 +275,19 @@ export default function Home({ onNavigate }) {
                     {item.judul}
                   </h3>
 
-                  <p style={{ fontSize: '0.88rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem', flex: 1 }}>
+                  <p style={{ fontSize: '0.88rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem', flex: 1, lineHeight: 1.5 }}>
                     {item.ringkasan}
                   </p>
 
                   <button 
                     className="btn btn-outline"
-                    style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}
-                    onClick={() => setSelectedBerita(item)}
+                    style={{ width: '100%', padding: '0.55rem', fontSize: '0.85rem' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/berita/${item.id}`);
+                    }}
                   >
-                    <Eye size={16} /> Baca Selengkapnya
+                    <Eye size={16} /> Baca Selengkapnya <ArrowRight size={14} />
                   </button>
                 </div>
               </div>
@@ -285,25 +295,6 @@ export default function Home({ onNavigate }) {
           </div>
         </div>
       </section>
-
-      {/* Modal Detail Berita */}
-      {selectedBerita && (
-        <div className="modal-overlay" onClick={() => setSelectedBerita(null)}>
-          <div className="modal-content" style={{ maxWidth: '650px', padding: '2rem' }} onClick={(e) => e.stopPropagation()}>
-            <img src={selectedBerita.gambar} alt={selectedBerita.judul} style={{ width: '100%', height: '260px', objectFit: 'cover', borderRadius: '14px', marginBottom: '1.25rem' }} />
-            <span className="badge-green">{selectedBerita.kategori}</span>
-            <h2 style={{ fontSize: '1.5rem', margin: '0.75rem 0', color: 'var(--color-primary-dark)' }}>{selectedBerita.judul}</h2>
-            <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: '1rem', display: 'flex', gap: '1rem' }}>
-              <span>Oleh: {selectedBerita.penulis}</span>
-              <span>Tanggal: {selectedBerita.tanggal}</span>
-            </div>
-            <p style={{ lineHeight: '1.7', color: 'var(--color-text-main)', fontSize: '0.95rem' }}>{selectedBerita.isi}</p>
-            <button className="btn btn-primary" style={{ marginTop: '1.5rem', width: '100%' }} onClick={() => setSelectedBerita(null)}>
-              Tutup Berita
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

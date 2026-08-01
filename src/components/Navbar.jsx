@@ -1,20 +1,28 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck, Menu, X, Leaf, UserCheck, Lock } from 'lucide-react';
 
-export default function Navbar({ activeTab, setActiveTab, onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmin }) {
+export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmin }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { id: 'beranda', label: 'Beranda' },
-    { id: 'profil', label: 'Profil Desa' },
-    { id: 'layanan', label: 'Layanan Publik' },
-    { id: 'potensi', label: 'Potensi & Wisata' },
+    { id: 'beranda', path: '/', label: 'Beranda' },
+    { id: 'profil', path: '/profil', label: 'Profil Desa' },
+    { id: 'layanan', path: '/layanan', label: 'Layanan Publik' },
+    { id: 'potensi', path: '/potensi', label: 'Potensi & Wisata' },
   ];
 
-  const handleNavClick = (id) => {
-    setActiveTab(id);
+  const handleNavClick = (path) => {
+    navigate(path);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const isCurrentActive = (path) => {
+    if (path === '/') return location.pathname === '/' || location.pathname.startsWith('/berita');
+    return location.pathname === path;
   };
 
   return (
@@ -168,7 +176,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAdminLogin, isAd
       <div className="container">
         <div className="navbar-inner">
           {/* Brand Logo */}
-          <div className="brand-logo" onClick={() => handleNavClick('beranda')}>
+          <div className="brand-logo" onClick={() => handleNavClick('/')}>
             <div className="logo-icon-wrap">
               <Leaf size={24} />
             </div>
@@ -184,8 +192,8 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAdminLogin, isAd
               <li key={item.id}>
                 <button
                   id={`nav-link-${item.id}`}
-                  className={`nav-item-btn ${activeTab === item.id ? 'active' : ''}`}
-                  onClick={() => handleNavClick(item.id)}
+                  className={`nav-item-btn ${isCurrentActive(item.path) ? 'active' : ''}`}
+                  onClick={() => handleNavClick(item.path)}
                 >
                   {item.label}
                 </button>
@@ -196,8 +204,8 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAdminLogin, isAd
               <li>
                 <button
                   id="nav-link-admin-panel"
-                  className={`nav-item-btn ${activeTab === 'admin' ? 'active' : ''}`}
-                  onClick={() => handleNavClick('admin')}
+                  className={`nav-item-btn ${location.pathname === '/admin' ? 'active' : ''}`}
+                  onClick={() => handleNavClick('/admin')}
                   style={{ color: '#d4af37', fontWeight: 700 }}
                 >
                   <ShieldCheck size={16} style={{ display: 'inline', marginRight: 4 }} />
@@ -207,14 +215,14 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAdminLogin, isAd
             )}
           </ul>
 
-          {/* Admin Login Corner Action (Pojok Atas Web) */}
+          {/* Admin Login Corner Action */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {isAdminLoggedIn ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <button 
                   id="admin-dashboard-shortcut-btn"
                   className="admin-corner-btn dashboard"
-                  onClick={() => handleNavClick('admin')}
+                  onClick={() => handleNavClick('/admin')}
                 >
                   <UserCheck size={14} /> Admin Mode
                 </button>
