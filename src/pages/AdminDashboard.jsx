@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Plus, Trash2, Edit3, Check, X, FileText, Newspaper, ShoppingBag, LogOut, Database, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Plus, Trash2, Edit3, Check, X, FileText, Newspaper, ShoppingBag, LogOut, Upload, Image as ImageIcon, Star, ArrowUp, ArrowDown, Sparkles } from 'lucide-react';
 import { apiService, isSupabaseConfigured } from '../lib/supabaseClient';
 
 export default function AdminDashboard({ adminUser, onLogout }) {
@@ -10,12 +10,16 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [beritaList, setBeritaList] = useState([]);
   const [umkmList, setUmkmList] = useState([]);
 
-  // Form States for Berita
+  // Multiple Image Upload State for Berita
   const [newJudul, setNewJudul] = useState('');
   const [newKategori, setNewKategori] = useState('Pembangunan');
   const [newRingkasan, setNewRingkasan] = useState('');
   const [newIsi, setNewIsi] = useState('');
-  const [newGambar, setNewGambar] = useState('');
+  
+  // Image List: Array of objects { id, url, isCover }
+  const [imagesList, setImagesList] = useState([]);
+  const [manualUrlInput, setManualUrlInput] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
 
   // Form States for UMKM
   const [newProdukNama, setNewProdukNama] = useState('');
@@ -44,6 +48,119 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     setUmkmList(uData);
   };
 
+  // --- MULTIPLE IMAGE HANDLING LOGIC ---
+  const handleFilesAdded = (files) => {
+    const fileArray = Array.from(files);
+    fileArray.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const newImg = {
+            id: 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            url: e.target.result,
+            isCover: false
+          };
+          setImagesList(prev => {
+            // If it's the very first image, set as cover automatically
+            const shouldBeCover = prev.length === 0;
+            return [...prev, { ...newImg, isCover: shouldBeCover }];
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const handleAddManualUrl = () => {
+    if (!manualUrlInput.trim()) return;
+    const newImg = {
+      id: 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      url: manualUrlInput.trim(),
+      isCover: imagesList.length === 0
+    };
+    setImagesList(prev => [...prev, newImg]);
+    setManualUrlInput('');
+  };
+
+  const handleSetCover = (id) => {
+    setImagesList(prev => prev.map(img => ({
+      ...img,
+      isCover: img.id === id
+    })));
+  };
+
+  const handleDeleteImage = (id) => {
+    setImagesList(prev => {
+      const filtered = prev.filter(img => img.id !== id);
+      // If deleted image was cover and there are remaining images, set first as cover
+      if (filtered.length > 0 && !filtered.some(img => img.isCover)) {
+        filtered[0].isCover = true;
+      }
+      return filtered;
+    });
+  };
+
+  const handleMoveImage = (index, direction) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= imagesList.length) return;
+    const updated = [...imagesList];
+    const temp = updated[index];
+    updated[index] = updated[newIndex];
+    updated[newIndex] = temp;
+    setImagesList(updated);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFilesAdded(e.dataTransfer.files);
+    }
+  };
+
+  // --- BERITA CREATE ACTION ---
+  const handleCreateBerita = async (e) => {
+    e.preventDefault();
+
+    // Determine Cover Image & Gallery Array
+    const coverObj = imagesList.find(img => img.isCover) || imagesList[0];
+    const coverUrl = coverObj ? coverObj.url : 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80';
+    const galeriUrls = imagesList.map(img => img.url);
+
+    await apiService.addBerita({
+      judul: newJudul,
+      kategori: newKategori,
+      ringkasan: newRingkasan,
+      isi: newIsi,
+      gambar: coverUrl,
+      galeri: galeriUrls.length > 0 ? galeriUrls : [coverUrl],
+      penulis: 'Admin Tajemsari'
+    });
+
+    // Reset Form
+    setNewJudul('');
+    setNewRingkasan('');
+    setNewIsi('');
+    setImagesList([]);
+    loadAllData();
+  };
+
+  const handleDeleteBerita = async (id) => {
+    if (window.confirm("Yakin ingin menghapus berita ini?")) {
+      await apiService.deleteBerita(id);
+      loadAllData();
+    }
+  };
+
   // Permohonan Action
   const handleOpenStatusModal = (item, status) => {
     setSelectedPermohonan(item);
@@ -56,31 +173,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     await apiService.updateStatusPermohonan(selectedPermohonan.id, targetStatus, catatanText);
     setSelectedPermohonan(null);
     loadAllData();
-  };
-
-  // Berita Action
-  const handleCreateBerita = async (e) => {
-    e.preventDefault();
-    await apiService.addBerita({
-      judul: newJudul,
-      kategori: newKategori,
-      ringkasan: newRingkasan,
-      isi: newIsi,
-      gambar: newGambar || 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80',
-      penulis: 'Admin Tajemsari'
-    });
-    setNewJudul('');
-    setNewRingkasan('');
-    setNewIsi('');
-    setNewGambar('');
-    loadAllData();
-  };
-
-  const handleDeleteBerita = async (id) => {
-    if (window.confirm("Yakin ingin menghapus berita ini?")) {
-      await apiService.deleteBerita(id);
-      loadAllData();
-    }
   };
 
   // UMKM Action
@@ -145,6 +237,76 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         .tab-btn.active {
           background: var(--color-primary);
           color: #ffffff;
+        }
+
+        .dropzone-box {
+          border: 2px dashed #cbd5e1;
+          background: #f8faf8;
+          border-radius: 14px;
+          padding: 1.5rem;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          margin-bottom: 1.25rem;
+        }
+
+        .dropzone-box.dragging {
+          border-color: var(--color-primary);
+          background: var(--color-primary-soft);
+        }
+
+        .image-preview-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+          gap: 1rem;
+          margin-top: 1rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .image-preview-card {
+          position: relative;
+          background: #ffffff;
+          border-radius: 10px;
+          overflow: hidden;
+          border: 2px solid var(--color-border);
+          box-shadow: var(--shadow-sm);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .image-preview-card.is-cover {
+          border-color: var(--color-gold);
+          box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+        }
+
+        .preview-img-thumb {
+          width: 100%;
+          height: 100px;
+          object-fit: cover;
+        }
+
+        .cover-tag-badge {
+          position: absolute;
+          top: 6px;
+          left: 6px;
+          background: var(--color-gold);
+          color: #ffffff;
+          font-size: 0.68rem;
+          font-weight: 800;
+          padding: 0.2rem 0.5rem;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          gap: 3px;
+        }
+
+        .preview-card-actions {
+          padding: 0.4rem;
+          background: #f8faf8;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-top: 1px solid #f1f5f9;
         }
 
         .data-table {
@@ -243,7 +405,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       </td>
                       <td style={{ maxWidth: 220 }}>{item.keperluan}</td>
                       <td>
-                        <span className={item.status === 'Selesai' ? 'badge-green' : item.status === 'Ditolak' ? 'badge-gold' : 'badge-gold'}>
+                        <span className={item.status === 'Selesai' ? 'badge-green' : 'badge-gold'}>
                           {item.status}
                         </span>
                       </td>
@@ -277,7 +439,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           </div>
         )}
 
-        {/* TAB 2: KELOLA BERITA */}
+        {/* TAB 2: KELOLA BERITA (MULTIPLE IMAGE UPLOAD SUPPORT) */}
         {activeTab === 'berita' && (
           <div className="grid-2">
             <div className="card-rural">
@@ -310,9 +472,120 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   <textarea className="form-input-custom" rows={4} value={newIsi} onChange={(e) => setNewIsi(e.target.value)} required />
                 </div>
 
+                {/* --- MULTIPLE IMAGE UPLOAD ZONE --- */}
                 <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>URL Gambar (Optional)</label>
-                  <input type="url" className="form-input-custom" value={newGambar} onChange={(e) => setNewGambar(e.target.value)} placeholder="https://..." />
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'block', marginBottom: '0.4rem' }}>
+                    Foto Utama & Galeri Dokumentasi (Multiple Image Upload)
+                  </label>
+
+                  {/* Drag & Drop Box */}
+                  <div 
+                    className={`dropzone-box ${isDragging ? 'dragging' : ''}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById('multi-file-input').click()}
+                  >
+                    <Upload size={32} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto' }} />
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                      Tarik & Lepas beberapa foto ke sini, atau klik untuk memilih
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                      Mendukung JPG, PNG, WEBP (Bisa pilih lebih dari 1 foto sekaligus)
+                    </span>
+                    <input 
+                      type="file" 
+                      id="multi-file-input" 
+                      multiple 
+                      accept="image/*" 
+                      style={{ display: 'none' }} 
+                      onChange={(e) => handleFilesAdded(e.target.files)}
+                    />
+                  </div>
+
+                  {/* Input Manual URL Foto jika tidak via Upload */}
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <input 
+                      type="url" 
+                      className="form-input-custom" 
+                      style={{ marginTop: 0 }}
+                      placeholder="Atau tempel URL gambar (https://...)" 
+                      value={manualUrlInput}
+                      onChange={(e) => setManualUrlInput(e.target.value)}
+                    />
+                    <button 
+                      type="button" 
+                      className="btn btn-outline" 
+                      style={{ padding: '0 0.85rem', fontSize: '0.8rem' }}
+                      onClick={handleAddManualUrl}
+                    >
+                      + Tambah URL
+                    </button>
+                  </div>
+
+                  {/* Uploaded Images Preview Grid & Reorder Controls */}
+                  {imagesList.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                        Daftar Foto Terunggah ({imagesList.length}): Klik bintang untuk menjadikan Cover Utama
+                      </div>
+
+                      <div className="image-preview-grid">
+                        {imagesList.map((img, idx) => (
+                          <div key={img.id} className={`image-preview-card ${img.isCover ? 'is-cover' : ''}`}>
+                            <img src={img.url} alt={`Foto ${idx+1}`} className="preview-img-thumb" />
+                            
+                            {img.isCover && (
+                              <div className="cover-tag-badge">
+                                <Star size={10} fill="#fff" /> COVER UTAMA
+                              </div>
+                            )}
+
+                            <div className="preview-card-actions">
+                              {!img.isCover && (
+                                <button 
+                                  type="button" 
+                                  title="Jadikan Cover Utama"
+                                  style={{ background: 'transparent', border: 'none', color: 'var(--color-gold)', cursor: 'pointer' }}
+                                  onClick={() => handleSetCover(img.id)}
+                                >
+                                  <Star size={14} />
+                                </button>
+                              )}
+
+                              <div style={{ display: 'flex', gap: 2 }}>
+                                <button 
+                                  type="button"
+                                  disabled={idx === 0}
+                                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.3 : 1 }}
+                                  onClick={() => handleMoveImage(idx, -1)}
+                                >
+                                  <ArrowUp size={14} />
+                                </button>
+                                <button 
+                                  type="button"
+                                  disabled={idx === imagesList.length - 1}
+                                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === imagesList.length - 1 ? 0.3 : 1 }}
+                                  onClick={() => handleMoveImage(idx, 1)}
+                                >
+                                  <ArrowDown size={14} />
+                                </button>
+                              </div>
+
+                              <button 
+                                type="button" 
+                                title="Hapus Gambar"
+                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                                onClick={() => handleDeleteImage(img.id)}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
@@ -328,10 +601,15 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {beritaList.map((item) => (
                   <div key={item.id} style={{ background: '#fff', padding: '1rem', borderRadius: 12, border: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <span className="badge-gold" style={{ fontSize: '0.75rem' }}>{item.kategori}</span>
-                      <h4 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)', marginTop: 4 }}>{item.judul}</h4>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{item.tanggal}</span>
+                    <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
+                      <img src={item.gambar} alt={item.judul} style={{ width: 54, height: 54, borderRadius: 8, objectFit: 'cover' }} />
+                      <div>
+                        <span className="badge-gold" style={{ fontSize: '0.72rem' }}>{item.kategori}</span>
+                        <h4 style={{ fontSize: '0.95rem', color: 'var(--color-primary-dark)', marginTop: 2 }}>{item.judul}</h4>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                          {item.tanggal} • {item.galeri ? item.galeri.length : 1} Foto
+                        </span>
+                      </div>
                     </div>
                     <button style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.5rem', borderRadius: 8, cursor: 'pointer' }} onClick={() => handleDeleteBerita(item.id)}>
                       <Trash2 size={16} />

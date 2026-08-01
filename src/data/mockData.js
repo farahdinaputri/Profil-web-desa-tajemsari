@@ -6,22 +6,32 @@ export const INITIAL_BERITA = [
     judul: "Penyaluran BLT Dana Desa Tajemsari Tahap III Berjalan Lancar",
     slug: "blt-tahap-3",
     ringkasan: "Pemerintah Desa Tajemsari menyerahkan bantuan langsung tunai kepada 45 keluarga penerima manfaat secara transparan.",
-    isi: "Pemerintah Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan telah menyalurkan Bantuan Langsung Tunai (BLT) Dana Desa Tahap III Tahun 2026. Penyerahan bantuan ini dilaksanakan di Balai Desa Tajemsari dengan mengedepankan asas akuntabilitas dan tepat sasaran bagi warga terdaftar.",
+    isi: "Pemerintah Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan telah menyalurkan Bantuan Langsung Tunai (BLT) Dana Desa Tahap III Tahun 2026. Penyerahan bantuan ini dilaksanakan di Balai Desa Tajemsari dengan mengedepankan asas akuntabilitas dan tepat sasaran bagi warga terdaftar.\n\nDalam kesempatan tersebut, Kepala Desa Tajemsari H. Suhartono menyampaikan harapan agar bantuan tunai ini dapat meringankan beban ekonomi warga serta dimanfaatkan untuk kebutuhan pokok sehari-hari keluarga.",
     kategori: "Ekonomi",
     penulis: "Sekretariat Desa Tajemsari",
     tanggal: "2026-07-26",
-    gambar: "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80"
+    gambar: "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80",
+    galeri: [
+      "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1556742049-0a670e4a4591?auto=format&fit=crop&w=800&q=80"
+    ]
   },
   {
     id: 2,
     judul: "Panen Raya Padi Organik Kelompok Tani Tajemsari Makmur",
     slug: "panen-raya-padi-organik",
     ringkasan: "Para petani Tajemsari berhasil meningkatkan produktivitas panen berkat pola pertanian ramah lingkungan.",
-    isi: "Kelompok Tani Tajemsari Makmur Tegowanu merayakan panen raya padi organik. Berdasarkan ubinan bersama dinas pertanian Grobogan, hasil panen mengalami kenaikan 18% dibandingkan musim tanam lalu. Petani Tajemsari optimis mewujudkan kemandirian pangan desa.",
+    isi: "Kelompok Tani Tajemsari Makmur Tegowanu merayakan panen raya padi organik. Berdasarkan ubinan bersama dinas pertanian Grobogan, hasil panen mengalami kenaikan 18% dibandingkan musim tanam lalu. Petani Tajemsari optimis mewujudkan kemandirian pangan desa.\n\nBupati Grobogan turut mengapresiasi inovasi penggunaan pupuk hijau cair buatan swadaya petani Tajemsari yang terbukti menekan biaya operasional penanaman hingga 30%.",
     kategori: "Pertanian",
     penulis: "Kasi Kesejahteraan",
     tanggal: "2026-07-20",
-    gambar: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80"
+    gambar: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+    galeri: [
+      "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80"
+    ]
   },
   {
     id: 3,
@@ -32,7 +42,11 @@ export const INITIAL_BERITA = [
     kategori: "Kesehatan",
     penulis: "Kader Kesehatan Desa",
     tanggal: "2026-07-12",
-    gambar: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80"
+    gambar: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80",
+    galeri: [
+      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80"
+    ]
   }
 ];
 

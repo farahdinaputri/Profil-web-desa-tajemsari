@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, Share2, ChevronRight, Clock, Check, Bookmark } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Share2, ChevronRight, Clock, Check, Bookmark, Image as ImageIcon, ChevronLeft, ZoomIn, ZoomOut, X, Maximize2 } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function NewsDetail() {
@@ -12,10 +12,27 @@ export default function NewsDetail() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  // Lightbox State
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+
   useEffect(() => {
     loadNewsData();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
+
+  // Keyboard navigation for Lightbox
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!lightboxOpen) return;
+      if (e.key === 'Escape') setLightboxOpen(false);
+      if (e.key === 'ArrowRight') handleNextPhoto();
+      if (e.key === 'ArrowLeft') handlePrevPhoto();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOpen, lightboxIndex, berita]);
 
   const loadNewsData = async () => {
     setLoading(true);
@@ -40,6 +57,27 @@ export default function NewsDetail() {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Lightbox Handlers
+  const galleryList = berita?.galeri && berita.galeri.length > 0 
+    ? berita.galeri 
+    : (berita?.gambar ? [berita.gambar] : []);
+
+  const openLightbox = (index) => {
+    setLightboxIndex(index);
+    setIsZoomed(false);
+    setLightboxOpen(true);
+  };
+
+  const handleNextPhoto = () => {
+    setIsZoomed(false);
+    setLightboxIndex((prev) => (prev + 1) % galleryList.length);
+  };
+
+  const handlePrevPhoto = () => {
+    setIsZoomed(false);
+    setLightboxIndex((prev) => (prev - 1 + galleryList.length) % galleryList.length);
   };
 
   if (loading) {
@@ -88,7 +126,7 @@ export default function NewsDetail() {
           max-width: 780px;
         }
 
-        /* Top Breadcrumb & Back Action */
+        /* Top Bar: Back Action & Breadcrumb */
         .news-top-bar {
           display: flex;
           align-items: center;
@@ -171,7 +209,7 @@ export default function NewsDetail() {
           gap: 1rem;
         }
 
-        /* Featured Hero Image (16:9 ratio, clean border-radius) */
+        /* Featured Hero Image (16:9 ratio, Cover) */
         .article-featured-image {
           width: 100%;
           aspect-ratio: 16 / 9;
@@ -181,9 +219,15 @@ export default function NewsDetail() {
           display: block;
           margin-bottom: 2rem;
           box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+          cursor: pointer;
+          transition: transform 0.3s ease;
         }
 
-        /* Article Body Text Flow (No card, no borders) */
+        .article-featured-image:hover {
+          transform: scale(1.01);
+        }
+
+        /* Article Content Stream */
         .article-content-flow {
           font-family: var(--font-body);
           font-size: 1.1rem;
@@ -206,17 +250,143 @@ export default function NewsDetail() {
           font-style: italic;
         }
 
-        /* Share Actions Bar at Bottom of Article */
-        .article-share-footer {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding-top: 2rem;
+        /* Documentation Photo Gallery Grid */
+        .article-gallery-section {
           margin-top: 3rem;
-          border-top: 1px solid #e2e8f0;
+          padding-top: 2rem;
+          border-top: 2px dashed #e2e8f0;
         }
 
-        /* Right Sidebar Column (Sticky, 30% width) */
+        .gallery-title {
+          font-family: var(--font-heading);
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: var(--color-primary-dark);
+          margin-bottom: 1.25rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .gallery-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+          gap: 1.25rem;
+        }
+
+        .gallery-thumb-card {
+          position: relative;
+          aspect-ratio: 4 / 3;
+          border-radius: 12px;
+          overflow: hidden;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          border: 1px solid var(--color-border);
+        }
+
+        .gallery-thumb-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.4s ease;
+        }
+
+        .gallery-thumb-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(27, 94, 32, 0.45);
+          opacity: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #ffffff;
+          transition: opacity 0.3s ease;
+          backdrop-filter: blur(2px);
+        }
+
+        .gallery-thumb-card:hover .gallery-thumb-overlay {
+          opacity: 1;
+        }
+
+        .gallery-thumb-card:hover .gallery-thumb-img {
+          transform: scale(1.08);
+        }
+
+        /* --- LIGHTBOX MODAL --- */
+        .lightbox-modal {
+          position: fixed;
+          inset: 0;
+          z-index: 3000;
+          background: rgba(10, 20, 12, 0.95);
+          backdrop-filter: blur(10px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1.5rem;
+          animation: fadeIn 0.25s ease-out;
+        }
+
+        .lightbox-header {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: #ffffff;
+          font-family: var(--font-heading);
+          z-index: 10;
+        }
+
+        .lightbox-body {
+          position: relative;
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          overflow: hidden;
+        }
+
+        .lightbox-image {
+          max-width: 90%;
+          max-height: 80vh;
+          object-fit: contain;
+          border-radius: 8px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+          transition: transform 0.3s ease;
+        }
+
+        .lightbox-image.zoomed {
+          transform: scale(1.6);
+          cursor: zoom-out;
+        }
+
+        .lightbox-btn-nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          color: #ffffff;
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .lightbox-btn-nav:hover {
+          background: var(--color-gold);
+          color: #ffffff;
+        }
+
+        .lightbox-btn-nav.prev { left: 1rem; }
+        .lightbox-btn-nav.next { right: 1rem; }
+
+        /* Right Sidebar Column */
         .news-sidebar-col {
           position: sticky;
           top: 96px;
@@ -358,8 +528,8 @@ export default function NewsDetail() {
                   <span>{berita.tanggal}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Clock size={15} color="var(--color-text-muted)" />
-                  <span>3 mnt baca</span>
+                  <ImageIcon size={15} color="var(--color-text-muted)" />
+                  <span>{galleryList.length} Foto Dokumentasi</span>
                 </div>
               </div>
 
@@ -381,10 +551,21 @@ export default function NewsDetail() {
               </div>
             </div>
 
-            {/* Main Featured Image (16:9, proportional height) */}
-            <img src={berita.gambar} alt={berita.judul} className="article-featured-image" />
+            {/* Main Cover Image (Clicking opens Lightbox at index 0) */}
+            <div style={{ position: 'relative' }}>
+              <img 
+                src={berita.gambar} 
+                alt={berita.judul} 
+                className="article-featured-image" 
+                onClick={() => openLightbox(0)}
+                title="Klik untuk memperbesar foto"
+              />
+              <div style={{ position: 'absolute', bottom: '2.5rem', right: '1rem', background: 'rgba(0,0,0,0.65)', color: '#fff', padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, backdropFilter: 'blur(4px)', pointerEvents: 'none' }}>
+                <Maximize2 size={12} /> Foto Utama (Klik untuk Zoom)
+              </div>
+            </div>
 
-            {/* Article Content Stream (No card box, natural article flow) */}
+            {/* Article Content Stream */}
             <div className="article-content-flow">
               {berita.ringkasan && (
                 <div className="article-lead-summary">
@@ -399,7 +580,31 @@ export default function NewsDetail() {
               </div>
             </div>
 
-            {/* Bottom Article Footer / Share Bar */}
+            {/* --- GALERI DOKUMENTASI KEGIATAN (MULTIPLE IMAGES) --- */}
+            {galleryList.length > 0 && (
+              <div className="article-gallery-section">
+                <div className="gallery-title">
+                  <ImageIcon size={22} color="var(--color-gold)" /> Galeri Dokumentasi Kegiatan ({galleryList.length} Foto)
+                </div>
+
+                <div className="gallery-grid">
+                  {galleryList.map((photoUrl, idx) => (
+                    <div 
+                      key={idx} 
+                      className="gallery-thumb-card"
+                      onClick={() => openLightbox(idx)}
+                    >
+                      <img src={photoUrl} alt={`Dokumentasi ${idx + 1}`} className="gallery-thumb-img" />
+                      <div className="gallery-thumb-overlay">
+                        <ZoomIn size={24} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Article Footer */}
             <div className="article-share-footer">
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>
                 Bagikan artikel ini:
@@ -421,7 +626,7 @@ export default function NewsDetail() {
             </div>
           </article>
 
-          {/* RIGHT COLUMN: Sidebar "Berita Lainnya" (~30%, starts parallel at top) */}
+          {/* RIGHT COLUMN: Sidebar "Berita Lainnya" (~30%) */}
           <aside className="news-sidebar-col">
             <div className="sidebar-heading">
               <span>Berita Lainnya</span>
@@ -450,6 +655,88 @@ export default function NewsDetail() {
 
         </div>
       </div>
+
+      {/* --- INTERACTIVE LIGHTBOX MODAL WITH ZOOM & NAV --- */}
+      {lightboxOpen && (
+        <div className="lightbox-modal">
+          {/* Header Bar */}
+          <div className="lightbox-header">
+            <div>
+              <span style={{ fontWeight: 800, fontSize: '1.05rem' }}>Dokumentasi Desa Tajemsari</span>
+              <span style={{ fontSize: '0.85rem', opacity: 0.8, marginLeft: '1rem' }}>
+                Foto {lightboxIndex + 1} dari {galleryList.length}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button 
+                onClick={() => setIsZoomed(!isZoomed)}
+                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '0.4rem 0.85rem', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+              >
+                {isZoomed ? <ZoomOut size={16} /> : <ZoomIn size={16} />}
+                {isZoomed ? 'Perkecil' : 'Perbesar'}
+              </button>
+              <button 
+                onClick={() => setLightboxOpen(false)}
+                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Main Photo View */}
+          <div className="lightbox-body" onClick={() => setIsZoomed(!isZoomed)}>
+            {galleryList.length > 1 && (
+              <button 
+                className="lightbox-btn-nav prev"
+                onClick={(e) => { e.stopPropagation(); handlePrevPhoto(); }}
+              >
+                <ChevronLeft size={28} />
+              </button>
+            )}
+
+            <img 
+              src={galleryList[lightboxIndex]} 
+              alt={`Dokumentasi ${lightboxIndex + 1}`} 
+              className={`lightbox-image ${isZoomed ? 'zoomed' : ''}`}
+            />
+
+            {galleryList.length > 1 && (
+              <button 
+                className="lightbox-btn-nav next"
+                onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+              >
+                <ChevronRight size={28} />
+              </button>
+            )}
+          </div>
+
+          {/* Footer Thumbnails Selector */}
+          {galleryList.length > 1 && (
+            <div style={{ display: 'flex', gap: '0.5rem', zIndex: 10, overflowX: 'auto', maxWidth: '100%', padding: '0.5rem' }}>
+              {galleryList.map((thumbUrl, idx) => (
+                <img 
+                  key={idx}
+                  src={thumbUrl}
+                  alt={`Thumb ${idx + 1}`}
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 6,
+                    objectFit: 'cover',
+                    cursor: 'pointer',
+                    border: lightboxIndex === idx ? '2px solid var(--color-gold)' : '2px solid transparent',
+                    opacity: lightboxIndex === idx ? 1 : 0.6,
+                    transition: 'all 0.2s'
+                  }}
+                  onClick={(e) => { e.stopPropagation(); setLightboxIndex(idx); setIsZoomed(false); }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
