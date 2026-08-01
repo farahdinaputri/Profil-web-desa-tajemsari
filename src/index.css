@@ -230,13 +230,37 @@ button {
 /* Responsive Grid */
 .grid-3 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
+}
+
+@media (max-width: 992px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Single item container handling: proportional max-width when only 1 item exists */
+.grid-3.has-single-item {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.grid-3.has-single-item > * {
+  width: 100%;
+  max-width: 380px;
 }
 
 .grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 2.5rem;
 }
 

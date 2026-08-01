@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
-import { Newspaper, ArrowRight, Calendar, User, Eye, Wheat, Users, Building, Sparkles, ChevronRight } from 'lucide-react';
+import { Newspaper, ArrowRight, Calendar, Eye, Wheat, Users, Building, Sparkles, ChevronRight, ShoppingBag, PhoneCall } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function Home() {
   const navigate = useNavigate();
   const [beritaList, setBeritaList] = useState([]);
+  const [umkmList, setUmkmList] = useState([]);
   const [activeCategory, setActiveCategory] = useState('Semua');
 
   useEffect(() => {
-    loadBerita();
+    loadHomeData();
   }, []);
 
-  const loadBerita = async () => {
-    const data = await apiService.getBerita();
-    setBeritaList(data);
+  const loadHomeData = async () => {
+    const beritaData = await apiService.getBerita();
+    const umkmData = await apiService.getUMKM();
+    setBeritaList(beritaData);
+    setUmkmList(umkmData);
   };
 
   const categories = ['Semua', 'Ekonomi', 'Pertanian', 'Kesehatan'];
@@ -24,8 +27,9 @@ export default function Home() {
     ? beritaList 
     : beritaList.filter(b => b.kategori === activeCategory);
 
-  // Home page displays the 3 latest news items
+  // Home page displays up to 3 items
   const homeBeritaList = filteredBerita.slice(0, 3);
+  const homeUmkmList = umkmList.slice(0, 3);
 
   return (
     <div className="home-page animate-fade-in">
@@ -106,9 +110,9 @@ export default function Home() {
           display: block;
         }
 
-        .berita-card {
+        .berita-card, .product-card-home {
           background: #ffffff;
-          border-radius: 16px;
+          border-radius: 18px;
           overflow: hidden;
           border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
@@ -118,19 +122,19 @@ export default function Home() {
           cursor: pointer;
         }
 
-        .berita-card:hover {
+        .berita-card:hover, .product-card-home:hover {
           transform: translateY(-6px);
           box-shadow: var(--shadow-md);
           border-color: rgba(212, 175, 55, 0.4);
         }
 
-        .berita-img {
+        .berita-img, .product-img-home {
           width: 100%;
           height: 200px;
           object-fit: cover;
         }
 
-        .berita-content {
+        .berita-content, .product-body-home {
           padding: 1.5rem;
           display: flex;
           flex-direction: column;
@@ -222,7 +226,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Berita Terkini (Displays 3 Latest News Cards + Button "Lihat Berita Lainnya") */}
+      {/* Berita Terkini Section */}
       <section className="section-padding" style={{ background: '#ffffff', borderTop: '1px solid var(--color-border)' }}>
         <div className="container">
           <div className="section-header">
@@ -258,7 +262,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid-3" style={{ marginBottom: '2.5rem' }}>
+          <div className={`grid-3 ${homeBeritaList.length === 1 ? 'has-single-item' : ''}`} style={{ marginBottom: '2.5rem' }}>
             {homeBeritaList.map((item) => (
               <div 
                 key={item.id} 
@@ -302,10 +306,76 @@ export default function Home() {
             <button 
               id="home-all-news-btn"
               className="btn btn-gold" 
-              style={{ padding: '0.9rem 2.2rem', fontSize: '1rem', borderRadius: '30px' }}
+              style={{ padding: '0.85rem 2.2rem', fontSize: '0.95rem', borderRadius: '30px' }}
               onClick={() => navigate('/berita')}
             >
               <Newspaper size={18} /> Lihat Berita Lainnya <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Produk Unggulan UMKM Section */}
+      <section className="section-padding" style={{ background: '#f8faf8', borderTop: '1px solid var(--color-border)' }}>
+        <div className="container">
+          <div className="section-header">
+            <span className="section-subtitle">
+              <ShoppingBag size={14} /> Produk Lokal & Usaha Warga
+            </span>
+            <h2 className="section-title">Produk Unggulan UMKM Tajemsari</h2>
+            <p className="section-description">
+              Dukung produk lokal berkualitas karya warga Desa Tajemsari, dari olahan madu murni hingga beras organik dan kerajinan bambu.
+            </p>
+          </div>
+
+          <div className={`grid-3 ${homeUmkmList.length === 1 ? 'has-single-item' : ''}`} style={{ marginBottom: '2.5rem' }}>
+            {homeUmkmList.map((item) => (
+              <div key={item.id} className="product-card-home" onClick={() => navigate('/potensi')}>
+                <img src={item.gambar} alt={item.nama_produk} className="product-img-home" />
+                <div className="product-body-home">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <span className="badge-gold">{item.kategori}</span>
+                    <span style={{ fontWeight: 800, color: 'var(--color-primary-dark)', fontSize: '1.05rem' }}>
+                      {item.harga}
+                    </span>
+                  </div>
+
+                  <h3 style={{ fontSize: '1.15rem', color: 'var(--color-primary-dark)', marginBottom: '0.4rem' }}>
+                    {item.nama_produk}
+                  </h3>
+
+                  <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
+                    Produsen: <strong>{item.pembuat}</strong>
+                  </div>
+
+                  <p style={{ fontSize: '0.88rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem', flex: 1, lineHeight: '1.5' }}>
+                    {item.deskripsi}
+                  </p>
+
+                  <a 
+                    href={`https://wa.me/${item.wa_seller}?text=Halo%20${encodeURIComponent(item.pembuat)},%20saya%20tertarik%20membeli%20produk%20${encodeURIComponent(item.nama_produk)}%20dari%20website%20Desa%20Tajemsari.`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn btn-primary"
+                    style={{ width: '100%', padding: '0.6rem', fontSize: '0.85rem' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <PhoneCall size={16} /> Beli via WhatsApp
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Button "Lihat UMKM Lainnya" -> /potensi */}
+          <div style={{ textAlign: 'center' }}>
+            <button 
+              id="home-all-umkm-btn"
+              className="btn btn-gold" 
+              style={{ padding: '0.85rem 2.2rem', fontSize: '0.95rem', borderRadius: '30px' }}
+              onClick={() => navigate('/potensi')}
+            >
+              <ShoppingBag size={18} /> Lihat UMKM Lainnya <ChevronRight size={18} />
             </button>
           </div>
         </div>

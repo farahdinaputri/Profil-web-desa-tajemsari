@@ -125,7 +125,7 @@ export default function Showcase() {
             </div>
           </div>
 
-          <div className="grid-3">
+          <div className={`grid-3 ${filteredUmkm.length === 1 ? 'has-single-item' : ''}`}>
             {filteredUmkm.map((item) => (
               <div key={item.id} className="product-card">
                 <img src={item.gambar} alt={item.nama_produk} className="product-img" />

@@ -190,7 +190,7 @@ export default function NewsList() {
             Memuat daftar berita Desa Tajemsari...
           </div>
         ) : filteredBerita.length > 0 ? (
-          <div className="grid-3">
+          <div className={`grid-3 ${filteredBerita.length === 1 ? 'has-single-item' : ''}`}>
             {filteredBerita.map((item) => (
               <div 
                 key={item.id} 
