@@ -43,11 +43,11 @@ export default function HeroSection({ onNavigate }) {
         }
 
         .hero-description {
-          font-size: 1.2rem;
+          font-size: 1.18rem;
           color: #e8f5e9;
-          max-width: 680px;
+          max-width: 720px;
           margin-bottom: 2.25rem;
-          line-height: 1.6;
+          line-height: 1.65;
         }
 
         .hero-actions {
@@ -136,7 +136,7 @@ export default function HeroSection({ onNavigate }) {
         </h1>
 
         <p className="hero-description">
-          Selamat datang di gapura digital Desa Tajemsari. Pusat transparansi informasi publik, layanan administrasi kependudukan cepat, serta promosi potensi UMKM & persawahan asri Tegowanu.
+          Selamat datang di portal resmi Pemerintah Desa Tajemsari, wilayah yang terletak di batas barat Kecamatan Tegowanu, Kabupaten Grobogan, Jawa Tengah. Membawahi empat dusun—Kendalsari, Mlangi, Plosorejo, dan Tajem—kami berkomitmen menghadirkan tata kelola desa yang transparan, pelayanan kependudukan yang cepat, serta pengembangan potensi persawahan dan UMKM masyarakat.
         </p>
 
         <div className="hero-actions">
