@@ -566,7 +566,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
       <style>{`
         .admin-cms-layout {
           display: flex;
-          min-height: 100vh;
+          height: 100vh;
+          max-height: 100vh;
+          width: 100vw;
+          overflow: hidden;
           background: #f4f7f4;
           font-family: var(--font-body);
         }
@@ -576,8 +579,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           width: ${sidebarCollapsed ? '80px' : '280px'};
           background-color: #112a14 !important;
           color: #ffffff;
-          position: sticky;
-          top: 0;
+          position: relative;
           height: 100vh;
           max-height: 100vh;
           flex-shrink: 0;
@@ -617,21 +619,24 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         .sidebar-nav-container {
           flex: 1;
           overflow-y: auto;
+          overflow-x: hidden;
           padding: 1rem 0.75rem;
           background-color: #112a14 !important;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
         }
 
         .sidebar-nav-container::-webkit-scrollbar {
-          width: 5px;
+          width: 4px;
         }
 
         .sidebar-nav-container::-webkit-scrollbar-thumb {
-          background: rgba(212, 175, 55, 0.4);
-          border-radius: 4px;
+          background: rgba(212, 175, 55, 0.5);
+          border-radius: 10px;
         }
 
         .sidebar-nav-container::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.2);
+          background: transparent;
         }
 
         .sidebar-category-title {
@@ -691,14 +696,19 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           border-top: 1px solid rgba(255, 255, 255, 0.1);
           background-color: #0c1f0f !important;
           flex-shrink: 0;
+          z-index: 10;
         }
 
         /* MAIN CONTENT STYLES */
         .admin-main {
           flex: 1;
           min-width: 0;
+          height: 100vh;
+          max-height: 100vh;
+          overflow-y: auto;
           display: flex;
           flex-direction: column;
+          -webkit-overflow-scrolling: touch;
         }
 
         .admin-topbar {
