@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, MapPin, Phone, Mail, Clock, Lock } from 'lucide-react';
+import { Leaf, MapPin, Phone, Mail, Clock, Lock, ExternalLink, Compass } from 'lucide-react';
 
 export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
   const navigate = useNavigate();
@@ -22,8 +22,8 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
 
         .footer-grid {
           display: grid;
-          grid-template-columns: 2fr 1fr 1.2fr 1.2fr;
-          gap: 2.5rem;
+          grid-template-columns: 1.6fr 0.9fr 1.1fr 1.1fr 1.4fr;
+          gap: 2rem;
           margin-bottom: 3.5rem;
         }
 
@@ -42,7 +42,6 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
           color: #a7f3d0;
           font-size: 0.92rem;
           line-height: 1.6;
-          margin-bottom: 1.25rem;
         }
 
         .footer-col-title {
@@ -81,6 +80,34 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
           margin-bottom: 0.85rem;
         }
 
+        .footer-map-embed {
+          width: 100%;
+          height: 180px;
+          border-radius: 12px;
+          border: 1px solid rgba(212, 175, 55, 0.4);
+          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+          margin-bottom: 0.75rem;
+        }
+
+        .footer-maps-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: rgba(212, 175, 55, 0.15);
+          border: 1px solid var(--color-gold);
+          color: #fef9e7;
+          padding: 0.4rem 0.85rem;
+          border-radius: 8px;
+          font-size: 0.82rem;
+          font-weight: 600;
+          transition: var(--transition-fast);
+        }
+
+        .footer-maps-link:hover {
+          background: var(--color-gold);
+          color: #ffffff;
+        }
+
         .footer-bottom {
           border-top: 1px solid rgba(255, 255, 255, 0.1);
           padding-top: 1.75rem;
@@ -93,12 +120,12 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
           gap: 1rem;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1100px) {
           .footer-grid {
             grid-template-columns: 1fr 1fr;
           }
         }
-        @media (max-width: 600px) {
+        @media (max-width: 650px) {
           .footer-grid {
             grid-template-columns: 1fr;
           }
@@ -115,9 +142,6 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
             <p className="footer-desc">
               Pemerintah Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan. Mengedepankan transparansi tata kelola, inovasi pelayanan publik, dan pelestarian nilai budaya persawahan Jawa.
             </p>
-            <div style={{ display: 'inline-block', background: 'rgba(212, 175, 55, 0.15)', border: '1px solid var(--color-gold)', padding: '0.4rem 0.85rem', borderRadius: 8, fontSize: '0.8rem', color: '#fef9e7' }}>
-              Sistem Desain: Rural Harmony
-            </div>
           </div>
 
           {/* Quick Nav Links */}
@@ -133,7 +157,7 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
 
           {/* Operational Hours */}
           <div>
-            <h4 className="footer-col-title">Jam Pelayanan Balai Desa</h4>
+            <h4 className="footer-col-title">Jam Pelayanan</h4>
             <div className="footer-contact-item">
               <Clock size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
@@ -161,12 +185,32 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
             </div>
             <div className="footer-contact-item">
               <Phone size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
-              <div>(0292) 7654-321 / WhatsApp: 0812-3456-7890</div>
+              <div>(0292) 7654-321 / WA: 0812-3456-7890</div>
             </div>
             <div className="footer-contact-item">
               <Mail size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
               <div>pemdes@tajemsari.desa.id</div>
             </div>
+          </div>
+
+          {/* Google Maps Location Section (Far Right on Desktop, Bottom on Mobile) */}
+          <div>
+            <h4 className="footer-col-title">Lokasi Desa</h4>
+            <iframe 
+              className="footer-map-embed"
+              title="Lokasi Desa Tajemsari Tegowanu"
+              src="https://maps.google.com/maps?q=Desa%20Tajemsari,%20Tegowanu,%20Grobogan&t=&z=14&ie=UTF8&iwloc=&output=embed"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+            <a 
+              href="https://maps.app.goo.gl/3VuZdA1hyBNbtZpn8" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="footer-maps-link"
+            >
+              <ExternalLink size={14} /> Buka di Google Maps
+            </a>
           </div>
         </div>
 
