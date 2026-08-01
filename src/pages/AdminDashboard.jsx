@@ -574,11 +574,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         /* SIDEBAR STYLES */
         .admin-sidebar {
           width: ${sidebarCollapsed ? '80px' : '280px'};
-          background: #112a14;
+          background-color: #112a14 !important;
           color: #ffffff;
           position: sticky;
           top: 0;
           height: 100vh;
+          max-height: 100vh;
           flex-shrink: 0;
           display: flex;
           flex-direction: column;
@@ -586,7 +587,8 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 1000;
           box-shadow: 4px 0 20px rgba(0,0,0,0.15);
-          border-right: 1px solid rgba(212, 175, 55, 0.2);
+          border-right: 1px solid rgba(212, 175, 55, 0.25);
+          overflow: hidden;
         }
 
         .sidebar-brand {
@@ -594,8 +596,9 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           display: flex;
           align-items: center;
           gap: 0.85rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(0,0,0,0.2);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          background-color: #0c1f0f !important;
+          flex-shrink: 0;
         }
 
         .sidebar-brand-icon {
@@ -614,15 +617,30 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         .sidebar-nav-container {
           flex: 1;
           overflow-y: auto;
-          padding: 1.25rem 0.75rem;
+          padding: 1rem 0.75rem;
+          background-color: #112a14 !important;
+        }
+
+        .sidebar-nav-container::-webkit-scrollbar {
+          width: 5px;
+        }
+
+        .sidebar-nav-container::-webkit-scrollbar-thumb {
+          background: rgba(212, 175, 55, 0.4);
+          border-radius: 4px;
+        }
+
+        .sidebar-nav-container::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.2);
         }
 
         .sidebar-category-title {
-          font-size: 0.68rem;
+          font-size: 0.7rem;
           font-weight: 800;
-          color: rgba(212, 175, 55, 0.85);
-          letter-spacing: 0.8px;
-          padding: 0.75rem 0.75rem 0.35rem 0.75rem;
+          color: #d4af37 !important;
+          letter-spacing: 1px;
+          padding: 1rem 0.75rem 0.4rem 0.75rem;
+          text-transform: uppercase;
           display: ${sidebarCollapsed ? 'none' : 'block'};
         }
 
@@ -632,7 +650,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           gap: 0.85rem;
           padding: 0.75rem 1rem;
           border-radius: 12px;
-          color: #d1fae5;
+          color: #ecfdf5 !important;
           font-size: 0.9rem;
           font-weight: 600;
           background: transparent;
@@ -640,21 +658,22 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           width: 100%;
           cursor: pointer;
           transition: all 0.2s ease;
-          margin-bottom: 0.2rem;
+          margin-bottom: 0.25rem;
           text-align: left;
           position: relative;
         }
 
         .sidebar-nav-item:hover {
-          background: rgba(255, 255, 255, 0.08);
-          color: #ffffff;
+          background: rgba(255, 255, 255, 0.12) !important;
+          color: #ffffff !important;
         }
 
         .sidebar-nav-item.active {
-          background: linear-gradient(135deg, var(--color-primary) 0%, #1b5e20 100%);
-          color: #ffffff;
-          box-shadow: 0 4px 12px rgba(46, 125, 50, 0.35);
-          border-left: 4px solid var(--color-gold);
+          background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%) !important;
+          color: #ffffff !important;
+          box-shadow: 0 4px 14px rgba(46, 125, 50, 0.4);
+          border-left: 4px solid #d4af37;
+          font-weight: 700;
         }
 
         .sidebar-badge {
@@ -662,15 +681,16 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           color: #ffffff;
           font-size: 0.7rem;
           font-weight: 800;
-          padding: 0.15rem 0.5rem;
+          padding: 0.15rem 0.55rem;
           border-radius: 20px;
           margin-left: auto;
         }
 
         .sidebar-footer {
           padding: 1rem;
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(0,0,0,0.15);
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          background-color: #0c1f0f !important;
+          flex-shrink: 0;
         }
 
         /* MAIN CONTENT STYLES */
