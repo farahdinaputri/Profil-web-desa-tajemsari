@@ -34,15 +34,36 @@ export default function NewsDetail() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxOpen, lightboxIndex, berita]);
 
+  const generateSlug = (text) => {
+    if (!text) return '';
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   const loadNewsData = async () => {
     setLoading(true);
     const allBerita = await apiService.getBerita();
-    
-    const found = allBerita.find(b => String(b.id) === String(id) || b.slug === id);
+    const targetIdStr = String(id || '').trim();
+    const decodedTarget = decodeURIComponent(targetIdStr).trim();
+
+    const found = (allBerita || []).find(b =>
+      String(b.id) === targetIdStr ||
+      String(b.id) === decodedTarget ||
+      (b.slug && String(b.slug) === targetIdStr) ||
+      (b.slug && String(b.slug) === decodedTarget) ||
+      (b.judul && generateSlug(b.judul) === decodedTarget)
+    );
+
     if (found) {
       setBerita(found);
-      const rest = allBerita.filter(b => String(b.id) !== String(found.id));
+      const rest = (allBerita || []).filter(b => String(b.id) !== String(found.id));
       setOtherBerita(rest.slice(0, 6));
+    } else {
+      setBerita(null);
     }
     setLoading(false);
   };
@@ -67,9 +88,9 @@ export default function NewsDetail() {
     }
     return berita.galeri.map((item, idx) => {
       if (typeof item === 'string') {
-        return { 
-          url: item, 
-          caption: idx === 0 ? `Foto utama: ${berita.judul}` : `Dokumentasi kegiatan Desa Tajemsari #${idx}` 
+        return {
+          url: item,
+          caption: idx === 0 ? `Foto utama: ${berita.judul}` : `Dokumentasi kegiatan Desa Tajemsari #${idx}`
         };
       }
       return {
@@ -582,7 +603,7 @@ export default function NewsDetail() {
             {/* Top Bar: Back Action & Breadcrumb */}
             <div className="news-top-bar">
               <button className="back-link-btn" onClick={() => navigate('/')}>
-                <ArrowLeft size={16} /> Kembali ke Berita
+                <ArrowLeft size={16} />
               </button>
 
               <div className="news-breadcrumb">
@@ -619,13 +640,13 @@ export default function NewsDetail() {
 
               {/* Quick Share Buttons */}
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
+                <button
                   onClick={handleShareWhatsApp}
                   style={{ background: '#25D366', color: '#fff', border: 'none', padding: '0.35rem 0.8rem', borderRadius: '16px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}
                 >
                   <Share2 size={13} /> WA
                 </button>
-                <button 
+                <button
                   onClick={handleCopyLink}
                   style={{ background: '#f1f5f9', color: 'var(--color-text-main)', border: 'none', padding: '0.35rem 0.8rem', borderRadius: '16px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}
                 >
@@ -637,10 +658,10 @@ export default function NewsDetail() {
 
             {/* --- MAIN COVER PHOTO WITH CAPTION --- */}
             <figure className="article-photo-figure">
-              <img 
-                src={coverPhotoObj.url} 
-                alt={coverPhotoObj.caption} 
-                className="article-featured-image" 
+              <img
+                src={coverPhotoObj.url}
+                alt={coverPhotoObj.caption}
+                className="article-featured-image"
                 onClick={() => openLightbox(0)}
                 title="Klik untuk memperbesar foto"
               />
@@ -662,14 +683,14 @@ export default function NewsDetail() {
                 {paragraphs.map((paragraph, pIdx) => (
                   <React.Fragment key={pIdx}>
                     <p>{paragraph}</p>
-                    
+
                     {/* Disisipkan foto dokumentasi tambahan di antara paragraf */}
                     {inlineDocPhotos[pIdx] && (
                       <figure className="article-photo-figure">
-                        <img 
-                          src={inlineDocPhotos[pIdx].url} 
-                          alt={inlineDocPhotos[pIdx].caption} 
-                          className="article-inline-image" 
+                        <img
+                          src={inlineDocPhotos[pIdx].url}
+                          alt={inlineDocPhotos[pIdx].caption}
+                          className="article-inline-image"
                           onClick={() => openLightbox(pIdx + 1)}
                         />
                         <figcaption className="article-photo-caption">
@@ -692,8 +713,8 @@ export default function NewsDetail() {
 
                 <div className="gallery-grid">
                   {galleryItems.map((photoItem, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className="gallery-thumb-card"
                       onClick={() => openLightbox(idx)}
                     >
@@ -717,14 +738,14 @@ export default function NewsDetail() {
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>
                 Bagikan artikel ini:
               </span>
-              <button 
+              <button
                 onClick={handleShareWhatsApp}
                 className="btn btn-primary"
                 style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}
               >
                 WhatsApp
               </button>
-              <button 
+              <button
                 onClick={handleCopyLink}
                 className="btn btn-outline"
                 style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}
@@ -743,8 +764,8 @@ export default function NewsDetail() {
 
             <div className="sidebar-news-list">
               {otherBerita.map((item) => (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   className="sidebar-news-item"
                   onClick={() => navigate(`/berita/${item.id}`)}
                 >
@@ -777,14 +798,14 @@ export default function NewsDetail() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <button 
+              <button
                 onClick={() => setIsZoomed(!isZoomed)}
                 style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '0.4rem 0.85rem', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
               >
                 {isZoomed ? <ZoomOut size={16} /> : <ZoomIn size={16} />}
                 {isZoomed ? 'Perkecil' : 'Perbesar'}
               </button>
-              <button 
+              <button
                 onClick={() => setLightboxOpen(false)}
                 style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
@@ -796,7 +817,7 @@ export default function NewsDetail() {
           {/* Main Photo View */}
           <div className="lightbox-body" onClick={() => setIsZoomed(!isZoomed)}>
             {galleryItems.length > 1 && (
-              <button 
+              <button
                 className="lightbox-btn-nav prev"
                 onClick={(e) => { e.stopPropagation(); handlePrevPhoto(); }}
               >
@@ -804,14 +825,14 @@ export default function NewsDetail() {
               </button>
             )}
 
-            <img 
-              src={galleryItems[lightboxIndex].url} 
-              alt={galleryItems[lightboxIndex].caption} 
+            <img
+              src={galleryItems[lightboxIndex].url}
+              alt={galleryItems[lightboxIndex].caption}
               className={`lightbox-image ${isZoomed ? 'zoomed' : ''}`}
             />
 
             {galleryItems.length > 1 && (
-              <button 
+              <button
                 className="lightbox-btn-nav next"
                 onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
               >
@@ -832,7 +853,7 @@ export default function NewsDetail() {
           {galleryItems.length > 1 && (
             <div style={{ display: 'flex', gap: '0.5rem', zIndex: 10, overflowX: 'auto', maxWidth: '100%', padding: '0.5rem 0 0 0' }}>
               {galleryItems.map((photoItem, idx) => (
-                <img 
+                <img
                   key={idx}
                   src={photoItem.url}
                   alt={`Thumb ${idx + 1}`}

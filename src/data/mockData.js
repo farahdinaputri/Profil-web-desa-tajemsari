@@ -78,7 +78,7 @@ export const INITIAL_UMKM = [
   {
     id: 1,
     nama_produk: "Madu Murni Klanceng Tajem",
-    kategori: "Madu & Herb",
+    kategori: "Kuliner",
     pembuat: "Pak Warsito",
     harga: "Rp 85.000 / 500ml",
     deskripsi: "Madu lebah klanceng alami kaya nutrisi yang dibudidayakan dari vegetasi tanaman sawah dan buah-buahan Desa Tajemsari.",
@@ -88,7 +88,7 @@ export const INITIAL_UMKM = [
   {
     id: 2,
     nama_produk: "Kopi Robusta Sawah Tajem",
-    kategori: "Minuman",
+    kategori: "Kuliner",
     pembuat: "Kelompok Usaha Ibu Tani",
     harga: "Rp 25.000 / 250gr",
     deskripsi: "Kopi olahan tradisional dengan cita rasa khas gurih dan aroma harum, favorit warga saat santai sore.",
@@ -108,7 +108,7 @@ export const INITIAL_UMKM = [
   {
     id: 4,
     nama_produk: "Beras Organik Tajemsari Super",
-    kategori: "Hasil Tani",
+    kategori: "Pertanian",
     pembuat: "KWT Tajem Asri",
     harga: "Rp 68.000 / 5kg",
     deskripsi: "Beras putih organik bebas pestisida kimia, dibudidayakan secara lestari dengan irigasi bersih.",
@@ -232,25 +232,85 @@ export const APBDES_DATA = {
 };
 
 export const INITIAL_HERO = {
+  // 1. Hero Utama
   badge: "Website Resmi Desa Tajemsari • Kec. Tegowanu",
   judul: "Selamat Datang di Portal Resmi Desa Tajemsari",
   deskripsi: "Desa Tajemsari merupakan desa paling barat di Kecamatan Tegowanu, Kabupaten Grobogan, Jawa Tengah. Wilayah desa ini terdiri dari 4 dusun: Kendalsari, Mlangi, Plosorejo, dan Tajem.",
   bgImage: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80",
   ctaPrimary: "Layanan Surat Online",
-  ctaSecondary: "Jelajahi Potensi Desa"
+  ctaPrimaryLink: "layanan",
+  ctaSecondary: "Jelajahi Potensi Desa",
+  ctaSecondaryLink: "potensi",
+
+  // 2. Akses Cepat (Quick Access Cards)
+  quickTitle: "Akses Cepat Pelayanan Publik Tajemsari",
+  quickSubtitle: "Kec. Tegowanu • Kab. Grobogan",
+  quickCard1Title: "Surat Keterangan Usaha",
+  quickCard1Desc: "SKU & Legalitas UMKM",
+  quickCard1Link: "layanan",
+  quickCard2Title: "Surat SKTM & KIS",
+  quickCard2Desc: "Bantuan Beasiswa & KIS",
+  quickCard2Link: "layanan",
+  quickCard3Title: "Potensi & Wisata Desa",
+  quickCard3Desc: "Pertanian & Olahan Madu",
+  quickCard3Link: "potensi",
+
+  // 3. Statistik Hero (3 statistik: Penduduk, RT/RW, UMKM)
+  statPenduduk: "2.845 Jiwa",
+  statRtRw: "4 RT / 2 RW",
+  statUmkm: "12 UMKM",
+
+  // 4. Sambutan Kepala Desa
+  kadesBadge: "Sambutan Kepala Desa Tajemsari",
+  kadesJudul: '"Terwujudnya Desa Tajemsari Berdikari, Sejahtera & Asri"',
+  kadesNama: "H. Suhartono, S.Sos",
+  kadesJabatan: "Kepala Desa Tajemsari Tegowanu",
+  kadesPeriode: "Periode 2021 - 2027",
+  kadesFoto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80",
+  kadesSambutan: "Assalamu’alaikum Warahmatullahi Wabarakatuh.\nSelamat datang warga dan tamu Desa Tajemsari, Kecamatan Tegowanu. Peluncuran website resmi ini merupakan wujud keterbukaan informasi publik serta komitmen kami dalam mempermudah layanan kependudukan secara modern tanpa meninggalkan keramahan khas pedesaan Grobogan."
 };
 
+export const INITIAL_STATISTIK = [
+  { id: 1, angka: "2.845", label: "Jiwa Penduduk", icon: "Users", colorBg: "#e8f5e9", colorText: "#2e7d32" },
+  { id: 2, angka: "340 Ha", label: "Luas Persawahan Padi", icon: "Wheat", colorBg: "#fef9e7", colorText: "#d4af37" },
+  { id: 3, angka: "4 RT / 2 RW", label: "Wilayah Dusun Tajemsari", icon: "Building", colorBg: "#e8f5e9", colorText: "#2e7d32" },
+  { id: 4, angka: "12 UMKM", label: "Produk Unggulan Desa", icon: "Sparkles", colorBg: "#e0f2fe", colorText: "#0284c7" }
+];
+
 export const INITIAL_PROFIL = {
-  namaKades: "H. Suhartono, S.Sos",
-  jabatanKades: "Kepala Desa Tajemsari Tegowanu",
-  sambutanKades: "Selamat datang di Portal Resmi Pemerintah Desa Tajemsari. Kami berkomitmen memberikan pelayanan publik yang cepat, transparan, akuntabel, dan ramah warga melalui sistem digitalisasi desa terpadu.",
-  fotoKades: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
-  visi: "Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Berdaya Saing, dan Berbudaya Berlandaskan Gotong Royong.",
-  misi: [
-    "Meningkatkan kualitas pelayanan publik berbasis digital yang cepat, terbuka, dan transparan.",
-    "Mengembangkan potensi sektor pertanian organik, UMKM lokal, dan agrowisata unggulan desa.",
-    "Pembangunan fasilitas infrastruktur jalan dan irigasi desa yang merata dan berkelanjutan.",
-    "Memperkuat nilai-nilai religius, budaya gotong royong, dan kearifan lokal masyarakat Tajemsari."
+  // 1. Sejarah Singkat Desa
+  sejarahJudul: "Sejarah Singkat Desa Tajemsari",
+  sejarahParagraf1: 'Nama Desa Tajemsari berasal dari gabungan kata "Tajem" yang bermakna tajam/tegas dalam memegang prinsip kebenaran, serta "Sari" yang berarti inti kebaikan dan keasrian alam. Terletak di dataran aluvial subur Kecamatan Tegowanu, Kabupaten Grobogan, Desa Tajemsari secara turun-temurun dikenal sebagai lumbung pangan padi dan pusat budidaya kerajinan tradisional.',
+  sejarahParagraf2: "Dengan hamparan persawahan seluas lebih dari 340 hektar dan sistem irigasi teknis yang terjaga, Tajemsari kini bertransformasi menjadi desa agrowisata mandiri yang memanfaatkan teknologi digital untuk pelayanan publik transparan.",
+
+  // 2. Visi & Misi Desa
+  visiJudul: '"Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Transparan, dan Berorientasi Agrowisata Ramah Lingkungan."',
+  visiDeskripsi: "Fokus utama pada penguatan ketahanan pangan lokal, kemudahan administrasi warga via internet, serta pemberdayaan ekonomi UMKM Tajemsari.",
+  misiList: [
+    "Meningkatkan kualitas pelayanan administrasi kependudukan cepat & berbasis digital.",
+    "Mengembangkan infrastruktur jalan tani dan saluran irigasi persawahan Tegowanu.",
+    "Mendukung pemasaran digital produk UMKM lokal Madu, Kopi, dan Kerajinan Bambu.",
+    "Mewujudkan tata kelola keuangan desa (APBDes) yang terbuka dan transparan."
+  ],
+
+  // 3. Struktur Organisasi Perangkat Desa (CRUD Dynamic List)
+  perangkatList: [
+    { id: 1, nama: "H. Suhartono, S.Sos", jabatan: "Kepala Desa Tajemsari", foto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80" },
+    { id: 2, nama: "Bambang Wijaya, S.T", jabatan: "Sekretaris Desa", foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
+    { id: 3, nama: "Siti Rahmawati, S.E", jabatan: "Kaur Keuangan", foto: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80" },
+    { id: 4, nama: "Sri Rejeki, A.Md", jabatan: "Kasi Kesejahteraan & Pelayanan", foto: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80" }
+  ],
+
+  // 4. Transparansi APBDes (CRUD Dynamic List)
+  apbdesTahun: "2026",
+  apbdesPendapatan: "Rp 1.450.000.000",
+  apbdesBelanja: "Rp 1.380.000.000",
+  apbdesPembiayaan: "Rp 70.000.000",
+  apbdesRincian: [
+    { id: 1, bidang: "Penyelenggaraan Pemerintahan", persentase: 32, jumlah: "Rp 464.000.000" },
+    { id: 2, bidang: "Pembangunan Desa & Infrastruktur", persentase: 45, jumlah: "Rp 652.500.000" },
+    { id: 3, bidang: "Pembinaan Kemasyarakatan", persentase: 10, jumlah: "Rp 145.000.000" },
+    { id: 4, bidang: "Pemberdayaan Masyarakat (UMKM/Tani)", persentase: 13, jumlah: "Rp 188.500.000" }
   ]
 };
 

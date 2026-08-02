@@ -7,7 +7,8 @@ import {
   INITIAL_HERO,
   INITIAL_PROFIL,
   INITIAL_FOOTER,
-  INITIAL_SETTINGS
+  INITIAL_SETTINGS,
+  INITIAL_STATISTIK
 } from '../data/mockData';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -211,11 +212,38 @@ export const apiService = {
 
   // --- CMS HERO SECTION ---
   async getHero() {
-    return getStorageItem('hero', INITIAL_HERO);
+    const stored = getStorageItem('hero', INITIAL_HERO);
+    return { ...INITIAL_HERO, ...(stored || {}) };
   },
   async updateHero(heroData) {
-    setStorageItem('hero', heroData);
-    return heroData;
+    const merged = { ...INITIAL_HERO, ...(heroData || {}) };
+    setStorageItem('hero', merged);
+    return merged;
+  },
+
+  // --- STATISTIK BERANDA (CRUD) ---
+  async getStatistik() {
+    const stored = getStorageItem('statistik', INITIAL_STATISTIK);
+    return (Array.isArray(stored) && stored.length > 0) ? stored : INITIAL_STATISTIK;
+  },
+  async addStatistik(statItem) {
+    const current = await this.getStatistik();
+    const item = { ...statItem, id: Date.now() };
+    const updated = [...current, item];
+    setStorageItem('statistik', updated);
+    return item;
+  },
+  async updateStatistik(id, updatedStat) {
+    const current = await this.getStatistik();
+    const updated = current.map(s => s.id === id ? { ...s, ...updatedStat } : s);
+    setStorageItem('statistik', updated);
+    return true;
+  },
+  async deleteStatistik(id) {
+    const current = await this.getStatistik();
+    const updated = current.filter(s => s.id !== id);
+    setStorageItem('statistik', updated);
+    return true;
   },
 
   // --- CMS PROFIL DESA ---

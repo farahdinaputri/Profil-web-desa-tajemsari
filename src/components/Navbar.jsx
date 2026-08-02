@@ -151,7 +151,20 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
           padding: 0.5rem;
         }
 
+        .mobile-only-admin-link {
+          display: none;
+        }
+
         @media (max-width: 920px) {
+          .brand-text-subtitle {
+            display: none !important;
+          }
+          .admin-corner-wrap {
+            display: none !important;
+          }
+          .mobile-only-admin-link {
+            display: block !important;
+          }
           .nav-links {
             display: none;
           }
@@ -213,40 +226,63 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
                 </button>
               </li>
             )}
+
+            {/* Mobile Only Admin Login Link inside Drawer */}
+            <li className="mobile-only-admin-link" style={{ marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-border)' }}>
+              {isAdminLoggedIn ? (
+                <button
+                  className="nav-item-btn"
+                  onClick={() => handleNavClick('/admin')}
+                  style={{ color: 'var(--color-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}
+                >
+                  <UserCheck size={16} /> Dashboard Admin
+                </button>
+              ) : (
+                <button
+                  className="nav-item-btn"
+                  onClick={() => { setMobileMenuOpen(false); onOpenAdminLogin(); }}
+                  style={{ color: '#8a6d13', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, width: '100%', background: '#fef9e7', border: '1px solid var(--color-gold)' }}
+                >
+                  <Lock size={16} /> Admin Login
+                </button>
+              )}
+            </li>
           </ul>
 
-          {/* Admin Login Corner Action */}
+          {/* Admin Login Corner Action (Desktop Only via admin-corner-wrap class) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            {isAdminLoggedIn ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <button 
-                  id="admin-dashboard-shortcut-btn"
-                  className="admin-corner-btn dashboard"
-                  onClick={() => handleNavClick('/admin')}
+            <div className="admin-corner-wrap">
+              {isAdminLoggedIn ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    id="admin-dashboard-shortcut-btn"
+                    className="admin-corner-btn dashboard"
+                    onClick={() => handleNavClick('/admin')}
+                  >
+                    <UserCheck size={14} /> Admin Mode
+                  </button>
+                  <button
+                    id="admin-logout-btn"
+                    onClick={onLogoutAdmin}
+                    style={{ background: '#fee2e2', color: '#991b1b', padding: '0.4rem 0.75rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600 }}
+                  >
+                    Keluar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  id="corner-admin-login-btn"
+                  className="admin-corner-btn login"
+                  onClick={onOpenAdminLogin}
+                  title="Login Pengurus / Admin Desa"
                 >
-                  <UserCheck size={14} /> Admin Mode
+                  <Lock size={14} /> Admin Login
                 </button>
-                <button 
-                  id="admin-logout-btn"
-                  onClick={onLogoutAdmin}
-                  style={{ background: '#fee2e2', color: '#991b1b', padding: '0.4rem 0.75rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600 }}
-                >
-                  Keluar
-                </button>
-              </div>
-            ) : (
-              <button 
-                id="corner-admin-login-btn"
-                className="admin-corner-btn login" 
-                onClick={onOpenAdminLogin}
-                title="Login Pengurus / Admin Desa"
-              >
-                <Lock size={14} /> Admin Login
-              </button>
-            )}
+              )}
+            </div>
 
-            <button 
-              className="hamburger-btn" 
+            <button
+              className="hamburger-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >

@@ -242,7 +242,7 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
                 <span>Memverifikasi...</span>
               ) : (
                 <>
-                  <ShieldCheck size={18} /> Masuk ke Panel Admin
+                  <ShieldCheck size={18} /> Masuk
                 </>
               )}
             </button>

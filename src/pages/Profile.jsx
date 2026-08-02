@@ -1,8 +1,16 @@
-import React from 'react';
-import { History, Target, Users, PieChart, CheckCircle2, ShieldCheck, Landmark } from 'lucide-react';
-import { STRUKTUR_ORGANISASI, APBDES_DATA } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { History, Target, Users, CheckCircle2, Landmark } from 'lucide-react';
+import { apiService } from '../lib/supabaseClient';
+import { INITIAL_PROFIL } from '../data/mockData';
 
 export default function Profile() {
+  const [profil, setProfil] = useState(INITIAL_PROFIL);
+
+  useEffect(() => {
+    apiService.getProfil().then(data => {
+      if (data) setProfil(data);
+    });
+  }, []);
   return (
     <div className="profile-page animate-fade-in section-padding">
       <style>{`
@@ -94,6 +102,14 @@ export default function Profile() {
         @media (max-width: 768px) {
           .visi-misi-grid {
             grid-template-columns: 1fr;
+            margin-bottom: 2.5rem;
+          }
+          .profile-hero {
+            margin-bottom: 2.5rem;
+          }
+          .timeline-box, .visi-card, .misi-card, .apbdes-card {
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
           }
         }
       `}</style>
@@ -116,14 +132,16 @@ export default function Profile() {
             <div style={{ background: 'var(--color-primary-soft)', padding: '0.6rem', borderRadius: '12px', color: 'var(--color-primary-dark)' }}>
               <History size={24} />
             </div>
-            <h2 style={{ fontSize: '1.6rem', color: 'var(--color-primary-dark)' }}>Sejarah Singkat Desa Tajemsari</h2>
+            <h2 style={{ fontSize: '1.6rem', color: 'var(--color-primary-dark)' }}>{profil.sejarahJudul || 'Sejarah Singkat Desa Tajemsari'}</h2>
           </div>
-          <p style={{ lineHeight: '1.8', color: 'var(--color-text-main)', fontSize: '1rem', marginBottom: '1rem' }}>
-            Nama <strong>Desa Tajemsari</strong> berasal dari gabungan kata <em>"Tajem"</em> yang bermakna tajam/tegas dalam memegang prinsip kebenaran, serta <em>"Sari"</em> yang berarti inti kebaikan dan keasrian alam. Terletak di dataran aluvial subur Kecamatan Tegowanu, Kabupaten Grobogan, Desa Tajemsari secara turun-temurun dikenal sebagai lumbung pangan padi dan pusat budidaya kerajinan tradisional.
+          <p style={{ lineHeight: '1.8', color: 'var(--color-text-main)', fontSize: '1rem', marginBottom: '1rem', whiteSpace: 'pre-line' }}>
+            {profil.sejarahParagraf1}
           </p>
-          <p style={{ lineHeight: '1.8', color: 'var(--color-text-main)', fontSize: '1rem' }}>
-            Dengan hamparan persawahan seluas lebih dari 340 hektar dan sistem irigasi teknis yang terjaga, Tajemsari kini bertransformasi menjadi desa agrowisata mandiri yang memanfaatkan teknologi digital untuk pelayanan publik transparan.
-          </p>
+          {profil.sejarahParagraf2 && (
+            <p style={{ lineHeight: '1.8', color: 'var(--color-text-main)', fontSize: '1rem', whiteSpace: 'pre-line' }}>
+              {profil.sejarahParagraf2}
+            </p>
+          )}
         </div>
 
         {/* Visi & Misi */}
@@ -133,10 +151,10 @@ export default function Profile() {
               Visi Pembangunan Desa
             </span>
             <h3 style={{ fontSize: '1.6rem', color: '#ffffff', marginBottom: '1rem', lineHeight: '1.3' }}>
-              "Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Transparan, dan Berorientasi Agrowisata Ramah Lingkungan."
+              {profil.visiJudul || '"Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Transparan, dan Berorientasi Agrowisata Ramah Lingkungan."'}
             </h3>
             <p style={{ color: '#e8f5e9', fontSize: '0.95rem', lineHeight: '1.6' }}>
-              Fokus utama pada penguatan ketahanan pangan lokal, kemudahan administrasi warga via internet, serta pemberdayaan ekonomi UMKM Tajemsari.
+              {profil.visiDeskripsi || 'Fokus utama pada penguatan ketahanan pangan lokal, kemudahan administrasi warga via internet, serta pemberdayaan ekonomi UMKM Tajemsari.'}
             </p>
           </div>
 
@@ -146,22 +164,12 @@ export default function Profile() {
               <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)' }}>Misi Utama Desa</h3>
             </div>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <li style={{ display: 'flex', gap: '0.75rem', fontSize: '0.95rem' }}>
-                <CheckCircle2 size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
-                <span>Meningkatkan kualitas pelayanan administrasi kependudukan cepat & berbasis digital.</span>
-              </li>
-              <li style={{ display: 'flex', gap: '0.75rem', fontSize: '0.95rem' }}>
-                <CheckCircle2 size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
-                <span>Mengembangkan infrastruktur jalan tani dan saluran irigasi persawahan Tegowanu.</span>
-              </li>
-              <li style={{ display: 'flex', gap: '0.75rem', fontSize: '0.95rem' }}>
-                <CheckCircle2 size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
-                <span>Mendukung pemasaran digital produk UMKM lokal Madu, Kopi, dan Kerajinan Bambu.</span>
-              </li>
-              <li style={{ display: 'flex', gap: '0.75rem', fontSize: '0.95rem' }}>
-                <CheckCircle2 size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
-                <span>Mewujudkan tata kelola keuangan desa (APBDes) yang terbuka dan transparan.</span>
-              </li>
+              {(profil.misiList || []).map((misiItem, idx) => (
+                <li key={idx} style={{ display: 'flex', gap: '0.75rem', fontSize: '0.95rem' }}>
+                  <CheckCircle2 size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <span>{misiItem}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -179,7 +187,7 @@ export default function Profile() {
           </div>
 
           <div className="grid-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-            {STRUKTUR_ORGANISASI.map((perangkat) => (
+            {(profil.perangkatList || []).map((perangkat) => (
               <div key={perangkat.id} className="org-card">
                 <img src={perangkat.foto} alt={perangkat.nama} className="org-img" />
                 <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '0.25rem' }}>
@@ -197,7 +205,7 @@ export default function Profile() {
         <div className="apbdes-card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.75rem' }}>
             <div>
-              <span className="badge-gold">Tahun Anggaran {APBDES_DATA.tahun}</span>
+              <span className="badge-gold">Tahun Anggaran {profil.apbdesTahun || '2026'}</span>
               <h2 style={{ fontSize: '1.75rem', color: 'var(--color-primary-dark)', marginTop: 6 }}>
                 Transparansi APBDes Tajemsari
               </h2>
@@ -205,13 +213,13 @@ export default function Profile() {
             <div style={{ textAlign: 'right' }}>
               <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Total Pendapatan Desa</span>
               <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                {APBDES_DATA.pendapatan}
+                {profil.apbdesPendapatan || 'Rp 1.450.000.000'}
               </div>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-            {APBDES_DATA.rincian.map((item, idx) => (
+            {(profil.apbdesRincian || []).map((item, idx) => (
               <div key={idx} style={{ background: '#f8faf8', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 700, marginBottom: 4 }}>
                   <span style={{ color: 'var(--color-primary-dark)' }}>{item.bidang}</span>

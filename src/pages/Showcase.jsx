@@ -18,11 +18,11 @@ export default function Showcase() {
     setWisataList(wisataData);
   };
 
-  const categories = ['Semua', 'Olahan Madu', 'Minuman', 'Kerajinan', 'Hasil Tani'];
+  const categories = ['Semua', 'Kuliner', 'Kerajinan', 'Jasa', 'Pertanian'];
 
   const filteredUmkm = activeCategory === 'Semua' 
     ? umkmList 
-    : umkmList.filter(u => u.kategori === activeCategory || (activeCategory === 'Olahan Madu' && u.kategori?.includes('Madu')));
+    : umkmList.filter(u => u.kategori === activeCategory);
 
   return (
     <div className="showcase-page animate-fade-in section-padding">

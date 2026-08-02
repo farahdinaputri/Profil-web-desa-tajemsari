@@ -133,19 +133,36 @@ export default function HeroSection({ onNavigate }) {
 
         @media (max-width: 768px) {
           .hero-title {
-            font-size: 2.2rem;
+            font-size: 1.95rem;
+          }
+          .hero-description {
+            font-size: 0.98rem;
+            margin-bottom: 1.75rem;
           }
           .hero-container {
-            padding: 4rem 0 5rem 0;
+            padding: 3rem 0 4rem 0;
+          }
+          .hero-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+          }
+          .hero-actions .btn {
+            width: 100%;
+            justify-content: center;
+          }
+          .quick-services-bar {
+            padding: 1.25rem 1rem;
+          }
+          .quick-services-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.35rem;
           }
         }
       `}</style>
 
       <div className="container">
-        <div className="hero-badge-pill">
-          <Compass size={16} /> {hero.badge}
-        </div>
-
         <h1 className="hero-title">
           {hero.judul}
         </h1>
@@ -158,7 +175,7 @@ export default function HeroSection({ onNavigate }) {
           <button 
             id="hero-btn-layanan"
             className="btn btn-gold" 
-            onClick={() => onNavigate('layanan')}
+            onClick={() => onNavigate(hero.ctaPrimaryLink || 'layanan')}
           >
             <FileText size={18} /> {hero.ctaPrimary || 'Pengajuan Surat Online'}
           </button>
@@ -167,7 +184,7 @@ export default function HeroSection({ onNavigate }) {
             id="hero-btn-potensi"
             className="btn btn-outline" 
             style={{ color: '#ffffff', borderColor: '#ffffff' }}
-            onClick={() => onNavigate('potensi')}
+            onClick={() => onNavigate(hero.ctaSecondaryLink || 'potensi')}
           >
             <Compass size={18} /> {hero.ctaSecondary || 'Jelajahi Potensi Desa'}
           </button>
@@ -177,41 +194,41 @@ export default function HeroSection({ onNavigate }) {
         <div className="quick-services-bar">
           <div className="quick-services-header">
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.05rem' }}>
-              <ShieldCheck size={20} color="var(--color-primary)" /> Akses Cepat Pelayanan Publik Tajemsari
+              <ShieldCheck size={20} color="var(--color-primary)" /> {hero.quickTitle || 'Akses Cepat Pelayanan Publik Tajemsari'}
             </span>
             <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-              Kec. Tegowanu • Kab. Grobogan
+              {hero.quickSubtitle || 'Kec. Tegowanu • Kab. Grobogan'}
             </span>
           </div>
 
           <div className="quick-cards-grid">
-            <div className="quick-card" onClick={() => onNavigate('layanan')}>
+            <div className="quick-card" onClick={() => onNavigate(hero.quickCard1Link || 'layanan')}>
               <div className="quick-icon-box" style={{ background: 'var(--color-primary)' }}>
                 <FileText size={22} />
               </div>
               <div>
-                <h4 style={{ fontSize: '0.95rem', marginBottom: 2 }}>Surat Keterangan Usaha</h4>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>SKU & Legalitas UMKM</span>
+                <h4 style={{ fontSize: '0.95rem', marginBottom: 2 }}>{hero.quickCard1Title || 'Surat Keterangan Usaha'}</h4>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{hero.quickCard1Desc || 'SKU & Legalitas UMKM'}</span>
               </div>
             </div>
 
-            <div className="quick-card" onClick={() => onNavigate('layanan')}>
+            <div className="quick-card" onClick={() => onNavigate(hero.quickCard2Link || 'layanan')}>
               <div className="quick-icon-box" style={{ background: 'var(--color-gold)' }}>
                 <Users size={22} />
               </div>
               <div>
-                <h4 style={{ fontSize: '0.95rem', marginBottom: 2 }}>Surat SKTM & KIS</h4>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Bantuan Beasiswa & KIS</span>
+                <h4 style={{ fontSize: '0.95rem', marginBottom: 2 }}>{hero.quickCard2Title || 'Surat SKTM & KIS'}</h4>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{hero.quickCard2Desc || 'Bantuan Beasiswa & KIS'}</span>
               </div>
             </div>
 
-            <div className="quick-card" onClick={() => onNavigate('potensi')}>
+            <div className="quick-card" onClick={() => onNavigate(hero.quickCard3Link || 'potensi')}>
               <div className="quick-icon-box" style={{ background: 'var(--color-primary-dark)' }}>
                 <HeartPulse size={22} />
               </div>
               <div>
-                <h4 style={{ fontSize: '0.95rem', marginBottom: 2 }}>Potensi & Wisata Desa</h4>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Pertanian & Olahan Madu</span>
+                <h4 style={{ fontSize: '0.95rem', marginBottom: 2 }}>{hero.quickCard3Title || 'Potensi & Wisata Desa'}</h4>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{hero.quickCard3Desc || 'Pertanian & Olahan Madu'}</span>
               </div>
             </div>
           </div>
