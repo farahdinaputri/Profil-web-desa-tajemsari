@@ -212,11 +212,58 @@ export const apiService = {
 
   // --- CMS HERO SECTION ---
   async getHero() {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.from('hero_section').select('*').eq('id', 1).single();
+        if (!error && data) {
+          return {
+            ...INITIAL_HERO,
+            badge: data.badge || INITIAL_HERO.badge,
+            judul: data.judul || INITIAL_HERO.judul,
+            deskripsi: data.deskripsi || INITIAL_HERO.deskripsi,
+            bgImage: data.bg_image || INITIAL_HERO.bgImage,
+            kadesNama: data.kades_nama || INITIAL_HERO.kadesNama,
+            kadesJabatan: data.kades_jabatan || INITIAL_HERO.kadesJabatan,
+            kadesPeriode: data.kades_periode || INITIAL_HERO.kadesPeriode,
+            kadesFoto: data.kades_foto || INITIAL_HERO.kadesFoto,
+            kadesSambutan: data.kades_sambutan || INITIAL_HERO.kadesSambutan,
+            statPenduduk: data.stat_penduduk || INITIAL_HERO.statPenduduk,
+            statRtRw: data.stat_rt_rw || INITIAL_HERO.statRtRw,
+            statUmkm: data.stat_umkm || INITIAL_HERO.statUmkm,
+          };
+        }
+      } catch (e) {
+        console.error("Supabase getHero error:", e);
+      }
+    }
     const stored = getStorageItem('hero', INITIAL_HERO);
     return { ...INITIAL_HERO, ...(stored || {}) };
   },
+
   async updateHero(heroData) {
     const merged = { ...INITIAL_HERO, ...(heroData || {}) };
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('hero_section').upsert([{
+          id: 1,
+          badge: merged.badge,
+          judul: merged.judul,
+          deskripsi: merged.deskripsi,
+          bg_image: merged.bgImage,
+          kades_nama: merged.kadesNama,
+          kades_jabatan: merged.kadesJabatan,
+          kades_periode: merged.kadesPeriode,
+          kades_foto: merged.kadesFoto,
+          kades_sambutan: merged.kadesSambutan,
+          stat_penduduk: merged.statPenduduk,
+          stat_rt_rw: merged.statRtRw,
+          stat_umkm: merged.statUmkm,
+          updated_at: new Date().toISOString()
+        }]);
+      } catch (e) {
+        console.error("Supabase updateHero error:", e);
+      }
+    }
     setStorageItem('hero', merged);
     return merged;
   },
@@ -248,27 +295,140 @@ export const apiService = {
 
   // --- CMS PROFIL DESA ---
   async getProfil() {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.from('profil_desa').select('*').eq('id', 1).single();
+        if (!error && data) {
+          return {
+            ...INITIAL_PROFIL,
+            sejarahJudul: data.sejarah_judul || INITIAL_PROFIL.sejarahJudul,
+            sejarahParagraf1: data.sejarah_paragraf1 || INITIAL_PROFIL.sejarahParagraf1,
+            sejarahParagraf2: data.sejarah_paragraf2 || INITIAL_PROFIL.sejarahParagraf2,
+            visiJudul: data.visi_judul || INITIAL_PROFIL.visiJudul,
+            visiDeskripsi: data.visi_deskripsi || INITIAL_PROFIL.visiDeskripsi,
+            misiList: data.misi_list || INITIAL_PROFIL.misiList,
+          };
+        }
+      } catch (e) {
+        console.error("Supabase getProfil error:", e);
+      }
+    }
     return getStorageItem('profil', INITIAL_PROFIL);
   },
+
   async updateProfil(profilData) {
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('profil_desa').upsert([{
+          id: 1,
+          sejarah_judul: profilData.sejarahJudul,
+          sejarah_paragraf1: profilData.sejarahParagraf1,
+          sejarah_paragraf2: profilData.sejarahParagraf2,
+          visi_judul: profilData.visiJudul,
+          visi_deskripsi: profilData.visiDeskripsi,
+          misi_list: profilData.misiList,
+          updated_at: new Date().toISOString()
+        }]);
+      } catch (e) {
+        console.error("Supabase updateProfil error:", e);
+      }
+    }
     setStorageItem('profil', profilData);
     return profilData;
   },
 
   // --- CMS FOOTER ---
   async getFooter() {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.from('footer_info').select('*').eq('id', 1).single();
+        if (!error && data) {
+          return {
+            ...INITIAL_FOOTER,
+            alamat: data.alamat || INITIAL_FOOTER.alamat,
+            telepon: data.telepon || INITIAL_FOOTER.telepon,
+            whatsapp: data.whatsapp || INITIAL_FOOTER.whatsapp,
+            email: data.email || INITIAL_FOOTER.email,
+            jamPelayanan: data.jam_pelayanan || INITIAL_FOOTER.jamPelayanan,
+            mapsUrl: data.maps_url || INITIAL_FOOTER.mapsUrl,
+            facebook: data.facebook || INITIAL_FOOTER.facebook,
+            instagram: data.instagram || INITIAL_FOOTER.instagram,
+            youtube: data.youtube || INITIAL_FOOTER.youtube,
+          };
+        }
+      } catch (e) {
+        console.error("Supabase getFooter error:", e);
+      }
+    }
     return getStorageItem('footer', INITIAL_FOOTER);
   },
+
   async updateFooter(footerData) {
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('footer_info').upsert([{
+          id: 1,
+          alamat: footerData.alamat,
+          telepon: footerData.telepon,
+          whatsapp: footerData.whatsapp,
+          email: footerData.email,
+          jam_pelayanan: footerData.jamPelayanan,
+          maps_url: footerData.mapsUrl,
+          facebook: footerData.facebook,
+          instagram: footerData.instagram,
+          youtube: footerData.youtube,
+          updated_at: new Date().toISOString()
+        }]);
+      } catch (e) {
+        console.error("Supabase updateFooter error:", e);
+      }
+    }
     setStorageItem('footer', footerData);
     return footerData;
   },
 
   // --- CMS SETTINGS ---
   async getSettings() {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.from('website_settings').select('*').eq('id', 1).single();
+        if (!error && data) {
+          return {
+            ...INITIAL_SETTINGS,
+            namaDesa: data.nama_desa || INITIAL_SETTINGS.namaDesa,
+            kecamatan: data.kecamatan || INITIAL_SETTINGS.kecamatan,
+            kabupaten: data.kabupaten || INITIAL_SETTINGS.kabupaten,
+            provinsi: data.provinsi || INITIAL_SETTINGS.provinsi,
+            emailAdmin: data.email_admin || INITIAL_SETTINGS.emailAdmin,
+            teleponKantor: data.telepon_kantor || INITIAL_SETTINGS.teleponKantor,
+            runningText: data.running_text || INITIAL_SETTINGS.runningText,
+          };
+        }
+      } catch (e) {
+        console.error("Supabase getSettings error:", e);
+      }
+    }
     return getStorageItem('settings', INITIAL_SETTINGS);
   },
+
   async updateSettings(settingsData) {
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('website_settings').upsert([{
+          id: 1,
+          nama_desa: settingsData.namaDesa,
+          kecamatan: settingsData.kecamatan,
+          kabupaten: settingsData.kabupaten,
+          provinsi: settingsData.provinsi,
+          email_admin: settingsData.emailAdmin,
+          telepon_kantor: settingsData.teleponKantor,
+          running_text: settingsData.runningText,
+          updated_at: new Date().toISOString()
+        }]);
+      } catch (e) {
+        console.error("Supabase updateSettings error:", e);
+      }
+    }
     setStorageItem('settings', settingsData);
     return settingsData;
   },
