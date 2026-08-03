@@ -200,41 +200,6 @@ export default function Profile() {
             ))}
           </div>
         </div>
-
-        {/* Transparansi APBDes */}
-        <div className="apbdes-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.75rem' }}>
-            <div>
-              <span className="badge-gold">Tahun Anggaran {profil.apbdesTahun || '2026'}</span>
-              <h2 style={{ fontSize: '1.75rem', color: 'var(--color-primary-dark)', marginTop: 6 }}>
-                Transparansi APBDes Tajemsari
-              </h2>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Total Pendapatan Desa</span>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                {profil.apbdesPendapatan || 'Rp 1.450.000.000'}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-            {(profil.apbdesRincian || []).map((item, idx) => (
-              <div key={idx} style={{ background: '#f8faf8', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 700, marginBottom: 4 }}>
-                  <span style={{ color: 'var(--color-primary-dark)' }}>{item.bidang}</span>
-                  <span style={{ color: 'var(--color-gold)' }}>{item.persentase}%</span>
-                </div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                  Alokasi: {item.jumlah}
-                </div>
-                <div className="progress-bar-bg">
-                  <div className="progress-bar-fill" style={{ width: `${item.persentase}%` }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

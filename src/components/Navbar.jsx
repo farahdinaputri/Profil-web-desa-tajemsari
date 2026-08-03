@@ -227,9 +227,9 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
               </li>
             )}
 
-            {/* Mobile Only Admin Login Link inside Drawer */}
-            <li className="mobile-only-admin-link" style={{ marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-border)' }}>
-              {isAdminLoggedIn ? (
+            {/* Mobile Only Admin Link inside Drawer (Only when logged in) */}
+            {isAdminLoggedIn && (
+              <li className="mobile-only-admin-link" style={{ marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-border)' }}>
                 <button
                   className="nav-item-btn"
                   onClick={() => handleNavClick('/admin')}
@@ -237,49 +237,30 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
                 >
                   <UserCheck size={16} /> Dashboard Admin
                 </button>
-              ) : (
-                <button
-                  className="nav-item-btn"
-                  onClick={() => { setMobileMenuOpen(false); onOpenAdminLogin(); }}
-                  style={{ color: '#8a6d13', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, width: '100%', background: '#fef9e7', border: '1px solid var(--color-gold)' }}
-                >
-                  <Lock size={16} /> Admin Login
-                </button>
-              )}
-            </li>
+              </li>
+            )}
           </ul>
 
-          {/* Admin Login Corner Action (Desktop Only via admin-corner-wrap class) */}
+          {/* Admin Corner Action (Shows Admin Mode / Keluar only when logged in) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div className="admin-corner-wrap">
-              {isAdminLoggedIn ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <button
-                    id="admin-dashboard-shortcut-btn"
-                    className="admin-corner-btn dashboard"
-                    onClick={() => handleNavClick('/admin')}
-                  >
-                    <UserCheck size={14} /> Admin Mode
-                  </button>
-                  <button
-                    id="admin-logout-btn"
-                    onClick={onLogoutAdmin}
-                    style={{ background: '#fee2e2', color: '#991b1b', padding: '0.4rem 0.75rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600 }}
-                  >
-                    Keluar
-                  </button>
-                </div>
-              ) : (
+            {isAdminLoggedIn && (
+              <div className="admin-corner-wrap" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <button
-                  id="corner-admin-login-btn"
-                  className="admin-corner-btn login"
-                  onClick={onOpenAdminLogin}
-                  title="Login Pengurus / Admin Desa"
+                  id="admin-dashboard-shortcut-btn"
+                  className="admin-corner-btn dashboard"
+                  onClick={() => handleNavClick('/admin')}
                 >
-                  <Lock size={14} /> Admin Login
+                  <UserCheck size={14} /> Admin Mode
                 </button>
-              )}
-            </div>
+                <button
+                  id="admin-logout-btn"
+                  onClick={onLogoutAdmin}
+                  style={{ background: '#fee2e2', color: '#991b1b', padding: '0.4rem 0.75rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600 }}
+                >
+                  Keluar
+                </button>
+              </div>
+            )}
 
             <button
               className="hamburger-btn"

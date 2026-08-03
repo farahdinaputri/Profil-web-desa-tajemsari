@@ -258,9 +258,13 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
               <button 
                 id="footer-admin-login-link"
                 onClick={onOpenAdminLogin}
-                style={{ background: 'transparent', border: 'none', color: '#d4af37', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'underline' }}
+                title="Login Admin Desa"
+                aria-label="Login Admin Desa"
+                style={{ background: 'transparent', border: 'none', color: '#d4af37', cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: 0.7, transition: 'opacity 0.2s', padding: '0.2rem' }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
               >
-                <Lock size={14} /> Login Portal Admin
+                <Lock size={16} />
               </button>
             )}
           </div>
