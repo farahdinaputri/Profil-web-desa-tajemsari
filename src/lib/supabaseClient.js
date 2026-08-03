@@ -271,5 +271,34 @@ export const apiService = {
   async updateSettings(settingsData) {
     setStorageItem('settings', settingsData);
     return settingsData;
+  },
+
+  // --- AUTHENTICATION ADMIN ---
+  async verifyAdminLogin(identifier, password) {
+    const cleanId = String(identifier || '').trim();
+    const cleanPass = String(password || '').trim();
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('admin_users')
+          .select('*')
+          .or(`username.eq.${cleanId},email.eq.${cleanId}`)
+          .eq('password', cleanPass);
+        
+        if (!error && data && data.length > 0) {
+          return { success: true, user: data[0] };
+        }
+      } catch (err) {
+        console.error("Supabase Admin Auth error:", err);
+      }
+    }
+
+    // Default Fallback Admin Check
+    if ((cleanId === 'admin' || cleanId === 'admin@tajemsari.desa.id') && cleanPass === 'admin123') {
+      return { success: true, user: { username: 'admin', email: 'admin@tajemsari.desa.id', role: 'Admin Utama' } };
+    }
+
+    return { success: false, message: 'Username/Email atau Kata Sandi yang Anda masukkan salah.' };
   }
 };

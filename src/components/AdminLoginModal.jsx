@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, Key, ShieldCheck, AlertCircle, Sparkles } from 'lucide-react';
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { X, Lock, User, Key, ShieldCheck, AlertCircle } from 'lucide-react';
+import { apiService } from '../lib/supabaseClient';
 
 export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
-  const [email, setEmail] = useState('admin@tajemsari.desa.id');
-  const [password, setPassword] = useState('admin123');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -16,76 +16,57 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
     setErrorMsg('');
 
     try {
-      if (isSupabaseConfigured && supabase) {
-        // Try real Supabase Auth
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          // Fallback to local admin check if auth fails or demo account used
-          if (email === 'admin@tajemsari.desa.id' && password === 'admin123') {
-            onLoginSuccess({ email, role: 'admin' });
-            onClose();
-          } else {
-            setErrorMsg(error.message || 'Email atau password salah.');
-          }
-        } else {
-          onLoginSuccess(data.user);
-          onClose();
-        }
+      const res = await apiService.verifyAdminLogin(identifier, password);
+      if (res.success) {
+        onLoginSuccess(res.user);
+        onClose();
+        setIdentifier('');
+        setPassword('');
       } else {
-        // Demo Mode validation
-        if (email === 'admin@tajemsari.desa.id' && password === 'admin123') {
-          onLoginSuccess({ email, role: 'admin' });
-          onClose();
-        } else {
-          setErrorMsg('Kredensial demo: Gunakan admin@tajemsari.desa.id / admin123');
-        }
+        setErrorMsg(res.message || 'Kredensial login tidak ditemukan atau salah.');
       }
     } catch (err) {
-      setErrorMsg('Terjadi kesalahan saat verifikasi login.');
+      setErrorMsg('Terjadi kesalahan saat memverifikasi kredensial login.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={onClose}>
       <style>{`
         .modal-overlay {
           position: fixed;
           inset: 0;
           z-index: 2000;
-          background: rgba(15, 23, 42, 0.65);
-          backdrop-filter: blur(6px);
+          background: rgba(15, 23, 42, 0.7);
+          backdrop-filter: blur(8px);
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 1.5rem;
+          padding: 1rem;
         }
 
         .modal-content {
           background: #ffffff;
           width: 100%;
-          max-width: 440px;
+          max-width: 420px;
           border-radius: 20px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
           overflow: hidden;
-          border: 1px solid rgba(212, 175, 55, 0.4);
-          animation: modalPop 0.3s ease-out;
+          border: 1px solid rgba(212, 175, 55, 0.5);
+          animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes modalPop {
-          from { opacity: 0; transform: scale(0.92); }
-          to { opacity: 1; transform: scale(1); }
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .modal-header-banner {
           background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
           color: #ffffff;
-          padding: 1.75rem;
+          padding: 1.75rem 1.5rem 1.5rem 1.5rem;
           text-align: center;
           position: relative;
         }
@@ -104,14 +85,28 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
           align-items: center;
           justify-content: center;
           cursor: pointer;
+          transition: background 0.2s ease;
         }
 
         .modal-close-btn:hover {
           background: rgba(255, 255, 255, 0.35);
         }
 
+        .modal-header-icon-wrap {
+          width: 52px;
+          height: 52px;
+          background: linear-gradient(135deg, #d4af37 0%, #aa820a 100%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 0.75rem auto;
+          color: #ffffff;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
         .modal-body {
-          padding: 2rem;
+          padding: 1.75rem 1.5rem 1.75rem 1.5rem;
         }
 
         .form-group {
@@ -134,83 +129,86 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
 
         .input-icon {
           position: absolute;
-          left: 12px;
-          color: var(--color-text-muted);
+          left: 14px;
+          color: #64748b;
+          pointer-events: none;
         }
 
         .form-input {
           width: 100%;
-          padding: 0.75rem 0.75rem 0.75rem 2.6rem;
+          padding: 0.8rem 0.8rem 0.8rem 2.8rem;
           border: 1.5px solid #cbd5e1;
-          border-radius: 10px;
+          border-radius: 12px;
           font-size: 0.95rem;
-          transition: var(--transition-fast);
+          color: #0f172a;
+          background-color: #f8fafc;
+          transition: all 0.2s ease;
         }
 
         .form-input:focus {
           border-color: var(--color-primary);
+          background-color: #ffffff;
           outline: none;
-          box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+          box-shadow: 0 0 0 3.5px rgba(46, 125, 50, 0.15);
         }
 
-        .demo-badge-info {
-          background: #fef9e7;
-          border: 1px solid rgba(212, 175, 55, 0.4);
-          border-radius: 10px;
-          padding: 0.75rem 1rem;
-          margin-bottom: 1.25rem;
-          font-size: 0.82rem;
-          color: #8a6d13;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
+        /* Responsive Mobile Adjustments */
+        @media (max-width: 480px) {
+          .modal-overlay {
+            padding: 0.75rem;
+          }
+          .modal-content {
+            border-radius: 16px;
+          }
+          .modal-header-banner {
+            padding: 1.5rem 1.25rem 1.25rem 1.25rem;
+          }
+          .modal-body {
+            padding: 1.25rem 1.25rem 1.5rem 1.25rem;
+          }
+          .form-input {
+            padding: 0.75rem 0.75rem 0.75rem 2.6rem;
+            font-size: 0.9rem;
+          }
         }
       `}</style>
 
-      <div className="modal-content">
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header-banner">
-          <button className="modal-close-btn" onClick={onClose} id="modal-close-btn">
+          <button className="modal-close-btn" onClick={onClose} id="modal-close-btn" aria-label="Tutup">
             <X size={18} />
           </button>
-          <div style={{ width: 48, height: 48, background: '#d4af37', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem auto', color: '#ffffff' }}>
+          <div className="modal-header-icon-wrap">
             <Lock size={24} />
           </div>
-          <h3 style={{ color: '#ffffff', fontSize: '1.4rem' }}>Portal Admin Tajemsari</h3>
-          <p style={{ fontSize: '0.85rem', opacity: 0.9, marginTop: 4 }}>
-            Login Khusus Pengurus Desa Tajemsari Tegowanu
+          <h3 style={{ color: '#ffffff', fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>Portal Pengurus Desa</h3>
+          <p style={{ fontSize: '0.85rem', color: '#e2e8f0', marginTop: 4, marginBottom: 0 }}>
+            Pemerintah Desa Tajemsari • Tegowanu Grobogan
           </p>
         </div>
 
         <div className="modal-body">
           {errorMsg && (
-            <div style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fca5a5', padding: '0.75rem', borderRadius: 8, fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <AlertCircle size={16} />
-              {errorMsg}
+            <div style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fca5a5', padding: '0.75rem 1rem', borderRadius: 10, fontSize: '0.85rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 500 }}>
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <div>{errorMsg}</div>
             </div>
           )}
 
-          <div className="demo-badge-info">
-            <Sparkles size={18} style={{ flexShrink: 0 }} />
-            <div>
-              <strong>Mode Uji Coba (Demo Admin):</strong><br />
-              Email: <code>admin@tajemsari.desa.id</code><br />
-              Password: <code>admin123</code>
-            </div>
-          </div>
-
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Email Admin / NIP</label>
+              <label className="form-label">Username / Email Admin</label>
               <div className="input-wrapper">
-                <Mail size={18} className="input-icon" />
+                <User size={18} className="input-icon" />
                 <input
-                  type="email"
+                  type="text"
                   id="admin-email-input"
                   className="form-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@tajemsari.desa.id"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="Masukkan Username atau Email"
                   required
+                  autoFocus
                 />
               </div>
             </div>
@@ -225,7 +223,7 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
                   className="form-input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Masukkan Kata Sandi"
                   required
                 />
               </div>
@@ -235,14 +233,14 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
               type="submit"
               id="admin-submit-login-btn"
               className="btn btn-gold"
-              style={{ width: '100%', padding: '0.85rem', marginTop: '0.5rem' }}
+              style={{ width: '100%', padding: '0.85rem', marginTop: '0.5rem', borderRadius: 12, fontSize: '0.95rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
               disabled={loading}
             >
               {loading ? (
-                <span>Memverifikasi...</span>
+                <span>Memverifikasi Akses...</span>
               ) : (
                 <>
-                  <ShieldCheck size={18} /> Masuk
+                  <ShieldCheck size={19} /> Masuk Portal Admin
                 </>
               )}
             </button>
