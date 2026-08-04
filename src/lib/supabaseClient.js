@@ -214,22 +214,22 @@ export const apiService = {
   async getHero() {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase.from('hero_section').select('*').eq('id', 1).single();
+        const { data, error } = await supabase.from('hero_section').select('*').eq('id', 1).maybeSingle();
         if (!error && data) {
           return {
             ...INITIAL_HERO,
-            badge: data.badge || INITIAL_HERO.badge,
-            judul: data.judul || INITIAL_HERO.judul,
-            deskripsi: data.deskripsi || INITIAL_HERO.deskripsi,
-            bgImage: data.bg_image || INITIAL_HERO.bgImage,
-            kadesNama: data.kades_nama || INITIAL_HERO.kadesNama,
-            kadesJabatan: data.kades_jabatan || INITIAL_HERO.kadesJabatan,
-            kadesPeriode: data.kades_periode || INITIAL_HERO.kadesPeriode,
-            kadesFoto: data.kades_foto || INITIAL_HERO.kadesFoto,
-            kadesSambutan: data.kades_sambutan || INITIAL_HERO.kadesSambutan,
-            statPenduduk: data.stat_penduduk || INITIAL_HERO.statPenduduk,
-            statRtRw: data.stat_rt_rw || INITIAL_HERO.statRtRw,
-            statUmkm: data.stat_umkm || INITIAL_HERO.statUmkm,
+            badge: data.badge ?? INITIAL_HERO.badge,
+            judul: data.judul ?? INITIAL_HERO.judul,
+            deskripsi: data.deskripsi ?? INITIAL_HERO.deskripsi,
+            bgImage: data.bg_image ?? INITIAL_HERO.bgImage,
+            kadesNama: data.kades_nama ?? INITIAL_HERO.kadesNama,
+            kadesJabatan: data.kades_jabatan ?? INITIAL_HERO.kadesJabatan,
+            kadesPeriode: data.kades_periode ?? INITIAL_HERO.kadesPeriode,
+            kadesFoto: data.kades_foto ?? INITIAL_HERO.kadesFoto,
+            kadesSambutan: data.kades_sambutan ?? INITIAL_HERO.kadesSambutan,
+            statPenduduk: data.stat_penduduk ?? INITIAL_HERO.statPenduduk,
+            statRtRw: data.stat_rt_rw ?? INITIAL_HERO.statRtRw,
+            statUmkm: data.stat_umkm ?? INITIAL_HERO.statUmkm,
           };
         }
       } catch (e) {
