@@ -297,16 +297,17 @@ export const apiService = {
   async getProfil() {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase.from('profil_desa').select('*').eq('id', 1).single();
+        const { data, error } = await supabase.from('profil_desa').select('*').eq('id', 1).maybeSingle();
         if (!error && data) {
           return {
             ...INITIAL_PROFIL,
-            sejarahJudul: data.sejarah_judul || INITIAL_PROFIL.sejarahJudul,
-            sejarahParagraf1: data.sejarah_paragraf1 || INITIAL_PROFIL.sejarahParagraf1,
-            sejarahParagraf2: data.sejarah_paragraf2 || INITIAL_PROFIL.sejarahParagraf2,
-            visiJudul: data.visi_judul || INITIAL_PROFIL.visiJudul,
-            visiDeskripsi: data.visi_deskripsi || INITIAL_PROFIL.visiDeskripsi,
-            misiList: data.misi_list || INITIAL_PROFIL.misiList,
+            sejarahJudul: data.sejarah_judul ?? INITIAL_PROFIL.sejarahJudul,
+            sejarahParagraf1: data.sejarah_paragraf1 ?? INITIAL_PROFIL.sejarahParagraf1,
+            sejarahParagraf2: data.sejarah_paragraf2 ?? INITIAL_PROFIL.sejarahParagraf2,
+            visiJudul: data.visi_judul ?? INITIAL_PROFIL.visiJudul,
+            visiDeskripsi: data.visi_deskripsi ?? INITIAL_PROFIL.visiDeskripsi,
+            misiList: data.misi_list ?? INITIAL_PROFIL.misiList,
+            perangkatList: data.perangkat_list ?? INITIAL_PROFIL.perangkatList,
           };
         }
       } catch (e) {
@@ -327,6 +328,7 @@ export const apiService = {
           visi_judul: profilData.visiJudul,
           visi_deskripsi: profilData.visiDeskripsi,
           misi_list: profilData.misiList,
+          perangkat_list: profilData.perangkatList,
           updated_at: new Date().toISOString()
         }]);
       } catch (e) {
