@@ -147,6 +147,23 @@ ALTER TABLE public.permohonan_surat ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.footer_info ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.website_settings ENABLE ROW LEVEL SECURITY;
 
+-- Drop Policy jika sudah ada sebelumnya agar tidak error
+DROP POLICY IF EXISTS "Public Admin Users" ON public.admin_users;
+DROP POLICY IF EXISTS "Public Hero Section" ON public.hero_section;
+DROP POLICY IF EXISTS "Public Profil Desa" ON public.profil_desa;
+DROP POLICY IF EXISTS "Public Berita" ON public.berita;
+DROP POLICY IF EXISTS "Public UMKM" ON public.umkm;
+DROP POLICY IF EXISTS "Public Wisata" ON public.wisata;
+DROP POLICY IF EXISTS "Public Permohonan" ON public.permohonan_surat;
+DROP POLICY IF EXISTS "Public Footer Info" ON public.footer_info;
+DROP POLICY IF EXISTS "Public Website Settings" ON public.website_settings;
+DROP POLICY IF EXISTS "Public Read Berita" ON public.berita;
+DROP POLICY IF EXISTS "Public Read UMKM" ON public.umkm;
+DROP POLICY IF EXISTS "Public Read Wisata" ON public.wisata;
+DROP POLICY IF EXISTS "Public Insert Permohonan" ON public.permohonan_surat;
+DROP POLICY IF EXISTS "Public Select Own Permohonan" ON public.permohonan_surat;
+
+-- Buat Ulang Policy
 CREATE POLICY "Public Admin Users" ON public.admin_users FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Hero Section" ON public.hero_section FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Profil Desa" ON public.profil_desa FOR ALL USING (true) WITH CHECK (true);
