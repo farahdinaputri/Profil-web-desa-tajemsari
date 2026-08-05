@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS public.profil_desa (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Pastikan kolom perangkat_list ditambahkan jika tabel sudah pernah dibuat sebelumnya
 ALTER TABLE public.profil_desa ADD COLUMN IF NOT EXISTS perangkat_list JSONB DEFAULT '[]'::jsonb;
 
 -- 4. TABEL BERITA DESA
@@ -74,8 +73,11 @@ CREATE TABLE IF NOT EXISTS public.umkm (
   wa_seller TEXT,
   deskripsi TEXT,
   gambar TEXT DEFAULT '',
+  galeri JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+ALTER TABLE public.umkm ADD COLUMN IF NOT EXISTS galeri JSONB DEFAULT '[]'::jsonb;
 
 -- 6. TABEL DESTINASI WISATA DESA
 CREATE TABLE IF NOT EXISTS public.wisata (
@@ -87,8 +89,11 @@ CREATE TABLE IF NOT EXISTS public.wisata (
   tiket_masuk TEXT,
   deskripsi TEXT,
   gambar TEXT DEFAULT '',
+  galeri JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+ALTER TABLE public.wisata ADD COLUMN IF NOT EXISTS galeri JSONB DEFAULT '[]'::jsonb;
 
 -- 7. TABEL LAYANAN PERMOHONAN SURAT ONLINE WARGA
 CREATE TABLE IF NOT EXISTS public.permohonan_surat (
@@ -160,13 +165,8 @@ DROP POLICY IF EXISTS "Public Wisata" ON public.wisata;
 DROP POLICY IF EXISTS "Public Permohonan" ON public.permohonan_surat;
 DROP POLICY IF EXISTS "Public Footer Info" ON public.footer_info;
 DROP POLICY IF EXISTS "Public Website Settings" ON public.website_settings;
-DROP POLICY IF EXISTS "Public Read Berita" ON public.berita;
-DROP POLICY IF EXISTS "Public Read UMKM" ON public.umkm;
-DROP POLICY IF EXISTS "Public Read Wisata" ON public.wisata;
-DROP POLICY IF EXISTS "Public Insert Permohonan" ON public.permohonan_surat;
-DROP POLICY IF EXISTS "Public Select Own Permohonan" ON public.permohonan_surat;
 
--- Buat Ulang Policy
+-- Buat Ulang Policy (Akses Publik Penuh untuk Demo & Operasional Desa)
 CREATE POLICY "Public Admin Users" ON public.admin_users FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Hero Section" ON public.hero_section FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Profil Desa" ON public.profil_desa FOR ALL USING (true) WITH CHECK (true);
@@ -178,7 +178,7 @@ CREATE POLICY "Public Footer Info" ON public.footer_info FOR ALL USING (true) WI
 CREATE POLICY "Public Website Settings" ON public.website_settings FOR ALL USING (true) WITH CHECK (true);
 
 -- =========================================================================
--- INITIAL SEED DATA (DATA AWAL TEKS & STRUCTURAL SETUP)
+-- INITIAL SEED DATA (DATA AWAL LENGKAP TEKS & STRUCTURAL SETUP)
 -- =========================================================================
 
 -- 1. Seed Credentials Admin (Username: admin | Password: admin123)
@@ -193,11 +193,11 @@ VALUES (
   'Website Resmi Desa Tajemsari • Kec. Tegowanu',
   'Selamat Datang di Portal Resmi Desa Tajemsari',
   'Desa Tajemsari merupakan desa paling barat di Kecamatan Tegowanu, Kabupaten Grobogan, Jawa Tengah. Wilayah desa ini terdiri dari 4 dusun: Kendalsari, Mlangi, Plosorejo, dan Tajem.',
-  '',
+  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80',
   'H. Suhartono, S.Sos',
   'Kepala Desa Tajemsari Tegowanu',
   'Periode 2021 - 2027',
-  '',
+  'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80',
   'Assalamu’alaikum Warahmatullahi Wabarakatuh. Selamat datang warga dan tamu Desa Tajemsari, Kecamatan Tegowanu. Peluncuran website resmi ini merupakan wujud keterbukaan informasi publik serta komitmen kami dalam mempermudah layanan kependudukan secara modern tanpa meninggalkan keramahan khas pedesaan Grobogan.',
   '2.845 Jiwa',
   '4 RT / 2 RW',
@@ -220,7 +220,7 @@ VALUES (
   '"Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Transparan, dan Berorientasi Agrowisata Ramah Lingkungan."',
   'Fokus utama pada penguatan ketahanan pangan lokal, kemudahan administrasi warga via internet, serta pemberdayaan ekonomi UMKM Tajemsari.',
   '["Meningkatkan kualitas pelayanan administrasi kependudukan cepat & berbasis digital.", "Mengembangkan infrastruktur jalan tani dan saluran irigasi persawahan Tegowanu.", "Mendukung pemasaran digital produk UMKM lokal Madu, Kopi, dan Kerajinan Bambu."]'::jsonb,
-  '[{"id":1,"nama":"H. Suhartono, S.Sos","jabatan":"Kepala Desa Tajemsari","foto":""},{"id":2,"nama":"Bambang Wijaya, S.T","jabatan":"Sekretaris Desa","foto":""},{"id":3,"nama":"Siti Rahmawati, S.E","jabatan":"Kaur Keuangan","foto":""},{"id":4,"nama":"Sri Rejeki, A.Md","jabatan":"Kasi Kesejahteraan & Pelayanan","foto":""}]'::jsonb
+  '[{"id":1,"nama":"H. Suhartono, S.Sos","jabatan":"Kepala Desa Tajemsari","foto":"https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80"},{"id":2,"nama":"Bambang Wijaya, S.T","jabatan":"Sekretaris Desa","foto":"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80"},{"id":3,"nama":"Siti Rahmawati, S.E","jabatan":"Kaur Keuangan","foto":"https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80"},{"id":4,"nama":"Sri Rejeki, A.Md","jabatan":"Kasi Kesejahteraan & Pelayanan","foto":"https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80"}]'::jsonb
 ) ON CONFLICT (id) DO UPDATE SET
   sejarah_judul = EXCLUDED.sejarah_judul,
   sejarah_paragraf1 = EXCLUDED.sejarah_paragraf1,
@@ -229,7 +229,149 @@ VALUES (
   visi_deskripsi = EXCLUDED.visi_deskripsi,
   misi_list = EXCLUDED.misi_list;
 
--- 4. Seed Footer Info
+-- 4. Seed Berita Desa Awal
+INSERT INTO public.berita (id, judul, slug, kategori, penulis, tanggal, ringkasan, isi, gambar, galeri)
+VALUES 
+(
+  1,
+  'Penyaluran BLT Dana Desa Tajemsari Tahap III Berjalan Lancar',
+  'blt-tahap-3',
+  'Ekonomi',
+  'Sekretariat Desa Tajemsari',
+  '2026-07-26',
+  'Pemerintah Desa Tajemsari menyerahkan bantuan langsung tunai kepada 45 keluarga penerima manfaat secara transparan.',
+  'Pemerintah Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan telah menyalurkan Bantuan Langsung Tunai (BLT) Dana Desa Tahap III Tahun 2026. Penyerahan bantuan ini dilaksanakan di Balai Desa Tajemsari dengan mengedepankan asas akuntabilitas dan tepat sasaran bagi warga terdaftar.\n\nDalam kesempatan tersebut, Kepala Desa Tajemsari H. Suhartono menyampaikan harapan agar bantuan tunai ini dapat meringankan beban ekonomi warga serta dimanfaatkan untuk kebutuhan pokok sehari-hari keluarga.\n\nProses verifikasi data dilakukan secara berlapis oleh tim Kasi Kesejahteraan Desa untuk memastikan tidak ada duplikasi data penerima bantuan sosial.',
+  'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80',
+  '[{"url":"https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80","caption":"Penyerahan secara simbolis BLT Dana Desa Tahap III oleh Kepala Desa Tajemsari."},{"url":"https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=800&q=80","caption":"Warga Desa Tajemsari antre dengan tertib saat proses pencairan dana bantuan."}]'::jsonb
+),
+(
+  2,
+  'Panen Raya Padi Organik Kelompok Tani Tajemsari Makmur',
+  'panen-raya-padi-organik',
+  'Pertanian',
+  'Kasi Kesejahteraan',
+  '2026-07-20',
+  'Para petani Tajemsari berhasil meningkatkan produktivitas panen berkat pola pertanian ramah lingkungan.',
+  'Kelompok Tani Tajemsari Makmur Tegowanu merayakan panen raya padi organik. Berdasarkan ubinan bersama dinas pertanian Grobogan, hasil panen mengalami kenaikan 18% dibandingkan musim tanam lalu. Petani Tajemsari optimis mewujudkan kemandirian pangan desa.\n\nBupati Grobogan turut mengapresiasi inovasi penggunaan pupuk hijau cair buatan swadaya petani Tajemsari yang terbukti menekan biaya operasional penanaman hingga 30%.\n\nPemasaran hasil panen padi organik Tajemsari nantinya akan disalurkan melalui BUMDes Tajemsari dan platform UMKM lokal.',
+  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80',
+  '[{"url":"https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80","caption":"Hamparan persawahan padi organik Desa Tajemsari Tegowanu Grobogan."},{"url":"https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80","caption":"Kelompok Tani Tajemsari Makmur memperlihatkan kualitas bulir padi organik."}]'::jsonb
+),
+(
+  3,
+  'Posyandu Balita & Lansia Terpadu Tajemsari Tegowanu',
+  'posyandu-balita-dan-lansia',
+  'Kesehatan',
+  'Kader Kesehatan Desa',
+  '2026-07-12',
+  'Pemeriksaan kesehatan gratis, imunisasi balita, dan senam lansia digelar rutin di Balai Desa.',
+  'Kader Kesehatan Desa Tajemsari bekerjasama dengan Puskesmas Tegowanu menyelenggarakan Posyandu Balita dan Posbindu Lansia. Kegiatan meliputi pemberian makanan tambahan (PMT), imunisasi, dan skrining kesehatan rutin bagi masyarakat.',
+  'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
+  '[{"url":"https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80","caption":"Pemeriksaan tekanan darah dan kesehatan rutin lansia."}]'::jsonb
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- 5. Seed Produk UMKM Desa Awal
+INSERT INTO public.umkm (id, nama_produk, kategori, pembuat, dusun, harga, wa_seller, deskripsi, gambar, galeri)
+VALUES 
+(
+  1,
+  'Madu Murni Klanceng Tajem',
+  'Kuliner',
+  'Pak Warsito',
+  'Dusun Tajem',
+  'Rp 85.000 / 500ml',
+  '6281234567890',
+  'Madu lebah klanceng alami kaya nutrisi yang dibudidayakan dari vegetasi tanaman sawah dan buah-buahan Desa Tajemsari.',
+  'https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80',
+  '[]'::jsonb
+),
+(
+  2,
+  'Kopi Robusta Sawah Tajem',
+  'Kuliner',
+  'Kelompok Usaha Ibu Tani',
+  'Dusun Mlangi',
+  'Rp 25.000 / 250gr',
+  '6281234567891',
+  'Kopi olahan tradisional dengan cita rasa khas gurih dan aroma harum, favorit warga saat santai sore.',
+  'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80',
+  '[]'::jsonb
+),
+(
+  3,
+  'Kerajinan Anyaman Bambu Grobogan',
+  'Kerajinan',
+  'Mbah Pawiro',
+  'Dusun Plosorejo',
+  'Rp 35.000 - 150.000',
+  '6281234567892',
+  'Produk kerajinan anyaman bambu seperti tampah, tempat buah, dan keranjang hias bermotif etnik Jawa.',
+  'https://images.unsplash.com/photo-1590736704728-f4730bb30770?auto=format&fit=crop&w=800&q=80',
+  '[]'::jsonb
+),
+(
+  4,
+  'Beras Organik Tajemsari Super',
+  'Pertanian',
+  'KWT Tajem Asri',
+  'Dusun Kendalsari',
+  'Rp 68.000 / 5kg',
+  '6281234567893',
+  'Beras putih organik bebas pestisida kimia, dibudidayakan secara lestari dengan irigasi bersih.',
+  'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80',
+  '[]'::jsonb
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- 6. Seed Destinasi Wisata Awal
+INSERT INTO public.wisata (id, nama_tempat, kategori, lokasi, jam_buka, tiket_masuk, deskripsi, gambar, galeri)
+VALUES 
+(
+  1,
+  'Agrowisata Sunset Sawah Tajemsari',
+  'Wisata Alam',
+  'Dusun Tajemsari RT 02 / RW 01, Tegowanu',
+  '06.00 - 18.00 WIB',
+  'Gratis',
+  'Menawarkan panorama persawahan Tegowanu nan hijau dengan latar belakang matahari terbenam. Dilengkapi gazebo bambu dan spot foto estetik.',
+  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80',
+  '[]'::jsonb
+),
+(
+  2,
+  'Taman Edukasi Tani Organik & Lebah',
+  'Wisata Edukasi',
+  'Kompleks Balai Desa Tajemsari',
+  '08.00 - 16.00 WIB',
+  'Gratis (Donasi Kebersihan)',
+  'Kawasan edukasi pertanian ramah lingkungan, budidaya madu klanceng, serta pembibitan tanaman toga untuk siswa dan wisatawan.',
+  'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80',
+  '[]'::jsonb
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- 7. Seed Permohonan Surat Awal (Demo)
+INSERT INTO public.permohonan_surat (id, nomor_tiket, nama_warga, nik, no_hp, alamat_lengkap, jenis_surat, keperluan, status, catatan_admin, tanggal_pengajuan, file_surat_url, file_surat_name, metode_pengambilan)
+VALUES 
+(
+  1,
+  'TJM-202607-001',
+  'Budi Santoso',
+  '3315082405900001',
+  '08123456789',
+  'Dusun Krajan RT 01 / RW 02, Desa Tajemsari, Tegowanu',
+  'Surat Keterangan Usaha (SKU)',
+  'Syarat pengajuan KUR Bank Jateng untuk warung makan.',
+  'Siap Diunduh',
+  'Surat Keterangan Usaha telah terverifikasi dan ditandatangani secara digital.',
+  NOW(),
+  'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+  'SKU_Budi_Santoso_TJM-202607-001.pdf',
+  'Digital'
+)
+ON CONFLICT (nomor_tiket) DO NOTHING;
+
+-- 8. Seed Footer Info
 INSERT INTO public.footer_info (id, alamat, telepon, whatsapp, email, jam_pelayanan, maps_url, facebook, instagram, youtube)
 VALUES (
   1,
@@ -244,7 +386,7 @@ VALUES (
   'https://youtube.com/@desatajemsariofficial'
 ) ON CONFLICT (id) DO NOTHING;
 
--- 5. Seed Website Settings
+-- 9. Seed Website Settings
 INSERT INTO public.website_settings (id, nama_desa, kecamatan, kabupaten, provinsi, email_admin, telepon_kantor, running_text)
 VALUES (
   1,
@@ -256,3 +398,17 @@ VALUES (
   '081234567890',
   'Pelayanan Surat Online Desa Tajemsari Tegowanu Buka 24 Jam. Hubungi Perangkat Desa jika memerlukan bantuan darurat.'
 ) ON CONFLICT (id) DO NOTHING;
+
+-- =========================================================================
+-- KETENTUAN STORAGE BUCKET RLS (IZINKAN UPLOAD & AKSES FOTO PUBLIK)
+-- =========================================================================
+DROP POLICY IF EXISTS "Public Select Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Public Upload Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Public Update Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Public Delete Storage" ON storage.objects;
+
+CREATE POLICY "Public Select Storage" ON storage.objects FOR SELECT USING (bucket_id = 'desa-tajemsari');
+CREATE POLICY "Public Upload Storage" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'desa-tajemsari');
+CREATE POLICY "Public Update Storage" ON storage.objects FOR UPDATE USING (bucket_id = 'desa-tajemsari');
+CREATE POLICY "Public Delete Storage" ON storage.objects FOR DELETE USING (bucket_id = 'desa-tajemsari');
+

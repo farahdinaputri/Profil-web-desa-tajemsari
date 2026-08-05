@@ -25,7 +25,51 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey) 
   : null;
 
+// =========================================================================
+// SUPABASE STORAGE — Upload Image & Get Public URL
+// Bucket: "desa-tajemsari" (must be set as Public in Supabase Dashboard)
+// =========================================================================
+export const uploadImage = async (file, folder = 'umum') => {
+  if (!isSupabaseConfigured || !supabase) {
+    // Fallback: return a local blob URL (only valid in current browser session)
+    return URL.createObjectURL(file);
+  }
+
+  try {
+    const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 8);
+    const fileName = `${folder}/${timestamp}_${random}.${ext}`;
+
+    const { data, error } = await supabase.storage
+      .from('desa-tajemsari')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type,
+      });
+
+    if (error) {
+      console.error('Supabase Storage upload error:', error);
+      // Fallback ke blob URL lokal jika upload gagal
+      return URL.createObjectURL(file);
+    }
+
+    // Dapatkan public URL dari file yang berhasil diupload
+    const { data: urlData } = supabase.storage
+      .from('desa-tajemsari')
+      .getPublicUrl(data.path);
+
+    return urlData.publicUrl;
+  } catch (e) {
+    console.error('uploadImage error:', e);
+    return URL.createObjectURL(file);
+  }
+};
+
+// =========================================================================
 // LocalStorage Helper for Seamless Demo / Hybrid Mode
+// =========================================================================
 const getStorageItem = (key, fallback) => {
   try {
     const data = localStorage.getItem(`tajemsari_${key}`);
@@ -43,21 +87,34 @@ const setStorageItem = (key, value) => {
   }
 };
 
+// =========================================================================
 // Data API Handlers (Supports both Supabase Cloud & Local Fallback Mode)
+// =========================================================================
 export const apiService = {
   // --- BERITA ---
   async getBerita() {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('berita').select('*').order('tanggal', { ascending: false });
-      if (!error && data?.length) return data;
+      try {
+        const { data, error } = await supabase.from('berita').select('*').order('tanggal', { ascending: false });
+        // Jika Supabase dikonfigurasi, selalu gunakan hasilnya (meski kosong)
+        if (!error) return data || [];
+        console.error('Supabase getBerita error:', error);
+      } catch (e) {
+        console.error('Supabase getBerita exception:', e);
+      }
     }
     return getStorageItem('berita', INITIAL_BERITA);
   },
 
   async addBerita(newBerita) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('berita').insert([newBerita]).select();
-      if (!error) return data[0];
+      try {
+        const { data, error } = await supabase.from('berita').insert([newBerita]).select();
+        if (!error && data?.length) return data[0];
+        console.error('Supabase addBerita error:', error);
+      } catch (e) {
+        console.error('Supabase addBerita exception:', e);
+      }
     }
     const current = getStorageItem('berita', INITIAL_BERITA);
     const item = { ...newBerita, id: Date.now(), tanggal: new Date().toISOString().split('T')[0] };
@@ -68,8 +125,13 @@ export const apiService = {
 
   async updateBerita(id, updatedBerita) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('berita').update(updatedBerita).eq('id', id).select();
-      if (!error && data?.length) return data[0];
+      try {
+        const { data, error } = await supabase.from('berita').update(updatedBerita).eq('id', id).select();
+        if (!error && data?.length) return data[0];
+        console.error('Supabase updateBerita error:', error);
+      } catch (e) {
+        console.error('Supabase updateBerita exception:', e);
+      }
     }
     const current = getStorageItem('berita', INITIAL_BERITA);
     const updated = current.map(b => b.id === id ? { ...b, ...updatedBerita } : b);
@@ -80,6 +142,7 @@ export const apiService = {
   async deleteBerita(id) {
     if (isSupabaseConfigured) {
       await supabase.from('berita').delete().eq('id', id);
+      return true;
     }
     const current = getStorageItem('berita', INITIAL_BERITA);
     const updated = current.filter(b => b.id !== id);
@@ -90,8 +153,13 @@ export const apiService = {
   // --- PERMOHONAN SURAT ---
   async getPermohonan() {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('permohonan_surat').select('*').order('tanggal_pengajuan', { ascending: false });
-      if (!error && data?.length) return data;
+      try {
+        const { data, error } = await supabase.from('permohonan_surat').select('*').order('tanggal_pengajuan', { ascending: false });
+        if (!error) return data || [];
+        console.error('Supabase getPermohonan error:', error);
+      } catch (e) {
+        console.error('Supabase getPermohonan exception:', e);
+      }
     }
     return getStorageItem('permohonan', INITIAL_PERMOHONAN);
   },
@@ -106,8 +174,13 @@ export const apiService = {
     };
 
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('permohonan_surat').insert([newPermohonan]).select();
-      if (!error && data?.length) return data[0];
+      try {
+        const { data, error } = await supabase.from('permohonan_surat').insert([newPermohonan]).select();
+        if (!error && data?.length) return data[0];
+        console.error('Supabase createPermohonan error:', error);
+      } catch (e) {
+        console.error('Supabase createPermohonan exception:', e);
+      }
     }
 
     const current = getStorageItem('permohonan', INITIAL_PERMOHONAN);
@@ -118,7 +191,12 @@ export const apiService = {
 
   async updateStatusPermohonan(id, status, catatan) {
     if (isSupabaseConfigured) {
-      await supabase.from('permohonan_surat').update({ status, catatan_admin: catatan }).eq('id', id);
+      try {
+        await supabase.from('permohonan_surat').update({ status, catatan_admin: catatan }).eq('id', id);
+        return true;
+      } catch (e) {
+        console.error('Supabase updateStatusPermohonan exception:', e);
+      }
     }
     const current = getStorageItem('permohonan', INITIAL_PERMOHONAN);
     const updated = current.map(p => p.id === id ? { ...p, status, catatan_admin: catatan } : p);
@@ -129,16 +207,26 @@ export const apiService = {
   // --- UMKM ---
   async getUMKM() {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('umkm').select('*');
-      if (!error && data?.length) return data;
+      try {
+        const { data, error } = await supabase.from('umkm').select('*');
+        if (!error) return data || [];
+        console.error('Supabase getUMKM error:', error);
+      } catch (e) {
+        console.error('Supabase getUMKM exception:', e);
+      }
     }
     return getStorageItem('umkm', INITIAL_UMKM);
   },
 
   async addUMKM(newProduct) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('umkm').insert([newProduct]).select();
-      if (!error) return data[0];
+      try {
+        const { data, error } = await supabase.from('umkm').insert([newProduct]).select();
+        if (!error && data?.length) return data[0];
+        console.error('Supabase addUMKM error:', error);
+      } catch (e) {
+        console.error('Supabase addUMKM exception:', e);
+      }
     }
     const current = getStorageItem('umkm', INITIAL_UMKM);
     const item = { ...newProduct, id: Date.now() };
@@ -149,8 +237,13 @@ export const apiService = {
 
   async updateUMKM(id, updatedProduct) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('umkm').update(updatedProduct).eq('id', id).select();
-      if (!error && data?.length) return data[0];
+      try {
+        const { data, error } = await supabase.from('umkm').update(updatedProduct).eq('id', id).select();
+        if (!error && data?.length) return data[0];
+        console.error('Supabase updateUMKM error:', error);
+      } catch (e) {
+        console.error('Supabase updateUMKM exception:', e);
+      }
     }
     const current = getStorageItem('umkm', INITIAL_UMKM);
     const updated = current.map(u => u.id === id ? { ...u, ...updatedProduct } : u);
@@ -161,6 +254,7 @@ export const apiService = {
   async deleteUMKM(id) {
     if (isSupabaseConfigured) {
       await supabase.from('umkm').delete().eq('id', id);
+      return true;
     }
     const current = getStorageItem('umkm', INITIAL_UMKM);
     const updated = current.filter(u => u.id !== id);
@@ -171,16 +265,26 @@ export const apiService = {
   // --- WISATA ---
   async getWisata() {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('wisata').select('*');
-      if (!error && data?.length) return data;
+      try {
+        const { data, error } = await supabase.from('wisata').select('*');
+        if (!error) return data || [];
+        console.error('Supabase getWisata error:', error);
+      } catch (e) {
+        console.error('Supabase getWisata exception:', e);
+      }
     }
     return getStorageItem('wisata', INITIAL_WISATA);
   },
 
   async addWisata(newSpot) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('wisata').insert([newSpot]).select();
-      if (!error) return data[0];
+      try {
+        const { data, error } = await supabase.from('wisata').insert([newSpot]).select();
+        if (!error && data?.length) return data[0];
+        console.error('Supabase addWisata error:', error);
+      } catch (e) {
+        console.error('Supabase addWisata exception:', e);
+      }
     }
     const current = getStorageItem('wisata', INITIAL_WISATA);
     const item = { ...newSpot, id: Date.now() };
@@ -191,8 +295,13 @@ export const apiService = {
 
   async updateWisata(id, updatedSpot) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('wisata').update(updatedSpot).eq('id', id).select();
-      if (!error && data?.length) return data[0];
+      try {
+        const { data, error } = await supabase.from('wisata').update(updatedSpot).eq('id', id).select();
+        if (!error && data?.length) return data[0];
+        console.error('Supabase updateWisata error:', error);
+      } catch (e) {
+        console.error('Supabase updateWisata exception:', e);
+      }
     }
     const current = getStorageItem('wisata', INITIAL_WISATA);
     const updated = current.map(w => w.id === id ? { ...w, ...updatedSpot } : w);
@@ -203,6 +312,7 @@ export const apiService = {
   async deleteWisata(id) {
     if (isSupabaseConfigured) {
       await supabase.from('wisata').delete().eq('id', id);
+      return true;
     }
     const current = getStorageItem('wisata', INITIAL_WISATA);
     const updated = current.filter(w => w.id !== id);

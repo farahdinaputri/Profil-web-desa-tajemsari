@@ -675,7 +675,7 @@ export default function NewsDetail() {
             <div className="article-content-flow">
               {berita.ringkasan && (
                 <div className="article-lead-summary">
-                  "{berita.ringkasan}"
+                  {berita.ringkasan}
                 </div>
               )}
 

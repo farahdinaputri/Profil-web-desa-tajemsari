@@ -18,7 +18,7 @@ export default function NewsList() {
   const loadAllBerita = async () => {
     setLoading(true);
     const data = await apiService.getBerita();
-    setBeritaList(data);
+    setBeritaList(data || []);
     setLoading(false);
   };
 

@@ -5,15 +5,16 @@ import {
   ArrowDown, Sparkles, MessageSquare, Compass, MapPin, Clock, Ticket, 
   Tag, DollarSign, User, Phone, LayoutDashboard, Settings as SettingsIcon, 
   Globe, Eye, Menu, ChevronRight, AlertCircle, Save, CheckCircle, RefreshCw, Mail, Download, FileCheck,
-  BarChart3, Wheat, Building, Users, History, Target, Calendar
+  BarChart3, Wheat, Building, Users, History, Target, Calendar, Loader
 } from 'lucide-react';
-import { apiService } from '../lib/supabaseClient';
+import { apiService, uploadImage } from '../lib/supabaseClient';
 
 export default function AdminDashboard({ adminUser, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Data States
   const [permohonanList, setPermohonanList] = useState([]);
@@ -215,7 +216,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     setShowPerangkatModal(true);
   };
 
-  const handlePerangkatFotoUpload = (e) => {
+  const handlePerangkatFotoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
@@ -226,11 +227,13 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         alert('Ukuran file terlalu besar! Maksimal ukuran file adalah 5 MB.');
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setPerangkatForm(prev => ({ ...prev, foto: ev.target.result }));
-      };
-      reader.readAsDataURL(file);
+      setUploadingImage(true);
+      try {
+        const url = await uploadImage(file, 'profil');
+        setPerangkatForm(prev => ({ ...prev, foto: url }));
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -316,7 +319,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   // ==========================================
   // HERO BG UPLOAD HANDLERS
   // ==========================================
-  const handleHeroBgUpload = (e) => {
+  const handleHeroBgUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -329,11 +332,13 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         return;
       }
       setHeroBgFileName(file.name);
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setHeroState(prev => ({ ...prev, bgImage: ev.target.result }));
-      };
-      reader.readAsDataURL(file);
+      setUploadingImage(true);
+      try {
+        const url = await uploadImage(file, 'hero');
+        setHeroState(prev => ({ ...prev, bgImage: url }));
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -345,7 +350,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     }
   };
 
-  const handleKadesFotoUpload = (e) => {
+  const handleKadesFotoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -357,11 +362,13 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         alert('Ukuran file terlalu besar! Maksimal ukuran file adalah 5 MB.');
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setHeroState(prev => ({ ...prev, kadesFoto: ev.target.result }));
-      };
-      reader.readAsDataURL(file);
+      setUploadingImage(true);
+      try {
+        const url = await uploadImage(file, 'hero');
+        setHeroState(prev => ({ ...prev, kadesFoto: url }));
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -392,26 +399,27 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   // ==========================================
   // BERITA MULTI-IMAGE LOGIC & CRUD
   // ==========================================
-  const handleBeritaFilesAdded = (files) => {
-    const fileArray = Array.from(files);
-    fileArray.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const newImg = {
-            id: 'b_img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-            url: e.target.result,
-            caption: 'Dokumentasi kegiatan Desa Tajemsari Tegowanu',
-            isCover: false
-          };
-          setBeritaImagesList(prev => {
-            const shouldBeCover = prev.length === 0;
-            return [...prev, { ...newImg, isCover: shouldBeCover }];
-          });
+  const handleBeritaFilesAdded = async (files) => {
+    const fileArray = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (!fileArray.length) return;
+    setUploadingImage(true);
+    try {
+      for (const file of fileArray) {
+        const url = await uploadImage(file, 'berita');
+        const newImg = {
+          id: 'b_img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          url,
+          caption: 'Dokumentasi kegiatan Desa Tajemsari Tegowanu',
+          isCover: false
         };
-        reader.readAsDataURL(file);
+        setBeritaImagesList(prev => {
+          const shouldBeCover = prev.length === 0;
+          return [...prev, { ...newImg, isCover: shouldBeCover }];
+        });
       }
-    });
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleBeritaCaptionChange = (id, caption) => {
@@ -541,26 +549,27 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   // ==========================================
   // UMKM MULTI-IMAGE & CRUD LOGIC
   // ==========================================
-  const handleUmkmFilesAdded = (files) => {
-    const fileArray = Array.from(files);
-    fileArray.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const newImg = {
-            id: 'u_img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-            url: e.target.result,
-            caption: 'Foto Produk UMKM Desa Tajemsari',
-            isCover: false
-          };
-          setUmkmImagesList(prev => {
-            const shouldBeCover = prev.length === 0;
-            return [...prev, { ...newImg, isCover: shouldBeCover }];
-          });
+  const handleUmkmFilesAdded = async (files) => {
+    const fileArray = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (!fileArray.length) return;
+    setUploadingImage(true);
+    try {
+      for (const file of fileArray) {
+        const url = await uploadImage(file, 'umkm');
+        const newImg = {
+          id: 'u_img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          url,
+          caption: 'Foto Produk UMKM Desa Tajemsari',
+          isCover: false
         };
-        reader.readAsDataURL(file);
+        setUmkmImagesList(prev => {
+          const shouldBeCover = prev.length === 0;
+          return [...prev, { ...newImg, isCover: shouldBeCover }];
+        });
       }
-    });
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleUmkmCaptionChange = (id, caption) => {
@@ -677,26 +686,27 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   // ==========================================
   // WISATA MULTI-IMAGE & CRUD LOGIC
   // ==========================================
-  const handleWisataFilesAdded = (files) => {
-    const fileArray = Array.from(files);
-    fileArray.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const newImg = {
-            id: 'w_img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-            url: e.target.result,
-            caption: 'Dokumentasi Wisata Desa Tajemsari',
-            isCover: false
-          };
-          setWisataImagesList(prev => {
-            const shouldBeCover = prev.length === 0;
-            return [...prev, { ...newImg, isCover: shouldBeCover }];
-          });
+  const handleWisataFilesAdded = async (files) => {
+    const fileArray = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (!fileArray.length) return;
+    setUploadingImage(true);
+    try {
+      for (const file of fileArray) {
+        const url = await uploadImage(file, 'wisata');
+        const newImg = {
+          id: 'w_img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          url,
+          caption: 'Dokumentasi Wisata Desa Tajemsari',
+          isCover: false
         };
-        reader.readAsDataURL(file);
+        setWisataImagesList(prev => {
+          const shouldBeCover = prev.length === 0;
+          return [...prev, { ...newImg, isCover: shouldBeCover }];
+        });
       }
-    });
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleWisataCaptionChange = (id, caption) => {
@@ -2955,6 +2965,42 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {/* Global Upload Loading Overlay */}
+      {uploadingImage && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          background: 'rgba(10, 20, 12, 0.7)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          color: '#ffffff',
+          pointerEvents: 'all'
+        }}>
+          <div style={{
+            width: 64,
+            height: 64,
+            background: 'linear-gradient(135deg, #2e7d32, #d4af37)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            animation: 'spin 1s linear infinite',
+            boxShadow: '0 0 25px rgba(212,175,55,0.5)'
+          }}>
+            <Loader size={28} color="#ffffff" />
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontWeight: 800, fontSize: '1.15rem', marginBottom: 4 }}>Mengupload Foto...</div>
+            <div style={{ fontSize: '0.88rem', color: '#a7f3d0', opacity: 0.85 }}>Foto sedang disimpan ke Supabase Storage</div>
+          </div>
+          <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
     </div>
