@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Compass, MapPin, PhoneCall, Clock, Tag, ExternalLink, Sparkles } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
+import { getUmkmWaLink } from '../utils/whatsapp';
 
 export default function Showcase() {
   const [umkmList, setUmkmList] = useState([]);
@@ -85,12 +86,9 @@ export default function Showcase() {
       <div className="container">
         {/* Header */}
         <div className="section-header">
-          <span className="section-subtitle">
-            <ShoppingBag size={14} /> Produk Lokal & Destinasi Sawah
-          </span>
-          <h1 className="section-title">Potensi UMKM & Agrowisata Tajemsari</h1>
+          <h1 className="section-title">Potensi UMKM & Agrowisata</h1>
           <p className="section-description">
-            Dukung perekonomian warga lokal Tajemsari Tegowanu dengan membeli produk unggulan asli dan menikmati keelokan panorama persawahan Jawa.
+            Jelajahi produk olahan warga lokal serta keindahan destinasi wisata dan persawahan Desa Tajemsari.
           </p>
         </div>
 
@@ -98,7 +96,7 @@ export default function Showcase() {
         <div style={{ marginBottom: '5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.75rem', color: 'var(--color-primary-dark)' }}>
-              Produk Unggulan UMKM Tajemsari
+              Produk UMKM Tajemsari
             </h2>
 
             {/* Filter Buttons */}
@@ -150,11 +148,12 @@ export default function Showcase() {
                   </p>
 
                   <a 
-                    href={`https://wa.me/${item.wa_seller}?text=Halo%20${encodeURIComponent(item.pembuat)},%20saya%20tertarik%20membeli%20produk%20${encodeURIComponent(item.nama_produk)}%20dari%20website%20Desa%20Tajemsari.`}
+                    href={getUmkmWaLink(item)}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="btn btn-primary"
-                    style={{ width: '100%', padding: '0.65rem' }}
+                    style={{ width: '100%', padding: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none' }}
+                    title={`Beli ${item.nama_produk} via WhatsApp`}
                   >
                     <PhoneCall size={16} /> Beli via WhatsApp Penjual
                   </a>
@@ -164,13 +163,10 @@ export default function Showcase() {
           </div>
         </div>
 
-        {/* Section 2: Destinasi Wisata & Potensi Alam */}
+        {/* Section 2: Destinasi Wisata */}
         <div>
           <div className="section-header" style={{ marginBottom: '2.5rem' }}>
-            <span className="section-subtitle">
-              <Compass size={14} /> Keindahan Alam Tegowanu
-            </span>
-            <h2 className="section-title">Destinasi Wisata & Pesona Desa</h2>
+            <h2 className="section-title">Destinasi Wisata Desa</h2>
           </div>
 
           {wisataList.map((spot) => (

@@ -146,12 +146,9 @@ export default function NewsList() {
       <div className="container">
         {/* Banner Header */}
         <div className="news-header-banner">
-          <span className="section-subtitle">
-            <Newspaper size={14} /> Informasi Kunci & Kegiatan Tegowanu
-          </span>
-          <h1 className="section-title">Semua Berita & Kabar Desa Tajemsari</h1>
+          <h1 className="section-title">Kabar & Berita Desa Tajemsari</h1>
           <p className="section-description">
-            Arsip lengkap berita kegiatan pembangunan, penyaluran bantuan sosial, informasi pertanian, dan agenda masyarakat Desa Tajemsari.
+            Informasi pembangunan, pertanian, kesehatan, dan agenda kemasyarakatan Desa Tajemsari.
           </p>
         </div>
 

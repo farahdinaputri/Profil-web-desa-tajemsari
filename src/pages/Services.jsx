@@ -155,9 +155,6 @@ export default function Services() {
       <div className="container">
         {/* Page Header */}
         <div className="section-header">
-          <span className="section-subtitle">
-            <FileText size={14} /> Pelayanan Administrasi Terpadu
-          </span>
           <h1 className="section-title">Katalog & Pengajuan Surat Online</h1>
           <p className="section-description">
             Ajukan permohonan surat keterangan kependudukan dari rumah tanpa perlu mengantre lama di Balai Desa Tajemsari Tegowanu.

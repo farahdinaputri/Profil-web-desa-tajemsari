@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
 import { Newspaper, ArrowRight, Calendar, Eye, Wheat, Users, Building, Sparkles, ChevronRight, ShoppingBag, PhoneCall } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
+import { getUmkmWaLink } from '../utils/whatsapp';
 
 export default function Home() {
   const navigate = useNavigate();
   const [beritaList, setBeritaList] = useState([]);
   const [umkmList, setUmkmList] = useState([]);
-  const [heroData, setHeroData] = useState({});
+  const [heroData, setHeroData] = useState(() => apiService.getHeroCached());
   const [statistikList, setStatistikList] = useState([]);
   const [activeCategory, setActiveCategory] = useState('Semua');
 
@@ -17,10 +18,12 @@ export default function Home() {
   }, []);
 
   const loadHomeData = async () => {
-    const beritaData = await apiService.getBerita();
-    const umkmData = await apiService.getUMKM();
-    const hData = await apiService.getHero();
-    const sData = await apiService.getStatistik();
+    const [beritaData, umkmData, hData, sData] = await Promise.all([
+      apiService.getBerita(),
+      apiService.getUMKM(),
+      apiService.getHero(),
+      apiService.getStatistik()
+    ]);
     setBeritaList(beritaData || []);
     setUmkmList(umkmData || []);
     if (hData) setHeroData(hData);
@@ -63,9 +66,11 @@ export default function Home() {
             display: flex !important;
             overflow-x: auto !important;
             scroll-snap-type: x mandatory;
-            gap: 1rem;
+            scroll-behavior: smooth;
+            scroll-padding-inline: calc(50vw - 140px);
+            gap: 1.25rem;
             margin-top: -2.5rem;
-            padding: 0.5rem 0.25rem 1rem 0.25rem;
+            padding: 0.75rem calc(50vw - 140px) 1.5rem calc(50vw - 140px);
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
           }
@@ -73,18 +78,20 @@ export default function Home() {
             display: none;
           }
           .stat-card {
-            flex: 0 0 80% !important;
-            min-width: 240px !important;
+            flex: 0 0 280px !important;
+            width: 280px !important;
             max-width: 280px !important;
-            scroll-snap-align: start;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            scroll-snap-align: center;
+            scroll-snap-stop: always;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
           }
         }
 
         .stat-card {
           background: #ffffff;
-          border-radius: 16px;
-          padding: 1.5rem;
+          border-radius: 20px;
+          padding: 1.6rem 1.25rem;
           text-align: center;
           border: 1px solid rgba(212, 175, 55, 0.4);
           box-shadow: 0 10px 25px rgba(0,0,0,0.06);
@@ -212,29 +219,28 @@ export default function Home() {
       <section className="section-padding">
         <div className="container">
           <div className="sambutan-card">
-            <div className="kades-img-wrap">
-              <img 
-                src={heroData.kadesFoto || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80"} 
-                alt={heroData.kadesNama || "Kepala Desa Tajemsari"} 
-                className="kades-img" 
-              />
-            </div>
+            {heroData.kadesFoto ? (
+              <div className="kades-img-wrap">
+                <img 
+                  src={heroData.kadesFoto} 
+                  alt={heroData.kadesNama || "Kepala Desa Tajemsari"} 
+                  className="kades-img" 
+                />
+              </div>
+            ) : null}
 
             <div>
-              <div className="section-subtitle">
-                <Sparkles size={14} /> {heroData.kadesBadge || 'Sambutan Kepala Desa Tajemsari'}
-              </div>
               <h2 style={{ fontSize: '1.85rem', marginBottom: '1rem', color: 'var(--color-primary-dark)', lineHeight: '1.3' }}>
                 {heroData.kadesJudul || '"Terwujudnya Desa Tajemsari Berdikari, Sejahtera & Asri"'}
               </h2>
               <div style={{ color: 'var(--color-text-muted)', marginBottom: '1.25rem', lineHeight: '1.7', whiteSpace: 'pre-line' }}>
-                {heroData.kadesSambutan || `Assalamu’alaikum Warahmatullahi Wabarakatuh.\nSelamat datang warga dan tamu Desa Tajemsari, Kecamatan Tegowanu. Peluncuran website resmi ini merupakan wujud keterbukaan informasi publik serta komitmen kami dalam mempermudah layanan kependudukan secara modern tanpa meninggalkan keramahan khas pedesaan Grobogan.`}
+                {heroData.kadesSambutan || `Assalamu’alaikum Warahmatullahi Wabarakatuh.\nSelamat datang di website resmi Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan. Website ini kami hadirkan sebagai media komunikasi dan informasi bagi seluruh masyarakat.`}
               </div>
               <div style={{ fontWeight: 700, color: 'var(--color-primary-dark)', fontSize: '1.05rem' }}>
                 {heroData.kadesNama || 'H. Suhartono, S.Sos'}
               </div>
               <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                {heroData.kadesJabatan || 'Kepala Desa Tajemsari Tegowanu'} ({heroData.kadesPeriode || 'Periode 2021 - 2027'})
+                {heroData.kadesJabatan || 'Kepala Desa Tajemsari'} ({heroData.kadesPeriode || 'Periode 2021 - 2027'})
               </div>
             </div>
           </div>
@@ -245,12 +251,9 @@ export default function Home() {
       <section className="section-padding" style={{ background: '#ffffff', borderTop: '1px solid var(--color-border)' }}>
         <div className="container">
           <div className="section-header">
-            <span className="section-subtitle">
-              <Newspaper size={14} /> Informasi Kunci & Kegiatan
-            </span>
             <h2 className="section-title">Berita Terkini Desa Tajemsari</h2>
             <p className="section-description">
-              Simak berita kegiatan pembangunan, penyaluran bantuan, kesehatan, dan perkembangan hasil panen terkini di Tegowanu.
+              Informasi seputar pembangunan, pertanian, dan kegiatan kemasyarakatan di Desa Tajemsari.
             </p>
 
             {/* Category Filter */}
@@ -334,12 +337,9 @@ export default function Home() {
       <section className="section-padding" style={{ background: '#f8faf8', borderTop: '1px solid var(--color-border)' }}>
         <div className="container">
           <div className="section-header">
-            <span className="section-subtitle">
-              <ShoppingBag size={14} /> Produk Lokal & Usaha Warga
-            </span>
-            <h2 className="section-title">Produk Unggulan UMKM Tajemsari</h2>
+            <h2 className="section-title">Produk Unggulan Warga</h2>
             <p className="section-description">
-              Dukung produk lokal berkualitas karya warga Desa Tajemsari, dari olahan madu murni hingga beras organik dan kerajinan bambu.
+              Dukung perekonomian warga dengan berbelanja produk asli hasil olahan dan kerajinan Desa Tajemsari.
             </p>
           </div>
 
@@ -368,12 +368,13 @@ export default function Home() {
                   </p>
 
                   <a 
-                    href={`https://wa.me/${item.wa_seller}?text=Halo%20${encodeURIComponent(item.pembuat)},%20saya%20tertarik%20membeli%20produk%20${encodeURIComponent(item.nama_produk)}%20dari%20website%20Desa%20Tajemsari.`}
+                    href={getUmkmWaLink(item)}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="btn btn-primary"
-                    style={{ width: '100%', padding: '0.6rem', fontSize: '0.85rem' }}
+                    style={{ width: '100%', padding: '0.65rem', fontSize: '0.88rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none' }}
                     onClick={(e) => e.stopPropagation()}
+                    title={`Beli ${item.nama_produk} via WhatsApp`}
                   >
                     <PhoneCall size={16} /> Beli via WhatsApp
                   </a>

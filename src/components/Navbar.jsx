@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck, Menu, X, Leaf, UserCheck, Lock } from 'lucide-react';
 
@@ -6,6 +6,44 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    let lastScrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+    const handleScroll = () => {
+      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // Deteksi apakah navbar sudah lewat dari posisi paling atas
+      setIsScrolled(currentScrollY > 15);
+
+      // Jika menu mobile sedang dibuka, jangan sembunyikan navbar
+      if (mobileMenuOpen) {
+        setIsVisible(true);
+        lastScrollY = currentScrollY;
+        return;
+      }
+
+      // Jika masih di area atas halaman (<= 60px), selalu tampilkan
+      if (currentScrollY <= 60) {
+        setIsVisible(true);
+      } 
+      // Jika scroll ke bawah dan melewati threshold, sembunyikan navbar
+      else if (currentScrollY > lastScrollY && currentScrollY - lastScrollY > 6) {
+        setIsVisible(false);
+      } 
+      // Jika scroll ke atas, munculkan kembali navbar secara instan dan halus
+      else if (currentScrollY < lastScrollY && lastScrollY - currentScrollY > 6) {
+        setIsVisible(true);
+      }
+
+      lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [mobileMenuOpen]);
 
   const navItems = [
     { id: 'beranda', path: '/', label: 'Beranda' },
@@ -17,6 +55,7 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
   const handleNavClick = (path) => {
     navigate(path);
     setMobileMenuOpen(false);
+    setIsVisible(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -26,16 +65,29 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
   };
 
   return (
-    <header className="navbar-container">
+    <header className={`navbar-container ${!isVisible ? 'nav-hidden' : ''} ${isScrolled ? 'nav-scrolled' : ''}`}>
       <style>{`
         .navbar-container {
           position: sticky;
           top: 0;
           z-index: 1000;
           background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(12px);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
           border-bottom: 1px solid rgba(46, 125, 50, 0.15);
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+          transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease;
+          will-change: transform;
+        }
+
+        .navbar-container.nav-hidden {
+          transform: translateY(-100%);
+          box-shadow: none;
+        }
+
+        .navbar-container.nav-scrolled {
+          background: rgba(255, 255, 255, 0.98);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
         }
 
         .navbar-inner {

@@ -8,6 +8,7 @@ import {
   BarChart3, Wheat, Building, Users, History, Target, Calendar, Loader
 } from 'lucide-react';
 import { apiService, uploadImage } from '../lib/supabaseClient';
+import { formatWaNumber } from '../utils/whatsapp';
 
 export default function AdminDashboard({ adminUser, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -343,10 +344,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   };
 
   const handleHeroBgDelete = () => {
-    if (window.confirm('Hapus / reset gambar background Hero ke gambar standar desa?')) {
-      setHeroState(prev => ({ ...prev, bgImage: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80' }));
+    if (window.confirm('Hapus / reset gambar background Hero?')) {
+      setHeroState(prev => ({ ...prev, bgImage: '' }));
       setHeroBgFileName('');
-      showToast('Gambar background Hero telah diriset ke standar.');
+      showToast('Gambar background Hero telah direset.');
     }
   };
 
@@ -657,7 +658,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
       kategori: newProdukKategori,
       harga: newProdukHarga,
       pembuat: newProdukPembuat,
-      wa_seller: newProdukWa,
+      wa_seller: formatWaNumber(newProdukWa),
       deskripsi: newProdukDesc,
       gambar: coverUrl,
       galeri: galeriObjects
@@ -1691,12 +1692,16 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                         )}
                       </div>
 
-                      <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', height: 140, border: '2px solid var(--color-gold)' }}>
-                        <img 
-                          src={heroState.bgImage || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80'} 
-                          alt="Hero Background Preview" 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                        />
+                      <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', height: 140, border: '2px solid var(--color-gold)', background: 'linear-gradient(135deg, #1b5e20, #0f2a12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {heroState.bgImage ? (
+                          <img 
+                            src={heroState.bgImage} 
+                            alt="Hero Background Preview" 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
+                        ) : (
+                          <span style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 600 }}>Default Gradient Hijau Desa Tajemsari</span>
+                        )}
                       </div>
 
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -2059,7 +2064,13 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
                     {(profilState.perangkatList || []).map((p) => (
                       <div key={p.id} style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: 12, padding: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', gap: '0.65rem' }}>
-                        <img src={p.foto || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80'} alt={p.nama} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-gold)' }} />
+                        {p.foto ? (
+                          <img src={p.foto} alt={p.nama} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-gold)' }} />
+                        ) : (
+                          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-primary-soft)', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--color-gold)' }}>
+                            <User size={30} />
+                          </div>
+                        )}
                         <div>
                           <h5 style={{ fontSize: '0.95rem', color: 'var(--color-primary-dark)', margin: 0 }}>{p.nama}</h5>
                           <span className="badge-gold" style={{ fontSize: '0.72rem', marginTop: 4, display: 'inline-block' }}>{p.jabatan}</span>
@@ -2253,8 +2264,8 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       <input type="text" className="form-input-custom" value={newProdukPembuat} onChange={(e) => setNewProdukPembuat(e.target.value)} placeholder="Pak Warsito" required />
                     </div>
                     <div className="admin-form-group">
-                      <label className="admin-form-label"><Phone size={15} /> WhatsApp (Tanpa +) *</label>
-                      <input type="text" className="form-input-custom" value={newProdukWa} onChange={(e) => setNewProdukWa(e.target.value)} placeholder="6281234567890" required />
+                      <label className="admin-form-label"><Phone size={15} /> WhatsApp Penjual (Otomatis Diformat) *</label>
+                      <input type="text" className="form-input-custom" value={newProdukWa} onChange={(e) => setNewProdukWa(e.target.value)} placeholder="Contoh: 081234567890 atau 6281234567890" required />
                     </div>
                   </div>
 

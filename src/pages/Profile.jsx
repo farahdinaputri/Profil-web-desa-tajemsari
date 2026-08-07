@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { History, Target, Users, CheckCircle2, Landmark } from 'lucide-react';
+import { History, Target, Users, CheckCircle2, Landmark, User } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
-import { INITIAL_PROFIL } from '../data/mockData';
 
 export default function Profile() {
-  const [profil, setProfil] = useState(INITIAL_PROFIL);
+  const [profil, setProfil] = useState(() => apiService.getProfilCached());
 
   useEffect(() => {
     apiService.getProfil().then(data => {
@@ -117,12 +116,9 @@ export default function Profile() {
       <div className="container">
         {/* Page Header */}
         <div className="profile-hero">
-          <span className="section-subtitle">
-            <Landmark size={14} /> Keterbukaan Informasi Publik
-          </span>
-          <h1 className="section-title">Profil & Transparansi Desa Tajemsari</h1>
+          <h1 className="section-title">Profil Desa Tajemsari</h1>
           <p className="section-description">
-            Mengenal Sejarah, Visi Misi Pembangunan, Struktur Organisasi Perangkat Desa, serta Akuntabilitas Anggaran Desa Tajemsari Tegowanu Grobogan.
+            Sejarah, Visi Misi Pembangunan, dan Struktur Organisasi Pemerintah Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan.
           </p>
         </div>
 
@@ -148,20 +144,20 @@ export default function Profile() {
         <div className="visi-misi-grid">
           <div className="visi-card">
             <span style={{ textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.85rem', color: 'var(--color-gold)', fontWeight: 700, display: 'block', marginBottom: '0.75rem' }}>
-              Visi Pembangunan Desa
+              Visi Desa
             </span>
             <h3 style={{ fontSize: '1.6rem', color: '#ffffff', marginBottom: '1rem', lineHeight: '1.3' }}>
               {profil.visiJudul || '"Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Transparan, dan Berorientasi Agrowisata Ramah Lingkungan."'}
             </h3>
             <p style={{ color: '#e8f5e9', fontSize: '0.95rem', lineHeight: '1.6' }}>
-              {profil.visiDeskripsi || 'Fokus utama pada penguatan ketahanan pangan lokal, kemudahan administrasi warga via internet, serta pemberdayaan ekonomi UMKM Tajemsari.'}
+              {profil.visiDeskripsi || 'Fokus utama pada penguatan ketahanan pangan lokal, kemudahan administrasi warga, serta pemberdayaan ekonomi UMKM Tajemsari.'}
             </p>
           </div>
 
           <div className="misi-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
               <Target color="var(--color-primary-dark)" size={24} />
-              <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)' }}>Misi Utama Desa</h3>
+              <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)' }}>Misi Desa</h3>
             </div>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               {(profil.misiList || []).map((misiItem, idx) => (
@@ -177,19 +173,22 @@ export default function Profile() {
         {/* Struktur Organisasi Perangkat Desa */}
         <div style={{ marginBottom: '4rem' }}>
           <div className="section-header">
-            <span className="section-subtitle">
-              <Users size={14} /> Pelayan Masyarakat
-            </span>
-            <h2 className="section-title">Struktur Organisasi Perangkat Desa</h2>
+            <h2 className="section-title">Struktur Pemerintah Desa</h2>
             <p className="section-description">
-              Jajaran aparatur Pemerintah Desa Tajemsari yang siap melayani kebutuhan warga Tegowanu Grobogan.
+              Jajaran aparatur Pemerintah Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan.
             </p>
           </div>
 
           <div className="grid-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
             {(profil.perangkatList || []).map((perangkat) => (
               <div key={perangkat.id} className="org-card">
-                <img src={perangkat.foto} alt={perangkat.nama} className="org-img" />
+                {perangkat.foto ? (
+                  <img src={perangkat.foto} alt={perangkat.nama} className="org-img" />
+                ) : (
+                  <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'var(--color-primary-soft)', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem auto' }}>
+                    <User size={48} />
+                  </div>
+                )}
                 <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '0.25rem' }}>
                   {perangkat.nama}
                 </h4>

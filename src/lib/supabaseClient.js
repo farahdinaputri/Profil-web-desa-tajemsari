@@ -96,8 +96,10 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('berita').select('*').order('tanggal', { ascending: false });
-        // Jika Supabase dikonfigurasi, selalu gunakan hasilnya (meski kosong)
-        if (!error) return data || [];
+        if (!error && data) {
+          setStorageItem('berita', data);
+          return data;
+        }
         console.error('Supabase getBerita error:', error);
       } catch (e) {
         console.error('Supabase getBerita exception:', e);
@@ -209,7 +211,10 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('umkm').select('*');
-        if (!error) return data || [];
+        if (!error && data) {
+          setStorageItem('umkm', data);
+          return data;
+        }
         console.error('Supabase getUMKM error:', error);
       } catch (e) {
         console.error('Supabase getUMKM exception:', e);
@@ -222,7 +227,12 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('umkm').insert([newProduct]).select();
-        if (!error && data?.length) return data[0];
+        if (!error && data?.length) {
+          const current = getStorageItem('umkm', INITIAL_UMKM);
+          const updated = [...current, data[0]];
+          setStorageItem('umkm', updated);
+          return data[0];
+        }
         console.error('Supabase addUMKM error:', error);
       } catch (e) {
         console.error('Supabase addUMKM exception:', e);
@@ -239,7 +249,12 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('umkm').update(updatedProduct).eq('id', id).select();
-        if (!error && data?.length) return data[0];
+        if (!error && data?.length) {
+          const current = getStorageItem('umkm', INITIAL_UMKM);
+          const updated = current.map(u => u.id === id ? { ...u, ...updatedProduct } : u);
+          setStorageItem('umkm', updated);
+          return data[0];
+        }
         console.error('Supabase updateUMKM error:', error);
       } catch (e) {
         console.error('Supabase updateUMKM exception:', e);
@@ -254,7 +269,6 @@ export const apiService = {
   async deleteUMKM(id) {
     if (isSupabaseConfigured) {
       await supabase.from('umkm').delete().eq('id', id);
-      return true;
     }
     const current = getStorageItem('umkm', INITIAL_UMKM);
     const updated = current.filter(u => u.id !== id);
@@ -267,7 +281,10 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('wisata').select('*');
-        if (!error) return data || [];
+        if (!error && data) {
+          setStorageItem('wisata', data);
+          return data;
+        }
         console.error('Supabase getWisata error:', error);
       } catch (e) {
         console.error('Supabase getWisata exception:', e);
@@ -280,7 +297,12 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('wisata').insert([newSpot]).select();
-        if (!error && data?.length) return data[0];
+        if (!error && data?.length) {
+          const current = getStorageItem('wisata', INITIAL_WISATA);
+          const updated = [...current, data[0]];
+          setStorageItem('wisata', updated);
+          return data[0];
+        }
         console.error('Supabase addWisata error:', error);
       } catch (e) {
         console.error('Supabase addWisata exception:', e);
@@ -297,7 +319,12 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('wisata').update(updatedSpot).eq('id', id).select();
-        if (!error && data?.length) return data[0];
+        if (!error && data?.length) {
+          const current = getStorageItem('wisata', INITIAL_WISATA);
+          const updated = current.map(w => w.id === id ? { ...w, ...updatedSpot } : w);
+          setStorageItem('wisata', updated);
+          return data[0];
+        }
         console.error('Supabase updateWisata error:', error);
       } catch (e) {
         console.error('Supabase updateWisata exception:', e);
@@ -312,7 +339,6 @@ export const apiService = {
   async deleteWisata(id) {
     if (isSupabaseConfigured) {
       await supabase.from('wisata').delete().eq('id', id);
-      return true;
     }
     const current = getStorageItem('wisata', INITIAL_WISATA);
     const updated = current.filter(w => w.id !== id);
@@ -320,13 +346,18 @@ export const apiService = {
     return true;
   },
 
-  // --- CMS HERO SECTION ---
+  // --- CMS HERO SECTION (Synchronous Cache + Supabase Sync) ---
+  getHeroCached() {
+    const stored = getStorageItem('hero', INITIAL_HERO);
+    return { ...INITIAL_HERO, ...(stored || {}) };
+  },
+
   async getHero() {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('hero_section').select('*').eq('id', 1).maybeSingle();
         if (!error && data) {
-          return {
+          const result = {
             ...INITIAL_HERO,
             badge: data.badge ?? INITIAL_HERO.badge,
             judul: data.judul ?? INITIAL_HERO.judul,
@@ -341,6 +372,9 @@ export const apiService = {
             statRtRw: data.stat_rt_rw ?? INITIAL_HERO.statRtRw,
             statUmkm: data.stat_umkm ?? INITIAL_HERO.statUmkm,
           };
+          // Simpan ke local cache agar load berikutnya instan tanpa flicker
+          setStorageItem('hero', result);
+          return result;
         }
       } catch (e) {
         console.error("Supabase getHero error:", e);
@@ -403,13 +437,18 @@ export const apiService = {
     return true;
   },
 
-  // --- CMS PROFIL DESA ---
+  // --- CMS PROFIL DESA (Synchronous Cache + Supabase Sync) ---
+  getProfilCached() {
+    const stored = getStorageItem('profil', INITIAL_PROFIL);
+    return { ...INITIAL_PROFIL, ...(stored || {}) };
+  },
+
   async getProfil() {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('profil_desa').select('*').eq('id', 1).maybeSingle();
         if (!error && data) {
-          return {
+          const result = {
             ...INITIAL_PROFIL,
             sejarahJudul: data.sejarah_judul ?? INITIAL_PROFIL.sejarahJudul,
             sejarahParagraf1: data.sejarah_paragraf1 ?? INITIAL_PROFIL.sejarahParagraf1,
@@ -419,6 +458,8 @@ export const apiService = {
             misiList: data.misi_list ?? INITIAL_PROFIL.misiList,
             perangkatList: data.perangkat_list ?? INITIAL_PROFIL.perangkatList,
           };
+          setStorageItem('profil', result);
+          return result;
         }
       } catch (e) {
         console.error("Supabase getProfil error:", e);

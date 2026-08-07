@@ -3,6 +3,8 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminLoginModal from './components/AdminLoginModal';
+import InitialLoader from './components/InitialLoader';
+import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Services from './pages/Services';
@@ -15,22 +17,37 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [adminUser, setAdminUser] = useState(null);
+  const [adminUser, setAdminUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tajemsari_admin_auth');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   const handleAdminLoginSuccess = (user) => {
+    localStorage.setItem('tajemsari_admin_auth', JSON.stringify(user));
     setAdminUser(user);
     navigate('/admin');
   };
 
   const handleAdminLogout = () => {
+    localStorage.removeItem('tajemsari_admin_auth');
     setAdminUser(null);
     navigate('/');
   };
 
   return (
     <div className="app-root" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Otomatis Scroll ke Paling Atas Saat Refresh & Ganti Halaman/Katalog */}
+      <ScrollToTop />
+
+      {/* Animasi Layar Awal Website (Initial Screen Loader) */}
+      <InitialLoader />
+
       {/* Tampilkan Navbar Publik Hanya Jika BUKAN Halaman Admin */}
       {!isAdminRoute && (
         <Navbar 

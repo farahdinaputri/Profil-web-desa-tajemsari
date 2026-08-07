@@ -236,7 +236,7 @@ export const INITIAL_HERO = {
   badge: "Website Resmi Desa Tajemsari • Kec. Tegowanu",
   judul: "Selamat Datang di Portal Resmi Desa Tajemsari",
   deskripsi: "Desa Tajemsari merupakan desa paling barat di Kecamatan Tegowanu, Kabupaten Grobogan, Jawa Tengah. Wilayah desa ini terdiri dari 4 dusun: Kendalsari, Mlangi, Plosorejo, dan Tajem.",
-  bgImage: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80",
+  bgImage: "",
   ctaPrimary: "Layanan Surat Online",
   ctaPrimaryLink: "layanan",
   ctaSecondary: "Jelajahi Potensi Desa",
@@ -261,13 +261,13 @@ export const INITIAL_HERO = {
   statUmkm: "12 UMKM",
 
   // 4. Sambutan Kepala Desa
-  kadesBadge: "Sambutan Kepala Desa Tajemsari",
+  kadesBadge: "Sambutan Kepala Desa",
   kadesJudul: '"Terwujudnya Desa Tajemsari Berdikari, Sejahtera & Asri"',
   kadesNama: "H. Suhartono, S.Sos",
-  kadesJabatan: "Kepala Desa Tajemsari Tegowanu",
+  kadesJabatan: "Kepala Desa Tajemsari",
   kadesPeriode: "Periode 2021 - 2027",
-  kadesFoto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80",
-  kadesSambutan: "Assalamu’alaikum Warahmatullahi Wabarakatuh.\nSelamat datang warga dan tamu Desa Tajemsari, Kecamatan Tegowanu. Peluncuran website resmi ini merupakan wujud keterbukaan informasi publik serta komitmen kami dalam mempermudah layanan kependudukan secara modern tanpa meninggalkan keramahan khas pedesaan Grobogan."
+  kadesFoto: "",
+  kadesSambutan: "Assalamu’alaikum Warahmatullahi Wabarakatuh.\nSelamat datang di website resmi Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan. Website ini kami hadirkan sebagai media komunikasi dan keterbukaan informasi bagi seluruh masyarakat."
 };
 
 export const INITIAL_STATISTIK = [
@@ -285,7 +285,7 @@ export const INITIAL_PROFIL = {
 
   // 2. Visi & Misi Desa
   visiJudul: '"Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Transparan, dan Berorientasi Agrowisata Ramah Lingkungan."',
-  visiDeskripsi: "Fokus utama pada penguatan ketahanan pangan lokal, kemudahan administrasi warga via internet, serta pemberdayaan ekonomi UMKM Tajemsari.",
+  visiDeskripsi: "Fokus utama pada penguatan ketahanan pangan lokal, kemudahan administrasi warga, serta pemberdayaan ekonomi UMKM Tajemsari.",
   misiList: [
     "Meningkatkan kualitas pelayanan administrasi kependudukan cepat & berbasis digital.",
     "Mengembangkan infrastruktur jalan tani dan saluran irigasi persawahan Tegowanu.",
@@ -295,10 +295,10 @@ export const INITIAL_PROFIL = {
 
   // 3. Struktur Organisasi Perangkat Desa (CRUD Dynamic List)
   perangkatList: [
-    { id: 1, nama: "H. Suhartono, S.Sos", jabatan: "Kepala Desa Tajemsari", foto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80" },
-    { id: 2, nama: "Bambang Wijaya, S.T", jabatan: "Sekretaris Desa", foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
-    { id: 3, nama: "Siti Rahmawati, S.E", jabatan: "Kaur Keuangan", foto: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80" },
-    { id: 4, nama: "Sri Rejeki, A.Md", jabatan: "Kasi Kesejahteraan & Pelayanan", foto: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80" }
+    { id: 1, nama: "H. Suhartono, S.Sos", jabatan: "Kepala Desa Tajemsari", foto: "" },
+    { id: 2, nama: "Bambang Wijaya, S.T", jabatan: "Sekretaris Desa", foto: "" },
+    { id: 3, nama: "Siti Rahmawati, S.E", jabatan: "Kaur Keuangan", foto: "" },
+    { id: 4, nama: "Sri Rejeki, A.Md", jabatan: "Kasi Kesejahteraan & Pelayanan", foto: "" }
   ],
 
   // 4. Transparansi APBDes (CRUD Dynamic List)
