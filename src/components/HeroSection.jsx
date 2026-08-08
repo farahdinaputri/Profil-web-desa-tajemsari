@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Compass } from 'lucide-react';
+import { Globe, Compass } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function HeroSection({ onNavigate }) {
@@ -91,11 +91,11 @@ export default function HeroSection({ onNavigate }) {
 
         <div className="hero-actions">
           <button 
-            id="hero-btn-layanan"
+            id="hero-btn-profil"
             className="btn btn-gold" 
-            onClick={() => onNavigate(hero.ctaPrimaryLink || 'layanan')}
+            onClick={() => onNavigate(hero.ctaPrimaryLink || 'profil')}
           >
-            <FileText size={18} /> {hero.ctaPrimary || 'Pengajuan Surat Online'}
+            <Globe size={18} /> {hero.ctaPrimary || 'Profil Desa Tajemsari'}
           </button>
 
           <button 

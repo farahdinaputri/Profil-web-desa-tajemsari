@@ -18,7 +18,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   // Data States
-  const [permohonanList, setPermohonanList] = useState([]);
   const [beritaList, setBeritaList] = useState([]);
   const [umkmList, setUmkmList] = useState([]);
   const [wisataList, setWisataList] = useState([]);
@@ -74,14 +73,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [wisataImagesList, setWisataImagesList] = useState([]);
   const [isDraggingWisata, setIsDraggingWisata] = useState(false);
 
-  // Permohonan Status & Upload PDF Modal States
-  const [selectedPermohonan, setSelectedPermohonan] = useState(null);
-  const [catatanText, setCatatanText] = useState('');
-  const [targetStatus, setTargetStatus] = useState('Sedang Diproses');
-  const [modalFileUrl, setModalFileUrl] = useState('');
-  const [modalFileName, setModalFileName] = useState('');
-  const [modalMetode, setModalMetode] = useState('Digital');
-
   // Statistik Beranda CRUD States
   const [statistikList, setStatistikList] = useState([]);
   const [showStatModal, setShowStatModal] = useState(false);
@@ -104,7 +95,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   };
 
   const loadAllData = async () => {
-    const pData = await apiService.getPermohonan();
     const bData = await apiService.getBerita();
     const uData = await apiService.getUMKM();
     const wData = await apiService.getWisata();
@@ -114,7 +104,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     const sData = await apiService.getSettings();
     const stData = await apiService.getStatistik();
 
-    setPermohonanList(pData || []);
     setBeritaList(bData || []);
     setUmkmList(uData || []);
     setWisataList(wData || []);
@@ -821,85 +810,14 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     }
   };
 
-  // ==========================================
-  // PERMOHONAN STATUS & UPLOAD PDF MODAL LOGIC
-  // ==========================================
-  const getStatusBadgeStyle = (status) => {
-    switch (status) {
-      case 'Siap Diunduh': return { bg: '#dcfce7', color: '#15803d', label: '🟢 Siap Diunduh' };
-      case 'Siap Diambil di Balai Desa': return { bg: '#fef3c7', color: '#b45309', label: '📜 Siap Diambil di Balai Desa' };
-      case 'Sedang Diproses': return { bg: '#dbeafe', color: '#1d4ed8', label: '🔵 Sedang Diproses' };
-      case 'Menunggu Tanda Tangan': return { bg: '#f3e8ff', color: '#7e22ce', label: '🟣 Menunggu Tanda Tangan' };
-      case 'Ditolak': return { bg: '#fee2e2', color: '#b91c1c', label: '🔴 Ditolak' };
-      default: return { bg: '#fef9c3', color: '#a16207', label: '🟡 Menunggu Verifikasi' };
-    }
-  };
-
-  const handleOpenStatusModal = (item) => {
-    setSelectedPermohonan(item);
-    setTargetStatus(item.status || 'Menunggu Verifikasi');
-    setCatatanText(item.catatan_admin || '');
-    setModalFileUrl(item.file_surat_url || '');
-    setModalFileName(item.file_surat_name || '');
-    setModalMetode(item.metode_pengambilan || 'Digital');
-  };
-
-  const handlePdfFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.type !== 'application/pdf') {
-        alert('File harus berformat PDF!');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setModalFileUrl(event.target.result);
-        setModalFileName(file.name);
-        if (targetStatus !== 'Siap Diambil di Balai Desa') {
-          setTargetStatus('Siap Diunduh');
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemovePdfFile = () => {
-    setModalFileUrl('');
-    setModalFileName('');
-    if (targetStatus === 'Siap Diunduh') {
-      setTargetStatus('Sedang Diproses');
-    }
-  };
-
-  const handlePreviewPdfFile = () => {
-    if (!modalFileUrl) return;
-    const win = window.open();
-    if (win) {
-      win.document.write(`<iframe width="100%" height="100%" style="border:none;" src="${modalFileUrl}"></iframe>`);
-    }
-  };
-
-  const handleUpdatePermohonanStatus = async () => {
-    if (!selectedPermohonan) return;
-    await apiService.updateStatusPermohonan(selectedPermohonan.id, targetStatus, catatanText, {
-      file_surat_url: modalFileUrl,
-      file_surat_name: modalFileName,
-      metode_pengambilan: modalMetode
-    });
-    showToast(`Permohonan #${selectedPermohonan.nomor_tiket} berhasil diperbarui!`);
-    setSelectedPermohonan(null);
-    loadAllData();
-  };
-
   // Navigation Items Definition
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, category: 'UTAMA' },
-    { id: 'permohonan', label: 'Pengajuan Surat', icon: FileText, count: permohonanList.length, category: 'PELAYANAN' },
-    { id: 'hero', label: 'Kelola Hero Section', icon: ImageIcon, category: 'KONTEN WEBSITE' },
-    { id: 'profil', label: 'Kelola Profil Desa', icon: Globe, category: 'KONTEN WEBSITE' },
     { id: 'berita', label: 'Kelola Berita', icon: Newspaper, count: beritaList.length, category: 'MODUL UTAMA' },
     { id: 'umkm', label: 'Kelola UMKM', icon: ShoppingBag, count: umkmList.length, category: 'MODUL UTAMA' },
     { id: 'wisata', label: 'Kelola Wisata', icon: Compass, count: wisataList.length, category: 'MODUL UTAMA' },
+    { id: 'hero', label: 'Kelola Hero Section', icon: ImageIcon, category: 'KONTEN WEBSITE' },
+    { id: 'profil', label: 'Kelola Profil Desa', icon: Globe, category: 'KONTEN WEBSITE' },
     { id: 'footer', label: 'Kelola Footer', icon: MapPin, category: 'KONTEN WEBSITE' },
     { id: 'settings', label: 'Pengaturan Website', icon: SettingsIcon, category: 'SISTEM' },
   ];
@@ -1349,7 +1267,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
         {/* Navigation Items (Independent Vertical Scroll) */}
         <div className="sidebar-nav-container">
-          {['UTAMA', 'PELAYANAN', 'KONTEN WEBSITE', 'MODUL UTAMA', 'SISTEM'].map((cat) => {
+          {['UTAMA', 'MODUL UTAMA', 'KONTEN WEBSITE', 'SISTEM'].map((cat) => {
             const catItems = menuItems.filter(m => m.category === cat);
             if (!catItems.length) return null;
             return (
@@ -1511,11 +1429,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
                 <div className="dash-stat-card">
                   <div className="dash-stat-icon" style={{ background: '#8b5cf6' }}>
-                    <FileText size={28} />
+                    <BarChart3 size={28} />
                   </div>
                   <div>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Pengajuan Surat</span>
-                    <h3 style={{ fontSize: '1.8rem', color: 'var(--color-primary-dark)', lineHeight: 1.1, marginTop: 2 }}>{permohonanList.length}</h3>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Statistik Desa</span>
+                    <h3 style={{ fontSize: '1.8rem', color: 'var(--color-primary-dark)', lineHeight: 1.1, marginTop: 2 }}>{statistikList.length}</h3>
                   </div>
                 </div>
               </div>
@@ -1524,27 +1442,24 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               <div className="grid-2">
                 <div className="card-rural">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>Permohonan Surat Terbaru</h4>
-                    <button className="btn btn-outline" style={{ padding: '0.3rem 0.75rem', fontSize: '0.78rem' }} onClick={() => setActiveTab('permohonan')}>
+                    <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>Berita & Publikasi Terbaru</h4>
+                    <button className="btn btn-outline" style={{ padding: '0.3rem 0.75rem', fontSize: '0.78rem' }} onClick={() => setActiveTab('berita')}>
                       Lihat Semua
                     </button>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {permohonanList.slice(0, 4).map((p) => {
-                      const badgeInfo = getStatusBadgeStyle(p.status);
-                      return (
-                        <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#ffffff', padding: '0.85rem 1rem', borderRadius: 12, border: '1px solid var(--color-border)' }}>
-                          <div>
-                            <strong style={{ fontSize: '0.9rem', color: 'var(--color-primary-dark)' }}>{p.nama_warga}</strong>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{p.jenis_surat} • {p.nomor_tiket}</div>
-                          </div>
-                          <span style={{ background: badgeInfo.bg, color: badgeInfo.color, padding: '0.2rem 0.6rem', borderRadius: 12, fontSize: '0.72rem', fontWeight: 700 }}>
-                            {badgeInfo.label}
-                          </span>
+                    {beritaList.slice(0, 4).map((b) => (
+                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#ffffff', padding: '0.85rem 1rem', borderRadius: 12, border: '1px solid var(--color-border)' }}>
+                        <div style={{ minWidth: 0, flex: 1, marginRight: '1rem' }}>
+                          <strong style={{ fontSize: '0.9rem', color: 'var(--color-primary-dark)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.judul}</strong>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{b.tanggal} • {b.penulis}</div>
                         </div>
-                      );
-                    })}
+                        <span className="badge-green" style={{ fontSize: '0.72rem', flexShrink: 0 }}>
+                          {b.kategori || 'Umum'}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -1616,12 +1531,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       <label className="admin-form-label">Link Tujuan Tombol Utama (CTA 1)</label>
                       <select 
                         className="form-input-custom" 
-                        value={heroState.ctaPrimaryLink || 'layanan'} 
+                        value={heroState.ctaPrimaryLink || 'profil'} 
                         onChange={(e) => setHeroState({ ...heroState, ctaPrimaryLink: e.target.value })}
                       >
-                        <option value="layanan">Halaman Layanan Surat Online (/layanan)</option>
-                        <option value="potensi">Halaman Potensi & Wisata (/potensi)</option>
                         <option value="profil">Halaman Profil Desa (/profil)</option>
+                        <option value="potensi">Halaman Potensi & Wisata (/potensi)</option>
                         <option value="berita">Halaman Berita Desa (/berita)</option>
                       </select>
                     </div>
@@ -1645,7 +1559,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                         onChange={(e) => setHeroState({ ...heroState, ctaSecondaryLink: e.target.value })}
                       >
                         <option value="potensi">Halaman Potensi & Wisata (/potensi)</option>
-                        <option value="layanan">Halaman Layanan Surat Online (/layanan)</option>
                         <option value="profil">Halaman Profil Desa (/profil)</option>
                         <option value="berita">Halaman Berita Desa (/berita)</option>
                       </select>
@@ -2461,92 +2374,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
             </div>
           )}
 
-          {/* TAB 7: PENGAJUAN SURAT WARGA & UPLOAD SURAT JADI (PDF) */}
-          {activeTab === 'permohonan' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <div>
-                  <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)' }}>
-                    Kelola Seluruh Pengajuan Surat Masyarakat Tajemsari
-                  </h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                    Verifikasi berkas, ubah status pengerjaan, dan unggah file surat PDF yang sudah jadi untuk diunduh warga.
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ overflowX: 'auto' }}>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Tiket & Tanggal</th>
-                      <th>Detail Pemohon</th>
-                      <th>Jenis Surat</th>
-                      <th>Keperluan</th>
-                      <th>Status & Metode</th>
-                      <th>Dokumen PDF</th>
-                      <th>Aksi Admin</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {permohonanList.map((item) => {
-                      const badgeInfo = getStatusBadgeStyle(item.status);
-                      return (
-                        <tr key={item.id}>
-                          <td>
-                            <strong>#{item.nomor_tiket}</strong><br />
-                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{item.tanggal_pengajuan}</span>
-                          </td>
-                          <td>
-                            <strong>{item.nama_warga}</strong><br />
-                            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                              NIK: {item.nik} • HP: {item.no_hp}<br />
-                              Alamat: {item.alamat_lengkap || item.rt_rw || '-'}
-                            </span>
-                          </td>
-                          <td><span className="badge-green">{item.jenis_surat}</span></td>
-                          <td style={{ maxWidth: 200 }}>{item.keperluan}</td>
-                          <td>
-                            <span style={{ background: badgeInfo.bg, color: badgeInfo.color, padding: '0.3rem 0.65rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, display: 'inline-block', marginBottom: 4 }}>
-                              {badgeInfo.label}
-                            </span><br />
-                            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-                              Metode: <strong>{item.metode_pengambilan || 'Digital'}</strong>
-                            </span>
-                          </td>
-                          <td>
-                            {item.file_surat_url ? (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                  <FileCheck size={14} /> PDF Terunggah
-                                </span>
-                                <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {item.file_surat_name || 'Dokumen_Surat.pdf'}
-                                </span>
-                              </div>
-                            ) : (
-                              <span style={{ fontSize: '0.75rem', color: '#94a3b8', italic: 'true' }}>
-                                Belum Ada File PDF
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            <button 
-                              style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, #1b5e20 100%)', color: '#fff', border: 'none', padding: '0.5rem 0.85rem', borderRadius: 8, fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 6px rgba(46,125,50,0.25)' }}
-                              onClick={() => handleOpenStatusModal(item)}
-                            >
-                              <Upload size={14} /> Kelola & Upload PDF
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
           {/* TAB 8: KELOLA FOOTER */}
           {activeTab === 'footer' && (
             <div className="admin-form-card">
@@ -2638,175 +2465,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         </div>
       </main>
 
-      {/* MODAL KELOLA PERMOHONAN & UPLOAD SURAT PDF */}
-      {selectedPermohonan && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, backdropFilter: 'blur(4px)' }}>
-          <div style={{ background: '#ffffff', borderRadius: 24, padding: '2rem', maxWidth: 560, width: '92%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', border: '2px solid var(--color-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
-              <div>
-                <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary-dark)', margin: 0 }}>
-                  Kelola Surat #{selectedPermohonan.nomor_tiket}
-                </h3>
-                <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-                  Pemohon: <strong>{selectedPermohonan.nama_warga}</strong> • {selectedPermohonan.jenis_surat}
-                </span>
-              </div>
-              <button onClick={() => setSelectedPermohonan(null)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Pilihan Status Pengajuan */}
-            <div className="admin-form-group">
-              <label className="admin-form-label">
-                <Tag size={15} /> Update Status Permohonan *
-              </label>
-              <select className="form-input-custom" value={targetStatus} onChange={(e) => setTargetStatus(e.target.value)}>
-                <option value="Menunggu Verifikasi">🟡 Menunggu Verifikasi</option>
-                <option value="Sedang Diproses">🔵 Sedang Diproses</option>
-                <option value="Menunggu Tanda Tangan">🟣 Menunggu Tanda Tangan</option>
-                <option value="Siap Diunduh">🟢 Siap Diunduh (Digital PDF)</option>
-                <option value="Siap Diambil di Balai Desa">📜 Siap Diambil di Balai Desa (Fisik)</option>
-                <option value="Ditolak">🔴 Ditolak</option>
-              </select>
-            </div>
-
-            {/* Metode Pengambilan */}
-            <div className="admin-form-group">
-              <label className="admin-form-label">
-                <FileCheck size={15} /> Metode Layanan Hasil Surat *
-              </label>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem' }}>
-                <label style={{ fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                  <input 
-                    type="radio" 
-                    name="metode" 
-                    value="Digital" 
-                    checked={modalMetode === 'Digital'} 
-                    onChange={() => setModalMetode('Digital')} 
-                  />
-                  <span>Digital (Warga Unduh PDF Online)</span>
-                </label>
-                <label style={{ fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                  <input 
-                    type="radio" 
-                    name="metode" 
-                    value="Fisik" 
-                    checked={modalMetode === 'Fisik'} 
-                    onChange={() => {
-                      setModalMetode('Fisik');
-                      setTargetStatus('Siap Diambil di Balai Desa');
-                    }} 
-                  />
-                  <span>Fisik (Dokumen di Balai Desa)</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Section Upload File Surat PDF Jadi */}
-            <div className="admin-form-group" style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 16, padding: '1.25rem' }}>
-              <label className="admin-form-label" style={{ marginBottom: '0.5rem' }}>
-                <Upload size={16} /> Unggah File Surat Selesai (Format PDF)
-              </label>
-
-              {modalFileUrl ? (
-                <div style={{ background: '#f0fdf4', border: '1.5px solid #10b981', borderRadius: 12, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
-                    <div style={{ width: 40, height: 40, background: '#10b981', borderRadius: 10, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <FileText size={22} />
-                    </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <strong style={{ fontSize: '0.88rem', color: '#065f46', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {modalFileName || 'Surat_Jadi.pdf'}
-                      </strong>
-                      <span style={{ fontSize: '0.75rem', color: '#047857' }}>Format PDF Terunggah</span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.35rem' }}>
-                    <button 
-                      type="button" 
-                      onClick={handlePreviewPdfFile}
-                      style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '0.4rem 0.65rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
-                      title="Lihat PDF"
-                    >
-                      <Eye size={14} /> Lihat PDF
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={() => document.getElementById('pdf-file-change-input').click()}
-                      style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '0.4rem 0.65rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
-                      title="Ganti File"
-                    >
-                      <RefreshCw size={14} /> Ganti
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={handleRemovePdfFile}
-                      style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.4rem 0.5rem', borderRadius: 8, cursor: 'pointer' }}
-                      title="Hapus File PDF"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-
-                    <input 
-                      id="pdf-file-change-input"
-                      type="file" 
-                      accept="application/pdf" 
-                      style={{ display: 'none' }} 
-                      onChange={handlePdfFileChange}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div 
-                  className="dropzone-box" 
-                  style={{ marginBottom: 0, padding: '1.25rem 1rem' }}
-                  onClick={() => document.getElementById('pdf-file-input').click()}
-                >
-                  <Upload size={28} color="var(--color-primary)" style={{ margin: '0 auto 0.35rem auto', display: 'block' }} />
-                  <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.9rem', display: 'block' }}>
-                    Klik untuk Unggah Berkas Surat PDF
-                  </strong>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    Format file harus .pdf (Maksimal 10MB)
-                  </span>
-
-                  <input 
-                    id="pdf-file-input"
-                    type="file" 
-                    accept="application/pdf" 
-                    style={{ display: 'none' }} 
-                    onChange={handlePdfFileChange}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Catatan Petugas Admin */}
-            <div className="admin-form-group">
-              <label className="admin-form-label"><MessageSquare size={15} /> Catatan Petugas (Tampil pada Lacak Warga)</label>
-              <textarea 
-                className="form-input-custom" 
-                rows={3} 
-                value={catatanText} 
-                onChange={(e) => setCatatanText(e.target.value)} 
-                placeholder="Contoh: Berkas Surat Keterangan telah terverifikasi dan ditandatangani..."
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
-              <button className="btn btn-outline" onClick={() => setSelectedPermohonan(null)}>
-                Batal
-              </button>
-              <button className="btn btn-primary" onClick={handleUpdatePermohonanStatus} style={{ padding: '0.75rem 1.5rem' }}>
-                <Save size={16} /> Simpan & Perbarui Tiket
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* MODAL TAMBAH / EDIT KARTU STATISTIK */}
       {showStatModal && (
         <div className="modal-overlay">
@@ -2875,7 +2533,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   >
                     <option value="#e8f5e9">🟢 Hijau Soft (Utama)</option>
                     <option value="#fef9e7">🟡 Emas Soft (Pertanian/Spesial)</option>
-                    <option value="#e0f2fe">🔵 Biru Soft (UMKM/Layanan)</option>
+                    <option value="#e0f2fe">🔵 Biru Soft (UMKM/Ekonomi)</option>
                   </select>
                 </div>
               </div>
@@ -2936,7 +2594,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 <input 
                   type="text" 
                   className="form-input-custom" 
-                  placeholder="Contoh: Sekretaris Desa / Kaur Keuangan / Kasi Pelayanan" 
+                  placeholder="Contoh: Sekretaris Desa / Kaur Keuangan / Kasi Kesejahteraan" 
                   value={perangkatForm.jabatan} 
                   onChange={(e) => setPerangkatForm({ ...perangkatForm, jabatan: e.target.value })} 
                   required 

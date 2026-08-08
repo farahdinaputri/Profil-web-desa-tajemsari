@@ -237,23 +237,23 @@ export const INITIAL_HERO = {
   judul: "Selamat Datang di Portal Resmi Desa Tajemsari",
   deskripsi: "Desa Tajemsari merupakan desa paling barat di Kecamatan Tegowanu, Kabupaten Grobogan, Jawa Tengah. Wilayah desa ini terdiri dari 4 dusun: Kendalsari, Mlangi, Plosorejo, dan Tajem.",
   bgImage: "",
-  ctaPrimary: "Layanan Surat Online",
-  ctaPrimaryLink: "layanan",
-  ctaSecondary: "Jelajahi Potensi Desa",
+  ctaPrimary: "Profil Desa Tajemsari",
+  ctaPrimaryLink: "profil",
+  ctaSecondary: "Jelajahi Potensi & Wisata",
   ctaSecondaryLink: "potensi",
 
   // 2. Akses Cepat (Quick Access Cards)
-  quickTitle: "Akses Cepat Pelayanan Publik Tajemsari",
+  quickTitle: "Akses Cepat Informasi Desa Tajemsari",
   quickSubtitle: "Kec. Tegowanu • Kab. Grobogan",
-  quickCard1Title: "Surat Keterangan Usaha",
-  quickCard1Desc: "SKU & Legalitas UMKM",
-  quickCard1Link: "layanan",
-  quickCard2Title: "Surat SKTM & KIS",
-  quickCard2Desc: "Bantuan Beasiswa & KIS",
-  quickCard2Link: "layanan",
-  quickCard3Title: "Potensi & Wisata Desa",
-  quickCard3Desc: "Pertanian & Olahan Madu",
-  quickCard3Link: "potensi",
+  quickCard1Title: "Profil & Wilayah Desa",
+  quickCard1Desc: "Sejarah, Visi Misi & Struktur",
+  quickCard1Link: "profil",
+  quickCard2Title: "Potensi UMKM & Wisata",
+  quickCard2Desc: "Produk Lokal & Agrowisata",
+  quickCard2Link: "potensi",
+  quickCard3Title: "Berita & Kegiatan Desa",
+  quickCard3Desc: "Informasi & Publikasi Terkini",
+  quickCard3Link: "berita",
 
   // 3. Statistik Hero (3 statistik: Penduduk, RT/RW, UMKM)
   statPenduduk: "2.845 Jiwa",
@@ -333,5 +333,5 @@ export const INITIAL_SETTINGS = {
   provinsi: "Jawa Tengah",
   emailAdmin: "admin@tajemsari.desa.id",
   teleponKantor: "081234567890",
-  runningText: "Pelayanan Surat Online Desa Tajemsari Tegowanu Buka 24 Jam. Hubungi Perangkat Desa jika memerlukan bantuan darurat."
+  runningText: "Selamat Datang di Website Resmi Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan. Pusat informasi, transparansi, dan potensi agrowisata desa."
 };
