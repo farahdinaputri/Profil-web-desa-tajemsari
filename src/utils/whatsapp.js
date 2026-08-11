@@ -24,16 +24,13 @@ export function formatWaNumber(phone) {
   return cleaned || '6281234567890';
 }
 
-/**
- * Buat link WhatsApp langsung dengan pesan otomatis pemesanan produk UMKM
- */
-export function getUmkmWaLink(item) {
+export function getUmkmWaLink(item, selectedProduct = null) {
   if (!item) return '#';
   
   const phone = formatWaNumber(item.wa_seller || item.no_hp || '6281234567890');
   const sellerName = item.pembuat ? item.pembuat.trim() : 'Penjual';
-  const productName = item.nama_produk ? item.nama_produk.trim() : 'Produk UMKM';
-  const price = item.harga ? ` (Harga: ${item.harga.trim()})` : '';
+  const productName = selectedProduct?.nama || item.nama_produk || 'Produk UMKM';
+  const price = (selectedProduct?.harga || item.harga) ? ` (Harga: ${(selectedProduct?.harga || item.harga).trim()})` : '';
 
   const message = `Halo Kak ${sellerName},\n\nSaya melihat produk *"${productName}"*${price} di Website Resmi Desa Tajemsari dan berminat untuk memesan.\n\nApakah produk ini masih tersedia?\nTerima kasih.`;
 

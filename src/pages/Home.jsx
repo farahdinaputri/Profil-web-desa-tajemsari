@@ -30,6 +30,31 @@ export default function Home() {
     setStatistikList(sData || []);
   };
 
+  const countTotalUmkmProducts = (list) => {
+    if (!Array.isArray(list)) return 0;
+    return list.reduce((total, item) => {
+      if (Array.isArray(item.produk_list) && item.produk_list.length > 0) {
+        return total + item.produk_list.length;
+      }
+      if (Array.isArray(item.galeri) && item.galeri.length > 0) {
+        return total + item.galeri.length;
+      }
+      return total + 1;
+    }, 0);
+  };
+
+  const getDisplayStatAngka = (stat) => {
+    const isUmkm = stat.icon === 'Sparkles' || 
+      (stat.label && stat.label.toLowerCase().includes('umkm')) || 
+      (stat.label && stat.label.toLowerCase().includes('produk')) ||
+      (stat.angka && typeof stat.angka === 'string' && stat.angka.toLowerCase().includes('umkm'));
+    if (isUmkm) {
+      const totalProducts = countTotalUmkmProducts(umkmList);
+      return `${totalProducts} UMKM`;
+    }
+    return stat.angka;
+  };
+
   const getStatIcon = (iconName) => {
     switch (iconName) {
       case 'Wheat': return <Wheat size={26} />;
@@ -179,11 +204,91 @@ export default function Home() {
           object-fit: cover;
         }
 
+        /* Segmented Category Filter Bar */
+        .category-filter-wrap {
+          display: flex;
+          justify-content: center;
+          margin-top: 1.5rem;
+          width: 100%;
+          overflow-x: auto;
+          padding: 4px 0;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .category-filter-wrap::-webkit-scrollbar {
+          display: none;
+        }
+
+        .category-segmented-bar {
+          display: inline-flex;
+          align-items: center;
+          background: #f1f5f9;
+          padding: 4px;
+          border-radius: 30px;
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+          max-width: 100%;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          gap: 2px;
+          flex-wrap: nowrap;
+        }
+
+        .category-segmented-bar::-webkit-scrollbar {
+          display: none;
+        }
+
+        .category-segmented-btn {
+          border: none;
+          background: transparent;
+          color: var(--color-text-muted);
+          padding: 0.45rem 1.15rem;
+          border-radius: 24px;
+          font-size: 0.86rem;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .category-segmented-btn:hover:not(.active) {
+          color: var(--color-primary-dark);
+          background: rgba(255, 255, 255, 0.6);
+        }
+
+        .category-segmented-btn.active {
+          background: var(--color-primary);
+          color: #ffffff;
+          box-shadow: 0 3px 10px rgba(46, 125, 50, 0.28);
+        }
+
         .berita-content, .product-body-home {
-          padding: 1.5rem;
+          padding: 1.35rem 1.25rem;
           display: flex;
           flex-direction: column;
           flex: 1;
+        }
+
+        .umkm-card-actions {
+          display: grid;
+          grid-template-columns: 1.15fr 1fr;
+          gap: 0.5rem;
+          margin-top: auto;
+          align-items: stretch;
+        }
+
+        .umkm-card-actions .btn {
+          padding: 0.65rem 0.35rem !important;
+          font-size: 0.82rem !important;
+          white-space: nowrap !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 5px !important;
+          border-radius: 12px !important;
+          text-decoration: none !important;
         }
 
         @media (max-width: 850px) {
@@ -208,7 +313,7 @@ export default function Home() {
               <div className="stat-icon" style={{ background: stat.colorBg || 'var(--color-primary-soft)', color: stat.colorText || 'var(--color-primary-dark)' }}>
                 {getStatIcon(stat.icon)}
               </div>
-              <div className="stat-number">{stat.angka}</div>
+              <div className="stat-number">{getDisplayStatAngka(stat)}</div>
               <div className="stat-label">{stat.label}</div>
             </div>
           ))}
@@ -256,27 +361,19 @@ export default function Home() {
               Informasi seputar pembangunan, pertanian, dan kegiatan kemasyarakatan di Desa Tajemsari.
             </p>
 
-            {/* Category Filter */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  style={{
-                    padding: '0.4rem 1.1rem',
-                    borderRadius: '20px',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    border: '1px solid',
-                    borderColor: activeCategory === cat ? 'var(--color-primary)' : 'var(--color-border)',
-                    background: activeCategory === cat ? 'var(--color-primary)' : 'transparent',
-                    color: activeCategory === cat ? '#ffffff' : 'var(--color-text-main)',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {cat}
-                </button>
-              ))}
+            {/* Category Filter - Segmented Straight Bar */}
+            <div className="category-filter-wrap">
+              <div className="category-segmented-bar">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    className={`category-segmented-btn ${activeCategory === cat ? 'active' : ''}`}
+                    onClick={() => setActiveCategory(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -287,7 +384,14 @@ export default function Home() {
                 className="berita-card"
                 onClick={() => navigate(`/berita/${item.slug || item.id}`)}
               >
-                <img src={item.gambar} alt={item.judul} className="berita-img" />
+                {item.gambar ? (
+                  <img src={item.gambar} alt={item.judul} className="berita-img" />
+                ) : (
+                  <div style={{ width: '100%', height: 210, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', color: '#d4af37' }}>
+                    <Newspaper size={48} />
+                    <span style={{ fontSize: '0.78rem', color: '#ffffff', marginTop: 6, opacity: 0.9 }}>Dokumentasi Berita</span>
+                  </div>
+                )}
                 <div className="berita-content">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                     <span className="badge-gold">{item.kategori}</span>
@@ -344,43 +448,82 @@ export default function Home() {
           </div>
 
           <div className={`grid-3 ${homeUmkmList.length === 1 ? 'has-single-item' : ''}`} style={{ marginBottom: '2.5rem' }}>
-            {homeUmkmList.map((item) => (
-              <div key={item.id} className="product-card-home" onClick={() => navigate('/potensi')}>
-                <img src={item.gambar} alt={item.nama_produk} className="product-img-home" />
-                <div className="product-body-home">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <span className="badge-gold">{item.kategori}</span>
-                    <span style={{ fontWeight: 800, color: 'var(--color-primary-dark)', fontSize: '1.05rem' }}>
-                      {item.harga}
+            {homeUmkmList.map((item) => {
+              const count = Array.isArray(item.produk_list) ? item.produk_list.length : (Array.isArray(item.galeri) ? item.galeri.length : 1);
+              return (
+                <div key={item.id} className="product-card-home" onClick={() => navigate('/potensi')} style={{ cursor: 'pointer' }}>
+                  <div style={{ position: 'relative', width: '100%', height: 210, overflow: 'hidden', background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)' }}>
+                    {item.gambar ? (
+                      <img 
+                        src={item.gambar} 
+                        alt={item.nama_produk} 
+                        className="product-img-home" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80';
+                        }}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#d4af37' }}>
+                        <ShoppingBag size={42} />
+                        <span style={{ fontSize: '0.78rem', color: '#ffffff', marginTop: 6, opacity: 0.9 }}>Produk UMKM</span>
+                      </div>
+                    )}
+                    <span className="badge-gold" style={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
+                      {item.kategori}
                     </span>
+                    {count > 1 && (
+                      <span style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(17,42,20,0.85)', color: '#ffffff', padding: '0.2rem 0.6rem', borderRadius: 14, fontSize: '0.72rem', fontWeight: 700, backdropFilter: 'blur(4px)', border: '1px solid rgba(212,175,55,0.4)', zIndex: 2 }}>
+                        📦 {count} Produk
+                      </span>
+                    )}
                   </div>
+                  <div className="product-body-home">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                        Pemilik: <strong>{item.pembuat}</strong>
+                      </span>
+                      <span style={{ fontWeight: 800, color: 'var(--color-primary-dark)', fontSize: '1.05rem' }}>
+                        {item.harga}
+                      </span>
+                    </div>
 
-                  <h3 style={{ fontSize: '1.15rem', color: 'var(--color-primary-dark)', marginBottom: '0.4rem' }}>
-                    {item.nama_produk}
-                  </h3>
+                    <h3 style={{ fontSize: '1.15rem', color: 'var(--color-primary-dark)', marginBottom: '0.4rem', lineHeight: 1.3 }}>
+                      {item.nama_produk}
+                    </h3>
 
-                  <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
-                    Produsen: <strong>{item.pembuat}</strong>
+                    <p style={{ fontSize: '0.86rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem', flex: 1, lineHeight: '1.5' }}>
+                      {item.deskripsi}
+                    </p>
+
+                    <div className="umkm-card-actions">
+                      <a 
+                        href={getUmkmWaLink(item)}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="btn btn-primary"
+                        onClick={(e) => e.stopPropagation()}
+                        title={`Beli ${item.nama_produk} via WhatsApp`}
+                      >
+                        <PhoneCall size={14} /> Pesan WA
+                      </a>
+
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate('/potensi');
+                        }}
+                      >
+                        <ShoppingBag size={14} /> Katalog
+                      </button>
+                    </div>
                   </div>
-
-                  <p style={{ fontSize: '0.88rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem', flex: 1, lineHeight: '1.5' }}>
-                    {item.deskripsi}
-                  </p>
-
-                  <a 
-                    href={getUmkmWaLink(item)}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="btn btn-primary"
-                    style={{ width: '100%', padding: '0.65rem', fontSize: '0.88rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none' }}
-                    onClick={(e) => e.stopPropagation()}
-                    title={`Beli ${item.nama_produk} via WhatsApp`}
-                  >
-                    <PhoneCall size={16} /> Beli via WhatsApp
-                  </a>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Button "Lihat UMKM Lainnya" -> /potensi */}

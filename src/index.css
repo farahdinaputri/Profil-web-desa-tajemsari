@@ -296,13 +296,25 @@ button {
     font-size: 0.9rem;
   }
   /* Modals on Mobile */
+  .modal-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.75rem !important;
+    box-sizing: border-box !important;
+    z-index: 3000 !important;
+  }
   .modal-content {
-    width: 92% !important;
+    width: 100% !important;
     max-width: 100% !important;
     padding: 1.25rem !important;
-    margin: 1rem !important;
+    margin: 0 auto !important;
     max-height: 90vh !important;
+    max-height: 90dvh !important;
     overflow-y: auto !important;
+    box-sizing: border-box !important;
   }
 }
 

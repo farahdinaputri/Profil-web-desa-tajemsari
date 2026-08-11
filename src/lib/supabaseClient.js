@@ -415,7 +415,30 @@ export const apiService = {
   // --- STATISTIK BERANDA (CRUD) ---
   async getStatistik() {
     const stored = getStorageItem('statistik', INITIAL_STATISTIK);
-    return (Array.isArray(stored) && stored.length > 0) ? stored : INITIAL_STATISTIK;
+    const stats = (Array.isArray(stored) && stored.length > 0) ? stored : INITIAL_STATISTIK;
+    const umkms = await this.getUMKM();
+    const totalProducts = Array.isArray(umkms)
+      ? umkms.reduce((total, item) => {
+          if (Array.isArray(item.produk_list) && item.produk_list.length > 0) {
+            return total + item.produk_list.length;
+          }
+          if (Array.isArray(item.galeri) && item.galeri.length > 0) {
+            return total + item.galeri.length;
+          }
+          return total + 1;
+        }, 0)
+      : 0;
+
+    return stats.map(s => {
+      const isUmkm = s.icon === 'Sparkles' || 
+        (s.label && s.label.toLowerCase().includes('umkm')) || 
+        (s.label && s.label.toLowerCase().includes('produk')) ||
+        (s.angka && typeof s.angka === 'string' && s.angka.toLowerCase().includes('umkm'));
+      if (isUmkm) {
+        return { ...s, angka: `${totalProducts} UMKM` };
+      }
+      return s;
+    });
   },
   async addStatistik(statItem) {
     const current = await this.getStatistik();

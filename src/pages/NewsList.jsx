@@ -83,32 +83,62 @@ export default function NewsList() {
 
         .category-pills-row {
           display: flex;
-          gap: 0.5rem;
-          flex-wrap: wrap;
+          justify-content: center;
           align-items: center;
+          gap: 0.75rem;
+          width: 100%;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          padding: 2px 0;
+        }
+
+        .category-pills-row::-webkit-scrollbar {
+          display: none;
+        }
+
+        .news-segmented-bar {
+          display: inline-flex;
+          align-items: center;
+          background: #f1f5f9;
+          padding: 4px;
+          border-radius: 30px;
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+          max-width: 100%;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          gap: 2px;
+          flex-wrap: nowrap;
+        }
+
+        .news-segmented-bar::-webkit-scrollbar {
+          display: none;
         }
 
         .cat-pill-btn {
-          padding: 0.45rem 1.1rem;
-          border-radius: 20px;
-          font-size: 0.88rem;
+          border: none;
+          background: transparent;
+          color: var(--color-text-muted);
+          padding: 0.45rem 1.15rem;
+          border-radius: 24px;
+          font-size: 0.86rem;
           font-weight: 600;
-          border: 1px solid var(--color-border);
-          background: #ffffff;
-          color: var(--color-text-main);
-          transition: var(--transition-fast);
           cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .cat-pill-btn:hover {
-          border-color: var(--color-primary);
-          color: var(--color-primary);
+        .cat-pill-btn:hover:not(.active) {
+          color: var(--color-primary-dark);
+          background: rgba(255, 255, 255, 0.6);
         }
 
         .cat-pill-btn.active {
           background: var(--color-primary);
           color: #ffffff;
-          border-color: var(--color-primary);
+          box-shadow: 0 3px 10px rgba(46, 125, 50, 0.28);
         }
 
         .news-card-item {
@@ -166,18 +196,17 @@ export default function NewsList() {
           </div>
 
           <div className="category-pills-row">
-            <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 4, marginRight: '0.5rem' }}>
-              <Filter size={16} /> Kategori:
-            </span>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                className={`cat-pill-btn ${activeCategory === cat ? 'active' : ''}`}
-                onClick={() => setActiveCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
+            <div className="news-segmented-bar">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  className={`cat-pill-btn ${activeCategory === cat ? 'active' : ''}`}
+                  onClick={() => setActiveCategory(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -194,7 +223,14 @@ export default function NewsList() {
                 className="news-card-item"
                 onClick={() => navigate(`/berita/${item.slug || item.id}`)}
               >
-                <img src={item.gambar} alt={item.judul} className="news-card-img" />
+                {item.gambar ? (
+                  <img src={item.gambar} alt={item.judul} className="news-card-img" />
+                ) : (
+                  <div style={{ width: '100%', height: 210, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', color: '#d4af37' }}>
+                    <Newspaper size={48} />
+                    <span style={{ fontSize: '0.78rem', color: '#ffffff', marginTop: 6, opacity: 0.9 }}>Dokumentasi Berita</span>
+                  </div>
+                )}
                 <div className="news-card-body">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                     <span className="badge-gold">{item.kategori}</span>

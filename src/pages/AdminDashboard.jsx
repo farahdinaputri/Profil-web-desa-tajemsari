@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ShieldCheck, Plus, Trash2, Edit3, Check, X, FileText, Newspaper, 
   ShoppingBag, LogOut, Upload, Image as ImageIcon, Star, ArrowUp, 
   ArrowDown, Sparkles, MessageSquare, Compass, MapPin, Clock, Ticket, 
   Tag, DollarSign, User, Phone, LayoutDashboard, Settings as SettingsIcon, 
   Globe, Eye, Menu, ChevronRight, AlertCircle, Save, CheckCircle, RefreshCw, Mail, Download, FileCheck,
-  BarChart3, Wheat, Building, Users, History, Target, Calendar, Loader
+  BarChart3, Wheat, Building, Users, History, Target, Calendar, Loader, Store, Package
 } from 'lucide-react';
 import { apiService, uploadImage } from '../lib/supabaseClient';
 import { formatWaNumber } from '../utils/whatsapp';
@@ -58,7 +58,9 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [newProdukPembuat, setNewProdukPembuat] = useState('');
   const [newProdukHarga, setNewProdukHarga] = useState('');
   const [newProdukWa, setNewProdukWa] = useState('');
+  const [newProdukDusun, setNewProdukDusun] = useState('Dusun Kendalsari, RT 02 / RW 01');
   const [newProdukDesc, setNewProdukDesc] = useState('');
+  const [umkmProductsList, setUmkmProductsList] = useState([]);
   const [umkmImagesList, setUmkmImagesList] = useState([]);
   const [isDraggingUmkm, setIsDraggingUmkm] = useState(false);
 
@@ -85,13 +87,75 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     colorText: '#2e7d32'
   });
 
+  const mainContentRef = useRef(null);
+
+  const scrollToTop = () => {
+    // 1. Reset seketika untuk desktop & mobile
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+      try {
+        mainContentRef.current.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      } catch (e) {}
+    }
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    // 2. Reset bertahap saat drawer sidebar mobile selesai menutup (animasi 300ms)
+    setTimeout(() => {
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTop = 0;
+      }
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 100);
+
+    setTimeout(() => {
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTop = 0;
+      }
+      window.scrollTo(0, 0);
+    }, 320);
+  };
+
   useEffect(() => {
     loadAllData();
   }, []);
 
+  // Otomatis scroll ke paling atas saat beralih menu katalog / tab sidebar
+  useEffect(() => {
+    scrollToTop();
+  }, [activeTab]);
+
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const countTotalUmkmProducts = (list) => {
+    if (!Array.isArray(list)) return 0;
+    return list.reduce((total, item) => {
+      if (Array.isArray(item.produk_list) && item.produk_list.length > 0) {
+        return total + item.produk_list.length;
+      }
+      if (Array.isArray(item.galeri) && item.galeri.length > 0) {
+        return total + item.galeri.length;
+      }
+      return total + 1;
+    }, 0);
+  };
+
+  const getDisplayStatAngka = (stat) => {
+    const isUmkm = stat.icon === 'Sparkles' || 
+      (stat.label && stat.label.toLowerCase().includes('umkm')) || 
+      (stat.label && stat.label.toLowerCase().includes('produk')) ||
+      (stat.angka && typeof stat.angka === 'string' && stat.angka.toLowerCase().includes('umkm'));
+    if (isUmkm) {
+      const totalProducts = countTotalUmkmProducts(umkmList);
+      return `${totalProducts} UMKM`;
+    }
+    return stat.angka;
   };
 
   const loadAllData = async () => {
@@ -104,10 +168,22 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     const sData = await apiService.getSettings();
     const stData = await apiService.getStatistik();
 
+    const totalUmkmProducts = countTotalUmkmProducts(uData);
+    const syncedStats = (stData || []).map(s => {
+      const isUmkm = s.icon === 'Sparkles' || 
+        (s.label && s.label.toLowerCase().includes('umkm')) || 
+        (s.label && s.label.toLowerCase().includes('produk')) ||
+        (s.angka && typeof s.angka === 'string' && s.angka.toLowerCase().includes('umkm'));
+      if (isUmkm) {
+        return { ...s, angka: `${totalUmkmProducts} UMKM` };
+      }
+      return s;
+    });
+
     setBeritaList(bData || []);
     setUmkmList(uData || []);
     setWisataList(wData || []);
-    setStatistikList(stData || []);
+    setStatistikList(syncedStats);
     if (hData) setHeroState(hData);
     if (prData) setProfilState(prData);
     if (fData) setFooterState(fData);
@@ -537,8 +613,44 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   };
 
   // ==========================================
-  // UMKM MULTI-IMAGE & CRUD LOGIC
+  // UMKM MULTI-PRODUCT & MULTI-IMAGE LOGIC
   // ==========================================
+  const handleAddUmkmProduct = () => {
+    const newProd = {
+      id: 'prod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      nama: '',
+      harga: '',
+      gambar: '',
+      deskripsi: ''
+    };
+    setUmkmProductsList(prev => [...prev, newProd]);
+  };
+
+  const handleUpdateUmkmProduct = (id, field, value) => {
+    setUmkmProductsList(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const handleDeleteUmkmProduct = (id) => {
+    setUmkmProductsList(prev => prev.filter(p => p.id !== id));
+  };
+
+  const handleUmkmProductPhotoUpload = async (prodId, file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    setUploadingImage(true);
+    try {
+      const url = await uploadImage(file, 'umkm');
+      setUmkmProductsList(prev => prev.map(p => p.id === prodId ? { ...p, gambar: url } : p));
+      setUmkmImagesList(prev => {
+        if (!prev.some(img => img.url === url)) {
+          return [...prev, { id: 'u_img_' + Date.now(), url, caption: 'Foto Produk', isCover: prev.length === 0 }];
+        }
+        return prev;
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleUmkmFilesAdded = async (files) => {
     const fileArray = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (!fileArray.length) return;
@@ -546,10 +658,24 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     try {
       for (const file of fileArray) {
         const url = await uploadImage(file, 'umkm');
+        const prodId = 'prod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const fileNameClean = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
+
+        setUmkmProductsList(prev => [
+          ...prev,
+          {
+            id: prodId,
+            nama: fileNameClean || 'Produk Varian',
+            harga: 'Rp 25.000',
+            gambar: url,
+            deskripsi: 'Produk olahan berkualitas buatan warga Desa Tajemsari.'
+          }
+        ]);
+
         const newImg = {
           id: 'u_img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
           url,
-          caption: 'Foto Produk UMKM Desa Tajemsari',
+          caption: fileNameClean || 'Foto Produk UMKM',
           isCover: false
         };
         setUmkmImagesList(prev => {
@@ -580,16 +706,6 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     });
   };
 
-  const handleUmkmMoveImage = (index, direction) => {
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= umkmImagesList.length) return;
-    const updated = [...umkmImagesList];
-    const temp = updated[index];
-    updated[index] = updated[newIndex];
-    updated[newIndex] = temp;
-    setUmkmImagesList(updated);
-  };
-
   const handleEditUmkmClick = (item) => {
     setEditingUmkmId(item.id);
     setNewProdukNama(item.nama_produk || '');
@@ -597,7 +713,31 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     setNewProdukHarga(item.harga || '');
     setNewProdukPembuat(item.pembuat || '');
     setNewProdukWa(item.wa_seller || '');
+    setNewProdukDusun(item.dusun || 'Dusun Kendalsari, RT 02 / RW 01');
     setNewProdukDesc(item.deskripsi || '');
+
+    // Normalize produk_list
+    if (Array.isArray(item.produk_list) && item.produk_list.length > 0) {
+      setUmkmProductsList(item.produk_list);
+    } else if (Array.isArray(item.galeri) && item.galeri.length > 0) {
+      setUmkmProductsList(item.galeri.map((g, idx) => ({
+        id: 'prod_' + idx + '_' + Date.now(),
+        nama: typeof g === 'object' && g.nama ? g.nama : (idx === 0 ? item.nama_produk : `Produk Varian #${idx + 1}`),
+        harga: typeof g === 'object' && g.harga ? g.harga : item.harga,
+        gambar: typeof g === 'string' ? g : g.url,
+        deskripsi: typeof g === 'object' && g.caption ? g.caption : item.deskripsi
+      })));
+    } else if (item.gambar) {
+      setUmkmProductsList([{
+        id: 'prod_0_' + Date.now(),
+        nama: item.nama_produk || 'Produk Utama',
+        harga: item.harga || 'Rp 25.000',
+        gambar: item.gambar,
+        deskripsi: item.deskripsi || ''
+      }]);
+    } else {
+      setUmkmProductsList([]);
+    }
 
     if (Array.isArray(item.galeri) && item.galeri.length > 0) {
       const formatted = item.galeri.map((g, idx) => ({
@@ -628,37 +768,63 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     setNewProdukHarga('');
     setNewProdukPembuat('');
     setNewProdukWa('');
+    setNewProdukDusun('Dusun Kendalsari, RT 02 / RW 01');
     setNewProdukDesc('');
+    setUmkmProductsList([]);
     setUmkmImagesList([]);
   };
 
   const handleSaveUmkm = async (e) => {
     e.preventDefault();
     const coverObj = umkmImagesList.find(img => img.isCover) || umkmImagesList[0];
-    const coverUrl = coverObj ? coverObj.url : 'https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80';
+    const firstProdImg = umkmProductsList.find(p => p.gambar)?.gambar;
+    const coverUrl = coverObj ? coverObj.url : (firstProdImg || 'https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80');
 
-    const galeriObjects = umkmImagesList.map(img => ({
-      url: img.url,
-      caption: img.caption || 'Foto Produk UMKM Desa Tajemsari'
-    }));
+    const cleanProducts = umkmProductsList.length > 0
+      ? umkmProductsList.map((p, idx) => ({
+          id: p.id || `prod_${idx}_${Date.now()}`,
+          nama: p.nama || `${newProdukNama} Varian #${idx + 1}`,
+          harga: p.harga || newProdukHarga || 'Hubungi Penjual',
+          gambar: p.gambar || coverUrl,
+          deskripsi: p.deskripsi || newProdukDesc
+        }))
+      : [{
+          id: `prod_main_${Date.now()}`,
+          nama: newProdukNama || 'Produk UMKM',
+          harga: newProdukHarga || 'Hubungi Penjual',
+          gambar: coverUrl,
+          deskripsi: newProdukDesc
+        }];
+
+    const galeriObjects = umkmImagesList.length > 0
+      ? umkmImagesList.map(img => ({
+          url: img.url,
+          caption: img.caption || 'Foto Produk UMKM Desa Tajemsari'
+        }))
+      : cleanProducts.map(p => ({
+          url: p.gambar,
+          caption: p.nama
+        }));
 
     const payload = {
       nama_produk: newProdukNama,
       kategori: newProdukKategori,
-      harga: newProdukHarga,
+      harga: newProdukHarga || (cleanProducts[0] ? cleanProducts[0].harga : 'Hubungi Penjual'),
       pembuat: newProdukPembuat,
       wa_seller: formatWaNumber(newProdukWa),
+      dusun: newProdukDusun,
       deskripsi: newProdukDesc,
       gambar: coverUrl,
+      produk_list: cleanProducts,
       galeri: galeriObjects
     };
 
     if (editingUmkmId) {
       await apiService.updateUMKM(editingUmkmId, payload);
-      showToast('Produk UMKM berhasil diperbarui!');
+      showToast('Profil UMKM & Katalog Produk berhasil diperbarui!');
     } else {
       await apiService.addUMKM(payload);
-      showToast('Produk UMKM baru berhasil ditambahkan!');
+      showToast('Profil UMKM & Katalog Produk baru berhasil ditambahkan!');
     }
 
     handleCancelEditUmkm();
@@ -1104,6 +1270,9 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           gap: 0.85rem;
           margin-top: 1rem;
           margin-bottom: 1.5rem;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
 
         .image-preview-row {
@@ -1115,6 +1284,38 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           padding: 0.85rem;
           border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+
+        .image-preview-row.is-cover {
+          border-color: var(--color-gold);
+          background: #fffdf5;
+        }
+
+        .preview-img-square {
+          width: 76px;
+          height: 76px;
+          border-radius: 10px;
+          object-fit: cover;
+          flex-shrink: 0;
+          border: 1px solid #cbd5e1;
+          display: block;
+          background: #e2e8f0;
+        }
+
+        .cover-tag-badge {
+          background: linear-gradient(135deg, #d4af37 0%, #b89628 100%);
+          color: #ffffff;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 0.2rem 0.6rem;
+          border-radius: 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
         }
 
         .admin-item-card {
@@ -1155,10 +1356,33 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           font-size: 0.88rem;
         }
 
+        .grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.75rem;
+        }
+
         .form-grid-2col {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 1rem;
+        }
+
+        .umkm-product-item-card {
+          background: #ffffff;
+          border: 1px solid var(--color-border);
+          border-radius: 12px;
+          padding: 1rem;
+          display: grid;
+          grid-template-columns: 90px 1fr auto;
+          gap: 1rem;
+          align-items: center;
+        }
+
+        .umkm-product-inputs-grid {
+          display: grid;
+          grid-template-columns: 1.4fr 1fr;
+          gap: 0.5rem;
         }
 
         .toast-notification {
@@ -1183,38 +1407,204 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           to { transform: translateX(0); opacity: 1; }
         }
 
+        /* MODAL POPUPS BASE */
+        .modal-overlay {
+          position: fixed !important;
+          inset: 0 !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          background: rgba(10, 25, 12, 0.65) !important;
+          backdrop-filter: blur(6px) !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          z-index: 3000 !important;
+          padding: 1rem !important;
+          box-sizing: border-box !important;
+          overflow: hidden !important;
+        }
+
+        .modal-content {
+          background: #ffffff !important;
+          border-radius: 20px !important;
+          padding: 2rem !important;
+          border: 1px solid rgba(212, 175, 55, 0.4) !important;
+          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3) !important;
+          width: 100% !important;
+          max-width: 480px !important;
+          margin: 0 auto !important;
+          position: relative !important;
+          box-sizing: border-box !important;
+        }
+
+        @keyframes modalScaleUp {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-scale-up {
+          animation: modalScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
         @media (max-width: 992px) {
+          .admin-cms-layout {
+            height: 100vh !important;
+            height: 100dvh !important;
+            width: 100vw !important;
+            overflow: hidden !important;
+          }
           .admin-sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: ${mobileMenuOpen ? '0' : '-300px'};
-            width: 280px;
-            z-index: 2500;
+            position: fixed !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            left: ${mobileMenuOpen ? '0' : '-320px'} !important;
+            width: 285px !important;
+            max-width: 85vw !important;
+            z-index: 2500 !important;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: 10px 0 35px rgba(0, 0, 0, 0.45) !important;
           }
           .sidebar-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(2px);
-            z-index: 2400;
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            backdrop-filter: blur(3px) !important;
+            z-index: 2400 !important;
+          }
+          .mobile-sidebar-close {
+            display: flex !important;
+          }
+          .admin-main {
+            height: 100vh !important;
+            height: 100dvh !important;
+            width: 100% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
           }
           .admin-topbar {
-            padding: 0 0.85rem;
-            height: 64px;
-          }
-          .topbar-subtitle {
-            display: none !important;
+            padding: 0 1rem !important;
+            height: 62px !important;
           }
           .admin-content-area {
-            padding: 1rem 0.85rem;
+            padding: 1.25rem 1rem !important;
+            overflow-x: hidden !important;
+          }
+          .grid-2 {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 1.5rem !important;
           }
           .form-grid-2col {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr !important;
+            gap: 0.85rem !important;
           }
           .admin-form-card {
-            padding: 1.25rem 1rem;
-            border-radius: 16px;
+            padding: 1.25rem 1rem !important;
+            border-radius: 16px !important;
+            margin-bottom: 1.5rem !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .dash-stat-card {
+            padding: 1rem 0.85rem !important;
+            gap: 0.85rem !important;
+            border-radius: 14px !important;
+          }
+          .dash-stat-icon {
+            width: 46px !important;
+            height: 46px !important;
+            border-radius: 12px !important;
+          }
+          .dash-stat-icon svg {
+            width: 22px !important;
+            height: 22px !important;
+          }
+          .dash-stat-card h3 {
+            font-size: 1.45rem !important;
+          }
+          .form-input-custom {
+            font-size: 16px !important; /* Prevents auto-zoom on iOS */
+            padding: 0.75rem 0.85rem !important;
+            border-radius: 10px !important;
+          }
+          .admin-item-card {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.75rem !important;
+            padding: 1rem !important;
+            border-radius: 14px !important;
+          }
+          .image-preview-row {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            padding: 0.65rem 0.75rem !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+          }
+          .preview-img-square {
+            width: 64px !important;
+            height: 64px !important;
+            border-radius: 8px !important;
+            flex-shrink: 0 !important;
+            object-fit: cover !important;
+          }
+          .modal-overlay {
+            padding: 0.75rem !important;
+          }
+          .modal-content {
+            max-width: 100% !important;
+            width: 100% !important;
+            max-height: 88vh !important;
+            overflow-y: auto !important;
+            padding: 1.25rem 1rem !important;
+            border-radius: 18px !important;
+          }
+          .umkm-product-item-card {
+            grid-template-columns: 1fr !important;
+            gap: 0.75rem !important;
+            text-align: center;
+          }
+          .umkm-product-item-card > div:first-child {
+            margin: 0 auto !important;
+          }
+          .umkm-product-inputs-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .umkm-product-item-card button {
+            width: 100% !important;
+            justify-content: center !important;
+          }
+          .misi-input-group {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.65rem !important;
+          }
+          .misi-input-group input {
+            width: 100% !important;
+          }
+          .misi-input-group button {
+            width: 100% !important;
+            justify-content: center !important;
+            padding: 0.75rem !important;
+          }
+          .toast-notification {
+            bottom: 1rem !important;
+            right: 1rem !important;
+            left: 1rem !important;
+            justify-content: center !important;
+            padding: 0.75rem 1rem !important;
+            font-size: 0.85rem !important;
           }
         }
 
@@ -1225,13 +1615,20 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           .btn-web-text {
             display: none !important;
           }
+          .topbar-subtitle {
+            display: none !important;
+          }
           .topbar-website-btn {
             padding: 0.4rem 0.55rem !important;
             border-radius: 20px !important;
           }
           .topbar-user-profile {
-            padding-left: 0.4rem !important;
+            padding-left: 0.35rem !important;
             border-left: none !important;
+          }
+          .btn {
+            padding: 0.65rem 0.9rem !important;
+            font-size: 0.82rem !important;
           }
         }
       `}</style>
@@ -1247,7 +1644,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
       {/* LEFT SIDEBAR */}
       <aside className="admin-sidebar">
         {/* Brand Header */}
-        <div className="sidebar-brand">
+        <div className="sidebar-brand" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div className="sidebar-brand-icon">
               <ShieldCheck size={24} />
@@ -1263,6 +1660,26 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               </div>
             )}
           </div>
+          <button 
+            type="button"
+            className="mobile-sidebar-close"
+            style={{ 
+              background: 'rgba(255,255,255,0.1)', 
+              border: 'none', 
+              color: '#ffffff', 
+              borderRadius: 8, 
+              width: 32, 
+              height: 32, 
+              display: 'none', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              cursor: 'pointer' 
+            }}
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Tutup Menu"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Navigation Items (Independent Vertical Scroll) */}
@@ -1283,6 +1700,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       onClick={() => {
                         setActiveTab(item.id);
                         setMobileMenuOpen(false);
+                        scrollToTop();
                       }}
                       title={item.label}
                       style={{
@@ -1330,7 +1748,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
       )}
 
       {/* RIGHT MAIN CONTENT AREA */}
-      <main className="admin-main">
+      <main className="admin-main" ref={mainContentRef}>
         {/* Topbar Header */}
         <header className="admin-topbar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0, flex: 1 }}>
@@ -1366,7 +1784,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               className="topbar-website-btn"
               style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.8rem', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 700, background: '#f0fdf4', padding: '0.4rem 0.75rem', borderRadius: 20, border: '1px solid rgba(46,125,50,0.25)', whiteSpace: 'nowrap' }}
             >
-              <Globe size={15} /> <span className="btn-web-text">Lihat Website Public</span>
+              <Globe size={15} /> <span className="btn-web-text">Lihat Website</span>
             </a>
 
             <div className="topbar-user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', borderLeft: '1px solid var(--color-border)', paddingLeft: '0.6rem' }}>
@@ -1388,10 +1806,10 @@ export default function AdminDashboard({ adminUser, onLogout }) {
             <div>
               <div style={{ marginBottom: '2rem' }}>
                 <h3 style={{ fontSize: '1.4rem', color: 'var(--color-primary-dark)', marginBottom: 4 }}>
-                  Selamat Datang Kembali, Admin! 👋
+                  Selamat Datang, Admin! 👋
                 </h3>
                 <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                  Berikut adalah ringkasan statistik dan aktivitas pengelolaan portal Desa Tajemsari Tegowanu.
+                  Ringkasan statistik dan pengelolaan portal Desa Tajemsari.
                 </p>
               </div>
 
@@ -1442,7 +1860,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               <div className="grid-2">
                 <div className="card-rural">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>Berita & Publikasi Terbaru</h4>
+                    <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>Berita Terbaru</h4>
                     <button className="btn btn-outline" style={{ padding: '0.3rem 0.75rem', fontSize: '0.78rem' }} onClick={() => setActiveTab('berita')}>
                       Lihat Semua
                     </button>
@@ -1464,16 +1882,16 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 </div>
 
                 <div className="card-rural">
-                  <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>Aksi Cepat CMS Admin</h4>
+                  <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>Aksi Cepat</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     <button className="btn btn-primary" style={{ justifyContent: 'flex-start', padding: '0.85rem 1.25rem' }} onClick={() => setActiveTab('berita')}>
-                      <Plus size={18} /> Tambah / Publikasikan Berita Baru
+                      <Plus size={18} /> Publikasi Berita
                     </button>
                     <button className="btn btn-gold" style={{ justifyContent: 'flex-start', padding: '0.85rem 1.25rem' }} onClick={() => setActiveTab('umkm')}>
-                      <Plus size={18} /> Tambah Produk UMKM Baru
+                      <Plus size={18} /> Tambah Produk UMKM
                     </button>
                     <button className="btn btn-outline" style={{ justifyContent: 'flex-start', padding: '0.85rem 1.25rem' }} onClick={() => setActiveTab('hero')}>
-                      <Edit3 size={18} /> Edit Konten Hero Section
+                      <Edit3 size={18} /> Edit Hero Section
                     </button>
                   </div>
                 </div>
@@ -1485,18 +1903,18 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           {activeTab === 'hero' && (
             <div className="admin-form-card">
               <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <ImageIcon size={22} color="var(--color-gold)" /> Pengaturan Banner Hero & Header Beranda (CMS)
+                <ImageIcon size={22} color="var(--color-gold)" /> Pengaturan Hero Section & Beranda
               </h3>
 
               <form onSubmit={handleSaveHero}>
                 {/* SECTION 1: HERO UTAMA */}
                 <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Compass size={18} color="var(--color-primary)" /> 1. Konten Hero Utama
+                    <Compass size={18} color="var(--color-primary)" /> Konten Hero Utama
                   </h4>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Judul Utama Hero Section *</label>
+                    <label className="admin-form-label">Judul Hero *</label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1507,7 +1925,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Deskripsi Singkat Profil Desa *</label>
+                    <label className="admin-form-label">Deskripsi Profil *</label>
                     <textarea 
                       className="form-input-custom" 
                       rows={3} 
@@ -1519,7 +1937,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
                   <div className="form-grid-2col">
                     <div className="admin-form-group">
-                      <label className="admin-form-label">Label Tombol Utama (CTA 1)</label>
+                      <label className="admin-form-label">Label Tombol Utama</label>
                       <input 
                         type="text" 
                         className="form-input-custom" 
@@ -1528,7 +1946,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       />
                     </div>
                     <div className="admin-form-group">
-                      <label className="admin-form-label">Link Tujuan Tombol Utama (CTA 1)</label>
+                      <label className="admin-form-label">Tautan Tombol Utama</label>
                       <select 
                         className="form-input-custom" 
                         value={heroState.ctaPrimaryLink || 'profil'} 
@@ -1543,7 +1961,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
                   <div className="form-grid-2col">
                     <div className="admin-form-group">
-                      <label className="admin-form-label">Label Tombol Sekunder (CTA 2)</label>
+                      <label className="admin-form-label">Label Tombol Sekunder</label>
                       <input 
                         type="text" 
                         className="form-input-custom" 
@@ -1552,7 +1970,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       />
                     </div>
                     <div className="admin-form-group">
-                      <label className="admin-form-label">Link Tujuan Tombol Sekunder (CTA 2)</label>
+                      <label className="admin-form-label">Tautan Tombol Sekunder</label>
                       <select 
                         className="form-input-custom" 
                         value={heroState.ctaSecondaryLink || 'potensi'} 
@@ -1565,38 +1983,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     </div>
                   </div>
 
-                  {/* UPLOAD GAMBAR BACKGROUND HERO */}
+                  {/* UPLOAD & PREVIEW GAMBAR BACKGROUND HERO */}
                   <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <label className="admin-form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <ImageIcon size={16} color="var(--color-gold)" /> Upload Gambar Background Hero Section (JPG, PNG, WebP)
-                    </label>
-
-                    <div 
-                      className="dropzone-box"
-                      style={{ padding: '1.25rem 1rem', textAlign: 'center', cursor: 'pointer', marginBottom: '0.75rem' }}
-                      onClick={() => document.getElementById('hero-bg-file-input').click()}
-                    >
-                      <Upload size={28} color="var(--color-primary)" style={{ margin: '0 auto 0.35rem auto', display: 'block' }} />
-                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.9rem' }}>
-                        Klik untuk Pilih / Unggah Gambar Background Baru (Browse File)
-                      </strong>
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
-                        Format didukung: JPG, JPEG, PNG, WebP • Ukuran Maksimal: 5 MB
-                      </span>
-                      <input 
-                        id="hero-bg-file-input" 
-                        type="file" 
-                        accept="image/jpeg,image/png,image/webp,image/jpg" 
-                        style={{ display: 'none' }} 
-                        onChange={handleHeroBgUpload} 
-                      />
-                    </div>
-
-                    {/* PREVIEW & METADATA CARD */}
                     <div style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: 12, padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <ImageIcon size={14} color="var(--color-primary)" /> Preview Background Hero
+                          <ImageIcon size={14} color="var(--color-primary)" /> Preview Background
                         </span>
                         {heroBgFileName ? (
                           <span className="badge-gold" style={{ fontSize: '0.72rem' }}>File: {heroBgFileName}</span>
@@ -1605,7 +1997,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                         )}
                       </div>
 
-                      <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', height: 140, border: '2px solid var(--color-gold)', background: 'linear-gradient(135deg, #1b5e20, #0f2a12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div 
+                        style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', height: 140, border: '2px solid var(--color-gold)', background: 'linear-gradient(135deg, #1b5e20, #0f2a12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                        onClick={() => document.getElementById('hero-bg-file-input').click()}
+                        title="Klik untuk ganti background"
+                      >
                         {heroState.bgImage ? (
                           <img 
                             src={heroState.bgImage} 
@@ -1617,6 +2013,14 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                         )}
                       </div>
 
+                      <input 
+                        id="hero-bg-file-input" 
+                        type="file" 
+                        accept="image/jpeg,image/png,image/webp,image/jpg" 
+                        style={{ display: 'none' }} 
+                        onChange={handleHeroBgUpload} 
+                      />
+
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button 
                           type="button" 
@@ -1624,7 +2028,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                           style={{ flex: 1, padding: '0.4rem', fontSize: '0.78rem', justifyContent: 'center' }}
                           onClick={() => document.getElementById('hero-bg-file-input').click()}
                         >
-                          <Upload size={13} /> Upload / Ganti Foto
+                          <Upload size={13} /> Ganti Foto
                         </button>
                         <button 
                           type="button" 
@@ -1641,12 +2045,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 {/* SECTION 2: KARTU AKSES CEPAT */}
                 <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <ShieldCheck size={18} color="var(--color-primary)" /> 2. Pengaturan Kartu Akses Cepat
+                    <ShieldCheck size={18} color="var(--color-primary)" /> Kartu Akses Cepat
                   </h4>
 
                   <div className="form-grid-2col">
                     <div className="admin-form-group">
-                      <label className="admin-form-label">Judul Bar Akses Cepat</label>
+                      <label className="admin-form-label">Judul Bagian</label>
                       <input 
                         type="text" 
                         className="form-input-custom" 
@@ -1655,7 +2059,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       />
                     </div>
                     <div className="admin-form-group">
-                      <label className="admin-form-label">Subtitle Bar Akses Cepat</label>
+                      <label className="admin-form-label">Subjudul</label>
                       <input 
                         type="text" 
                         className="form-input-custom" 
@@ -1670,7 +2074,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     <strong style={{ fontSize: '0.85rem', color: 'var(--color-primary-dark)' }}>Kartu 1 (Surat Usaha)</strong>
                     <div className="form-grid-2col" style={{ marginTop: '0.5rem' }}>
                       <input type="text" className="form-input-custom" placeholder="Judul Kartu 1" value={heroState.quickCard1Title || ''} onChange={(e) => setHeroState({ ...heroState, quickCard1Title: e.target.value })} />
-                      <input type="text" className="form-input-custom" placeholder="Deskripsi Singkat Kartu 1" value={heroState.quickCard1Desc || ''} onChange={(e) => setHeroState({ ...heroState, quickCard1Desc: e.target.value })} />
+                      <input type="text" className="form-input-custom" placeholder="Deskripsi Kartu 1" value={heroState.quickCard1Desc || ''} onChange={(e) => setHeroState({ ...heroState, quickCard1Desc: e.target.value })} />
                     </div>
                   </div>
 
@@ -1679,7 +2083,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     <strong style={{ fontSize: '0.85rem', color: 'var(--color-primary-dark)' }}>Kartu 2 (SKTM & KIS)</strong>
                     <div className="form-grid-2col" style={{ marginTop: '0.5rem' }}>
                       <input type="text" className="form-input-custom" placeholder="Judul Kartu 2" value={heroState.quickCard2Title || ''} onChange={(e) => setHeroState({ ...heroState, quickCard2Title: e.target.value })} />
-                      <input type="text" className="form-input-custom" placeholder="Deskripsi Singkat Kartu 2" value={heroState.quickCard2Desc || ''} onChange={(e) => setHeroState({ ...heroState, quickCard2Desc: e.target.value })} />
+                      <input type="text" className="form-input-custom" placeholder="Deskripsi Kartu 2" value={heroState.quickCard2Desc || ''} onChange={(e) => setHeroState({ ...heroState, quickCard2Desc: e.target.value })} />
                     </div>
                   </div>
 
@@ -1688,7 +2092,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     <strong style={{ fontSize: '0.85rem', color: 'var(--color-primary-dark)' }}>Kartu 3 (Potensi & Wisata)</strong>
                     <div className="form-grid-2col" style={{ marginTop: '0.5rem' }}>
                       <input type="text" className="form-input-custom" placeholder="Judul Kartu 3" value={heroState.quickCard3Title || ''} onChange={(e) => setHeroState({ ...heroState, quickCard3Title: e.target.value })} />
-                      <input type="text" className="form-input-custom" placeholder="Deskripsi Singkat Kartu 3" value={heroState.quickCard3Desc || ''} onChange={(e) => setHeroState({ ...heroState, quickCard3Desc: e.target.value })} />
+                      <input type="text" className="form-input-custom" placeholder="Deskripsi Kartu 3" value={heroState.quickCard3Desc || ''} onChange={(e) => setHeroState({ ...heroState, quickCard3Desc: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -1697,7 +2101,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 6, margin: 0 }}>
-                      <BarChart3 size={18} color="var(--color-primary)" /> 3. Kelola Kartu Statistik Beranda (CRUD)
+                      <BarChart3 size={18} color="var(--color-primary)" /> Kartu Statistik Beranda
                     </h4>
                     <button 
                       type="button" 
@@ -1705,12 +2109,12 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       style={{ padding: '0.4rem 0.85rem', fontSize: '0.82rem' }}
                       onClick={() => handleOpenStatModal()}
                     >
-                      <Plus size={15} /> Tambah Kartu Statistik
+                      <Plus size={15} /> Tambah Statistik
                     </button>
                   </div>
 
                   <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
-                    Admin dapat menambah, mengedit, atau menghapus kartu statistik (seperti Jiwa Penduduk, Wilayah Dusun, UMKM, Luas Persawahan, dll) secara fleksibel.
+                    Atur data statistik ringkas yang tampil di halaman beranda.
                   </p>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.85rem' }}>
@@ -1721,7 +2125,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                             {stat.icon === 'Wheat' ? <Wheat size={22} /> : stat.icon === 'Building' ? <Building size={22} /> : stat.icon === 'Sparkles' ? <Sparkles size={22} /> : <Users size={22} />}
                           </div>
                           <div>
-                            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-primary-dark)', lineHeight: 1 }}>{stat.angka}</div>
+                            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-primary-dark)', lineHeight: 1 }}>{getDisplayStatAngka(stat)}</div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 600, marginTop: 3 }}>{stat.label}</div>
                           </div>
                         </div>
@@ -1751,7 +2155,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 {/* SECTION 4: SAMBUTAN KEPALA DESA */}
                 <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <User size={18} color="var(--color-primary)" /> 4. Pengaturan Kartu Sambutan Kepala Desa
+                    <User size={18} color="var(--color-primary)" /> Sambutan Kepala Desa
                   </h4>
 
                   <div className="form-grid-2col">
@@ -1779,7 +2183,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
                   <div className="form-grid-2col">
                     <div className="admin-form-group">
-                      <label className="admin-form-label">Badge Top Sambutan</label>
+                      <label className="admin-form-label">Label / Badge</label>
                       <input 
                         type="text" 
                         className="form-input-custom" 
@@ -1801,7 +2205,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Judul Utama Sambutan Kades</label>
+                    <label className="admin-form-label">Judul Sambutan</label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1812,7 +2216,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Isi Naskah Sambutan Kepala Desa</label>
+                    <label className="admin-form-label">Teks Sambutan</label>
                     <textarea 
                       className="form-input-custom" 
                       rows={4} 
@@ -1824,14 +2228,14 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
                   {/* UPLOAD FOTO KEPALA DESA */}
                   <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <label className="admin-form-label">Upload Foto Kepala Desa (JPG, PNG, WebP)</label>
+                    <label className="admin-form-label">Foto Kepala Desa</label>
                     <div 
                       className="dropzone-box"
                       style={{ padding: '1rem', textAlign: 'center', cursor: 'pointer', marginBottom: '0.65rem' }}
                       onClick={() => document.getElementById('kades-foto-input').click()}
                     >
                       <Upload size={24} color="var(--color-primary)" style={{ margin: '0 auto 0.25rem auto', display: 'block' }} />
-                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.88rem' }}>Klik untuk Upload Foto Kepala Desa Baru</strong>
+                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.88rem' }}>Pilih atau unggah foto Kepala Desa</strong>
                       <input id="kades-foto-input" type="file" accept="image/jpeg,image/png,image/webp,image/jpg" style={{ display: 'none' }} onChange={handleKadesFotoUpload} />
                     </div>
 
@@ -1848,7 +2252,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 </div>
 
                 <button type="submit" className="btn btn-gold" style={{ padding: '0.9rem 2.5rem', width: '100%', fontSize: '1rem' }}>
-                  <Save size={20} /> Simpan Seluruh Perubahan Hero & Beranda
+                  <Save size={20} /> Simpan Perubahan Hero & Beranda
                 </button>
               </form>
             </div>
@@ -1858,18 +2262,18 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           {activeTab === 'profil' && (
             <div className="admin-form-card">
               <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Globe size={22} color="var(--color-gold)" /> Pengaturan Lengkap Katalog Profil Desa (CMS & CRUD)
+                <Globe size={22} color="var(--color-gold)" /> Pengaturan Profil Desa
               </h3>
 
               <form onSubmit={handleSaveProfil}>
                 {/* 1. SEJARAH SINGKAT DESA */}
                 <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <History size={18} color="var(--color-primary)" /> 1. Sejarah Singkat Desa
+                    <History size={18} color="var(--color-primary)" /> Sejarah Singkat Desa
                   </h4>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Judul Section Sejarah</label>
+                    <label className="admin-form-label">Judul Sejarah</label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1880,7 +2284,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Paragraf 1 (Asal-usul Nama & Geografis)</label>
+                    <label className="admin-form-label">Paragraf 1 (Asal-usul & Wilayah)</label>
                     <textarea 
                       className="form-input-custom" 
                       rows={3} 
@@ -1890,7 +2294,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
 
                   <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <label className="admin-form-label">Paragraf 2 (Transformasi & Agrowisata)</label>
+                    <label className="admin-form-label">Paragraf 2 (Potensi & Perkembangan)</label>
                     <textarea 
                       className="form-input-custom" 
                       rows={3} 
@@ -1903,11 +2307,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 {/* 2. VISI & MISI DESA */}
                 <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Target size={18} color="var(--color-primary)" /> 2. Visi & Misi Pembangunan Desa
+                    <Target size={18} color="var(--color-primary)" /> Visi & Misi Desa
                   </h4>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Teks Visi Utama Desa Tajemsari</label>
+                    <label className="admin-form-label">Visi Desa</label>
                     <textarea 
                       className="form-input-custom" 
                       rows={2} 
@@ -1917,7 +2321,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Deskripsi Singkat Visi</label>
+                    <label className="admin-form-label">Penjelasan Visi</label>
                     <input 
                       type="text" 
                       className="form-input-custom" 
@@ -1928,13 +2332,14 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
                   {/* MISI DINAMIS (CRUD LIST) */}
                   <div style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: 12, padding: '1rem' }}>
-                    <label className="admin-form-label" style={{ marginBottom: '0.75rem' }}>Daftar Poin Misi Utama Desa (CRUD)</label>
+                    <label className="admin-form-label" style={{ marginBottom: '0.75rem' }}>Daftar Misi Desa</label>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <div className="misi-input-group" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                       <input 
                         type="text" 
                         className="form-input-custom" 
-                        placeholder="Tuliskan poin misi desa baru..." 
+                        style={{ flex: 1, minWidth: 0 }}
+                        placeholder="Tulis poin misi baru..." 
                         value={newMisiText} 
                         onChange={(e) => setNewMisiText(e.target.value)} 
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddMisi(); } }}
@@ -1962,7 +2367,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 6, margin: 0 }}>
-                      <User size={18} color="var(--color-primary)" /> 3. Kelola Perangkat Desa (CRUD Upload Foto & Jabatan)
+                      <User size={18} color="var(--color-primary)" /> Struktur Perangkat Desa
                     </h4>
                     <button 
                       type="button" 
@@ -2002,7 +2407,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 </div>
 
                 <button type="submit" className="btn btn-gold" style={{ padding: '0.9rem 2.5rem', width: '100%', fontSize: '1rem' }}>
-                  <Save size={20} /> Simpan Seluruh Katalog Profil Desa
+                  <Save size={20} /> Simpan Profil Desa
                 </button>
               </form>
             </div>
@@ -2015,7 +2420,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 {editingBeritaId ? (
                   <div className="editing-banner">
                     <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13' }}>
-                      Sedang Mengedit Berita: <strong>"{newJudul}"</strong>
+                      Edit Berita: <strong>"{newJudul}"</strong>
                     </div>
                     <button onClick={handleCancelEditBerita} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.3rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>
                       Batal Edit
@@ -2023,7 +2428,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 ) : (
                   <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Sparkles size={20} color="var(--color-gold)" /> Tambah Berita / Pengumuman Baru
+                    <Sparkles size={20} color="var(--color-gold)" /> Tambah Berita
                   </h3>
                 )}
 
@@ -2035,7 +2440,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
                   <div className="form-grid-2col">
                     <div className="admin-form-group">
-                      <label className="admin-form-label"><Tag size={15} /> Kategori Berita *</label>
+                      <label className="admin-form-label"><Tag size={15} /> Kategori *</label>
                       <select className="form-input-custom" value={newKategori} onChange={(e) => setNewKategori(e.target.value)}>
                         <option value="Pembangunan">Pembangunan</option>
                         <option value="Ekonomi">Ekonomi</option>
@@ -2045,28 +2450,28 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       </select>
                     </div>
                     <div className="admin-form-group">
-                      <label className="admin-form-label"><User size={15} /> Penulis / Redaksi *</label>
+                      <label className="admin-form-label"><User size={15} /> Penulis *</label>
                       <input type="text" className="form-input-custom" value={newPenulis} onChange={(e) => setNewPenulis(e.target.value)} placeholder="Sekretariat Desa Tajemsari" required />
                     </div>
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label"><Calendar size={15} /> Tanggal Publikasi *</label>
+                    <label className="admin-form-label"><Calendar size={15} /> Tanggal *</label>
                     <input type="date" className="form-input-custom" value={newTanggal} onChange={(e) => setNewTanggal(e.target.value)} required />
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label"><MessageSquare size={15} /> Ringkasan Singkat (Awal) *</label>
+                    <label className="admin-form-label"><MessageSquare size={15} /> Ringkasan *</label>
                     <textarea className="form-input-custom" rows={2} value={newRingkasan} onChange={(e) => setNewRingkasan(e.target.value)} placeholder="Ringkasan 1-2 kalimat..." required />
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label"><FileText size={15} /> Isi Lengkap Berita *</label>
+                    <label className="admin-form-label"><FileText size={15} /> Isi Berita *</label>
                     <textarea className="form-input-custom" rows={5} value={newIsi} onChange={(e) => setNewIsi(e.target.value)} placeholder="Tuliskan berita lengkap..." required />
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label"><ImageIcon size={15} /> Foto Utama & Galeri Dokumentasi (Multiple Upload)</label>
+                    <label className="admin-form-label"><ImageIcon size={15} /> Foto & Dokumentasi</label>
                     <div 
                       className={`dropzone-box ${isDraggingBerita ? 'dragging' : ''}`}
                       onDragOver={(e) => { e.preventDefault(); setIsDraggingBerita(true); }}
@@ -2075,7 +2480,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       onClick={() => document.getElementById('berita-file-input').click()}
                     >
                       <Upload size={30} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
-                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem' }}>Tarik & Lepas foto ke sini, atau klik untuk memilih</strong>
+                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem' }}>Pilih atau tarik foto ke sini</strong>
                       <input id="berita-file-input" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => handleBeritaFilesAdded(e.target.files)} />
                     </div>
 
@@ -2102,7 +2507,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
               <div>
                 <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
-                  Daftar Berita Terpublikasi ({beritaList.length})
+                  Daftar Berita ({beritaList.length})
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {beritaList.map((item) => (
@@ -2130,14 +2535,14 @@ export default function AdminDashboard({ adminUser, onLogout }) {
             </div>
           )}
 
-          {/* TAB 5: KELOLA UMKM */}
+          {/* TAB 5: KELOLA UMKM & MULTI-PRODUK */}
           {activeTab === 'umkm' && (
             <div className="grid-2">
               <div className="admin-form-card">
                 {editingUmkmId ? (
                   <div className="editing-banner">
                     <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13' }}>
-                      Sedang Mengedit UMKM: <strong>"{newProdukNama}"</strong>
+                      Edit UMKM: <strong>"{newProdukNama}"</strong>
                     </div>
                     <button onClick={handleCancelEditUmkm} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.3rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', cursor: 'pointer' }}>
                       Batal Edit
@@ -2145,108 +2550,274 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 ) : (
                   <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <ShoppingBag size={20} color="var(--color-gold)" /> Tambah Produk UMKM Baru
+                    <ShoppingBag size={20} color="var(--color-gold)" /> Tambah Produk UMKM
                   </h3>
                 )}
 
                 <form onSubmit={handleSaveUmkm}>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label"><ShoppingBag size={15} /> Nama Produk *</label>
-                    <input type="text" className="form-input-custom" value={newProdukNama} onChange={(e) => setNewProdukNama(e.target.value)} placeholder="Contoh: Madu Murni Klanceng Tajem" required />
+                  {/* Profil Pemilik & Usaha */}
+                  <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
+                    <h4 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Store size={18} color="var(--color-primary)" /> 1. Informasi Usaha
+                    </h4>
+
+                    <div className="admin-form-group">
+                      <label className="admin-form-label"><ShoppingBag size={15} /> Nama Usaha / Produk *</label>
+                      <input 
+                        type="text" 
+                        className="form-input-custom" 
+                        value={newProdukNama} 
+                        onChange={(e) => setNewProdukNama(e.target.value)} 
+                        placeholder="Contoh: Usaha Madu Klanceng Pak Warsito" 
+                        required 
+                      />
+                    </div>
+
+                    <div className="form-grid-2col">
+                      <div className="admin-form-group">
+                        <label className="admin-form-label"><Tag size={15} /> Kategori *</label>
+                        <select className="form-input-custom" value={newProdukKategori} onChange={(e) => setNewProdukKategori(e.target.value)}>
+                          <option value="Kuliner">Kuliner</option>
+                          <option value="Kerajinan">Kerajinan</option>
+                          <option value="Pertanian">Pertanian</option>
+                          <option value="Jasa">Jasa</option>
+                        </select>
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label"><User size={15} /> Nama Pemilik *</label>
+                        <input 
+                          type="text" 
+                          className="form-input-custom" 
+                          value={newProdukPembuat} 
+                          onChange={(e) => setNewProdukPembuat(e.target.value)} 
+                          placeholder="Contoh: Pak Warsito" 
+                          required 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-grid-2col">
+                      <div className="admin-form-group">
+                        <label className="admin-form-label"><Phone size={15} /> Nomor WhatsApp *</label>
+                        <input 
+                          type="text" 
+                          className="form-input-custom" 
+                          value={newProdukWa} 
+                          onChange={(e) => setNewProdukWa(e.target.value)} 
+                          placeholder="Contoh: 081234567890" 
+                          required 
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label"><DollarSign size={15} /> Harga</label>
+                        <input 
+                          type="text" 
+                          className="form-input-custom" 
+                          value={newProdukHarga} 
+                          onChange={(e) => setNewProdukHarga(e.target.value)} 
+                          placeholder="Contoh: Mulai Rp 20.000 atau Rp 85.000" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="admin-form-group">
+                      <label className="admin-form-label"><MapPin size={15} /> Alamat / Dusun</label>
+                      <input 
+                        type="text" 
+                        className="form-input-custom" 
+                        value={newProdukDusun} 
+                        onChange={(e) => setNewProdukDusun(e.target.value)} 
+                        placeholder="Contoh: Dusun Kendalsari, RT 02 / RW 01" 
+                      />
+                    </div>
+
+                    <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                      <label className="admin-form-label"><FileText size={15} /> Deskripsi Usaha *</label>
+                      <textarea 
+                        className="form-input-custom" 
+                        rows={3} 
+                        value={newProdukDesc} 
+                        onChange={(e) => setNewProdukDesc(e.target.value)} 
+                        placeholder="Deskripsi singkat usaha, bahan baku, dan keunggulan..." 
+                        required 
+                      />
+                    </div>
                   </div>
 
-                  <div className="form-grid-2col">
-                    <div className="admin-form-group">
-                      <label className="admin-form-label"><Tag size={15} /> Kategori *</label>
-                      <select className="form-input-custom" value={newProdukKategori} onChange={(e) => setNewProdukKategori(e.target.value)}>
-                        <option value="Kuliner">Kuliner</option>
-                        <option value="Kerajinan">Kerajinan</option>
-                        <option value="Jasa">Jasa</option>
-                        <option value="Pertanian">Pertanian</option>
-                      </select>
+                  {/* Multi-Produk & Usaha yang Dimiliki */}
+                  <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <h4 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 6, margin: 0 }}>
+                        <Package size={18} color="var(--color-primary)" /> 2. Daftar Varian / Produk ({umkmProductsList.length})
+                      </h4>
+                      <button 
+                        type="button" 
+                        className="btn btn-gold" 
+                        style={{ padding: '0.4rem 0.85rem', fontSize: '0.82rem' }}
+                        onClick={handleAddUmkmProduct}
+                      >
+                        <Plus size={14} /> Tambah Produk
+                      </button>
                     </div>
-                    <div className="admin-form-group">
-                      <label className="admin-form-label"><DollarSign size={15} /> Harga *</label>
-                      <input type="text" className="form-input-custom" value={newProdukHarga} onChange={(e) => setNewProdukHarga(e.target.value)} placeholder="Rp 85.000 / 500ml" required />
-                    </div>
-                  </div>
 
-                  <div className="form-grid-2col">
-                    <div className="admin-form-group">
-                      <label className="admin-form-label"><User size={15} /> Pembuat / Penjual *</label>
-                      <input type="text" className="form-input-custom" value={newProdukPembuat} onChange={(e) => setNewProdukPembuat(e.target.value)} placeholder="Pak Warsito" required />
-                    </div>
-                    <div className="admin-form-group">
-                      <label className="admin-form-label"><Phone size={15} /> WhatsApp Penjual (Otomatis Diformat) *</label>
-                      <input type="text" className="form-input-custom" value={newProdukWa} onChange={(e) => setNewProdukWa(e.target.value)} placeholder="Contoh: 081234567890 atau 6281234567890" required />
-                    </div>
-                  </div>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
+                      Tambahkan foto dan detail produk jika memiliki varian atau produk lain:
+                    </p>
 
-                  <div className="admin-form-group">
-                    <label className="admin-form-label"><FileText size={15} /> Deskripsi Produk *</label>
-                    <textarea className="form-input-custom" rows={3} value={newProdukDesc} onChange={(e) => setNewProdukDesc(e.target.value)} placeholder="Deskripsi produk..." required />
-                  </div>
-
-                  <div className="admin-form-group">
-                    <label className="admin-form-label"><ImageIcon size={15} /> Foto Produk UMKM (Multiple Upload)</label>
+                    {/* Batch Photo Dropzone */}
                     <div 
                       className={`dropzone-box ${isDraggingUmkm ? 'dragging' : ''}`}
+                      style={{ marginBottom: '1.25rem', padding: '1.25rem' }}
                       onDragOver={(e) => { e.preventDefault(); setIsDraggingUmkm(true); }}
                       onDragLeave={() => setIsDraggingUmkm(false)}
                       onDrop={(e) => { e.preventDefault(); setIsDraggingUmkm(false); if (e.dataTransfer.files?.length) handleUmkmFilesAdded(e.dataTransfer.files); }}
-                      onClick={() => document.getElementById('umkm-file-input').click()}
+                      onClick={() => document.getElementById('umkm-batch-file-input').click()}
                     >
-                      <Upload size={30} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
-                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem' }}>Upload Foto Produk</strong>
-                      <input id="umkm-file-input" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => handleUmkmFilesAdded(e.target.files)} />
+                      <Upload size={26} color="var(--color-primary)" style={{ margin: '0 auto 0.4rem auto', display: 'block' }} />
+                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.88rem' }}>Pilih atau tarik beberapa foto sekaligus</strong>
+                      <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', display: 'block', marginTop: 2 }}>
+                        Setiap foto otomatis membuat baris produk baru
+                      </span>
+                      <input id="umkm-batch-file-input" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => handleUmkmFilesAdded(e.target.files)} />
                     </div>
 
-                    {umkmImagesList.length > 0 && (
-                      <div className="image-preview-list">
-                        {umkmImagesList.map((img, idx) => (
-                          <div key={img.id} className={`image-preview-row ${img.isCover ? 'is-cover' : ''}`}>
-                            <img src={img.url} alt={`Foto UMKM ${idx+1}`} className="preview-img-square" />
-                            <div style={{ flex: 1 }}>
-                              {img.isCover ? <span className="cover-tag-badge"><Star size={10} fill="#fff" /> UTAMA</span> : <button type="button" onClick={() => handleUmkmSetCover(img.id)} style={{ background: 'transparent', border: '1px solid var(--color-gold)', color: '#8a6d13', fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 4, cursor: 'pointer' }}>Jadikan Utama</button>}
-                            </div>
-                            <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 4, padding: '0.25rem 0.4rem', cursor: 'pointer' }} onClick={() => handleUmkmDeleteImage(img.id)}><Trash2 size={14} /></button>
+                    {/* Individual Products Cards */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                      {umkmProductsList.map((prod, pIdx) => (
+                        <div 
+                          key={prod.id || pIdx} 
+                          className="umkm-product-item-card"
+                        >
+                          {/* Image Box */}
+                          <div style={{ position: 'relative', width: 90, height: 90, borderRadius: 10, overflow: 'hidden', background: '#e2e8f0' }}>
+                            {prod.gambar ? (
+                              <img src={prod.gambar} alt={`Produk ${pIdx+1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                                <ImageIcon size={28} />
+                              </div>
+                            )}
+                            <label 
+                              htmlFor={`prod-img-input-${prod.id || pIdx}`} 
+                              style={{ 
+                                position: 'absolute', 
+                                bottom: 0, 
+                                left: 0, 
+                                right: 0, 
+                                background: 'rgba(0,0,0,0.6)', 
+                                color: '#ffffff', 
+                                fontSize: '0.68rem', 
+                                textAlign: 'center', 
+                                padding: '2px 0', 
+                                cursor: 'pointer' 
+                              }}
+                            >
+                              Ganti Foto
+                            </label>
+                            <input 
+                              id={`prod-img-input-${prod.id || pIdx}`} 
+                              type="file" 
+                              accept="image/*" 
+                              style={{ display: 'none' }} 
+                              onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                  handleUmkmProductPhotoUpload(prod.id, e.target.files[0]);
+                                }
+                              }} 
+                            />
                           </div>
-                        ))}
-                      </div>
-                    )}
+
+                          {/* Inputs */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <div className="umkm-product-inputs-grid">
+                              <input 
+                                type="text" 
+                                className="form-input-custom" 
+                                style={{ padding: '0.4rem 0.65rem', fontSize: '0.85rem' }} 
+                                placeholder="Nama Produk (cth: Madu 500ml)" 
+                                value={prod.nama || ''} 
+                                onChange={(e) => handleUpdateUmkmProduct(prod.id, 'nama', e.target.value)} 
+                              />
+                              <input 
+                                type="text" 
+                                className="form-input-custom" 
+                                style={{ padding: '0.4rem 0.65rem', fontSize: '0.85rem' }} 
+                                placeholder="Harga (cth: Rp 85.000)" 
+                                value={prod.harga || ''} 
+                                onChange={(e) => handleUpdateUmkmProduct(prod.id, 'harga', e.target.value)} 
+                              />
+                            </div>
+                            <input 
+                              type="text" 
+                              className="form-input-custom" 
+                              style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }} 
+                              placeholder="Deskripsi singkat produk..." 
+                              value={prod.deskripsi || ''} 
+                              onChange={(e) => handleUpdateUmkmProduct(prod.id, 'deskripsi', e.target.value)} 
+                            />
+                          </div>
+
+                          {/* Action */}
+                          <div>
+                            <button 
+                              type="button" 
+                              style={{ background: '#fee2e2', color: '#dc2626', border: 'none', width: 32, height: 32, borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+                              onClick={() => handleDeleteUmkmProduct(prod.id)}
+                              title="Hapus Produk Ini"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  <button type="submit" className="btn btn-gold" style={{ width: '100%', padding: '0.9rem' }}>
-                    {editingUmkmId ? <><Check size={18} /> Simpan Perubahan UMKM</> : <><Plus size={18} /> Tambah Produk UMKM</>}
+                  <button type="submit" className="btn btn-gold" style={{ width: '100%', padding: '0.95rem', fontSize: '1rem' }}>
+                    {editingUmkmId ? <><Check size={18} /> Simpan Perubahan UMKM</> : <><Plus size={18} /> Simpan Produk UMKM</>}
                   </button>
                 </form>
               </div>
 
+              {/* Right Column: Registered UMKM Owners & Catalog */}
               <div>
                 <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
-                  Katalog UMKM Terdaftar ({umkmList.length})
+                  Daftar UMKM ({umkmList.length})
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {umkmList.map((item) => (
-                    <div key={item.id} className="admin-item-card">
-                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1 }}>
-                        <img src={item.gambar} alt={item.nama_produk} style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover' }} />
-                        <div>
-                          <span className="badge-gold" style={{ fontSize: '0.72rem' }}>{item.kategori}</span>
-                          <h4 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)' }}>{item.nama_produk}</h4>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 800 }}>{item.harga}</span>
+                  {umkmList.map((item) => {
+                    const count = Array.isArray(item.produk_list) ? item.produk_list.length : (Array.isArray(item.galeri) ? item.galeri.length : 1);
+                    return (
+                      <div key={item.id} className="admin-item-card">
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1 }}>
+                          <div style={{ position: 'relative' }}>
+                            <img src={item.gambar} alt={item.nama_produk} style={{ width: 68, height: 68, borderRadius: 12, objectFit: 'cover' }} />
+                            {count > 1 && (
+                              <span style={{ position: 'absolute', bottom: -4, right: -4, background: 'var(--color-primary-dark)', color: '#fff', fontSize: '0.65rem', fontWeight: 800, padding: '1px 5px', borderRadius: 8, border: '1px solid #fff' }}>
+                                {count} Usaha
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 2 }}>
+                              <span className="badge-gold" style={{ fontSize: '0.72rem' }}>{item.kategori}</span>
+                              <span style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>👤 {item.pembuat}</span>
+                            </div>
+                            <h4 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)', margin: 0 }}>{item.nama_produk}</h4>
+                            <span style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 800 }}>{item.harga}</span>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                          <button style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '0.5rem 0.75rem', borderRadius: 8, cursor: 'pointer' }} onClick={() => handleEditUmkmClick(item)}>
+                            <Edit3 size={15} /> Edit
+                          </button>
+                          <button style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.5rem', borderRadius: 8, cursor: 'pointer' }} onClick={() => handleDeleteUmkm(item.id)}>
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '0.4rem' }}>
-                        <button style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '0.5rem 0.75rem', borderRadius: 8, cursor: 'pointer' }} onClick={() => handleEditUmkmClick(item)}>
-                          <Edit3 size={15} /> Edit
-                        </button>
-                        <button style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.5rem', borderRadius: 8, cursor: 'pointer' }} onClick={() => handleDeleteUmkm(item.id)}>
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -2259,7 +2830,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 {editingWisataId ? (
                   <div className="editing-banner">
                     <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#8a6d13' }}>
-                      Sedang Mengedit Destinasi: <strong>"{newWisataNama}"</strong>
+                      Edit Wisata: <strong>"{newWisataNama}"</strong>
                     </div>
                     <button onClick={handleCancelEditWisata} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.3rem 0.65rem', borderRadius: 6, fontSize: '0.78rem', cursor: 'pointer' }}>
                       Batal Edit
@@ -2267,13 +2838,13 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 ) : (
                   <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Compass size={20} color="var(--color-gold)" /> Tambah Destinasi Wisata Baru
+                    <Compass size={20} color="var(--color-gold)" /> Tambah Destinasi Wisata
                   </h3>
                 )}
 
                 <form onSubmit={handleSaveWisata}>
                   <div className="admin-form-group">
-                    <label className="admin-form-label"><Compass size={15} /> Nama Tempat / Destinasi *</label>
+                    <label className="admin-form-label"><Compass size={15} /> Nama Destinasi *</label>
                     <input type="text" className="form-input-custom" value={newWisataNama} onChange={(e) => setNewWisataNama(e.target.value)} placeholder="Contoh: Agrowisata Sunset Sawah Tajemsari" required />
                   </div>
 
@@ -2288,29 +2859,29 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       </select>
                     </div>
                     <div className="admin-form-group">
-                      <label className="admin-form-label"><Ticket size={15} /> Tiket Masuk *</label>
+                      <label className="admin-form-label"><Ticket size={15} /> Harga Tiket *</label>
                       <input type="text" className="form-input-custom" value={newWisataTiket} onChange={(e) => setNewWisataTiket(e.target.value)} placeholder="Gratis / Rp 5.000" required />
                     </div>
                   </div>
 
                   <div className="form-grid-2col">
                     <div className="admin-form-group">
-                      <label className="admin-form-label"><MapPin size={15} /> Lokasi / Dusun *</label>
+                      <label className="admin-form-label"><MapPin size={15} /> Lokasi *</label>
                       <input type="text" className="form-input-custom" value={newWisataLokasi} onChange={(e) => setNewWisataLokasi(e.target.value)} placeholder="Dusun Tajemsari RT 02 / RW 01" required />
                     </div>
                     <div className="admin-form-group">
-                      <label className="admin-form-label"><Clock size={15} /> Jam Buka *</label>
+                      <label className="admin-form-label"><Clock size={15} /> Jam Operasional *</label>
                       <input type="text" className="form-input-custom" value={newWisataJamBuka} onChange={(e) => setNewWisataJamBuka(e.target.value)} placeholder="06.00 - 18.00 WIB" required />
                     </div>
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label"><FileText size={15} /> Deskripsi Destinasi *</label>
-                    <textarea className="form-input-custom" rows={3} value={newWisataDesc} onChange={(e) => setNewWisataDesc(e.target.value)} placeholder="Tuliskan keindahan lokasi..." required />
+                    <label className="admin-form-label"><FileText size={15} /> Deskripsi *</label>
+                    <textarea className="form-input-custom" rows={3} value={newWisataDesc} onChange={(e) => setNewWisataDesc(e.target.value)} placeholder="Tuliskan keindahan dan fasilitas..." required />
                   </div>
 
                   <div className="admin-form-group">
-                    <label className="admin-form-label"><ImageIcon size={15} /> Foto Destinasi (Multiple Upload)</label>
+                    <label className="admin-form-label"><ImageIcon size={15} /> Foto & Dokumentasi</label>
                     <div 
                       className={`dropzone-box ${isDraggingWisata ? 'dragging' : ''}`}
                       onDragOver={(e) => { e.preventDefault(); setIsDraggingWisata(true); }}
@@ -2319,7 +2890,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                       onClick={() => document.getElementById('wisata-file-input').click()}
                     >
                       <Upload size={30} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
-                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem' }}>Upload Foto Wisata</strong>
+                      <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem' }}>Pilih atau tarik foto ke sini</strong>
                       <input id="wisata-file-input" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => handleWisataFilesAdded(e.target.files)} />
                     </div>
 
@@ -2346,7 +2917,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
               <div>
                 <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
-                  Katalog Wisata Terdaftar ({wisataList.length})
+                  Daftar Wisata ({wisataList.length})
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {wisataList.map((item) => (
@@ -2378,39 +2949,39 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           {activeTab === 'footer' && (
             <div className="admin-form-card">
               <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <MapPin size={22} color="var(--color-gold)" /> Pengaturan Informasi Footer & Google Maps
+                <MapPin size={22} color="var(--color-gold)" /> Pengaturan Footer & Kontak
               </h3>
 
               <form onSubmit={handleSaveFooter}>
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Alamat Lengkap Balai Desa *</label>
+                  <label className="admin-form-label">Alamat Balai Desa *</label>
                   <textarea className="form-input-custom" rows={2} value={footerState.alamat} onChange={(e) => setFooterState({ ...footerState, alamat: e.target.value })} required />
                 </div>
 
                 <div className="form-grid-2col">
                   <div className="admin-form-group">
-                    <label className="admin-form-label">No. Telepon Kantor</label>
+                    <label className="admin-form-label">Telepon Kantor</label>
                     <input type="text" className="form-input-custom" value={footerState.telepon} onChange={(e) => setFooterState({ ...footerState, telepon: e.target.value })} />
                   </div>
                   <div className="admin-form-group">
-                    <label className="admin-form-label">WhatsApp Official Desa</label>
+                    <label className="admin-form-label">WhatsApp Resmi</label>
                     <input type="text" className="form-input-custom" value={footerState.whatsapp} onChange={(e) => setFooterState({ ...footerState, whatsapp: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="form-grid-2col">
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Email Resmi Desa</label>
+                    <label className="admin-form-label">Email Resmi</label>
                     <input type="email" className="form-input-custom" value={footerState.email} onChange={(e) => setFooterState({ ...footerState, email: e.target.value })} />
                   </div>
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Jam Pelayanan Kantor</label>
+                    <label className="admin-form-label">Jam Pelayanan</label>
                     <input type="text" className="form-input-custom" value={footerState.jamPelayanan} onChange={(e) => setFooterState({ ...footerState, jamPelayanan: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Tautan Google Maps Desa Tajemsari</label>
+                  <label className="admin-form-label">Tautan Google Maps</label>
                   <input type="text" className="form-input-custom" value={footerState.mapsUrl} onChange={(e) => setFooterState({ ...footerState, mapsUrl: e.target.value })} />
                 </div>
 
@@ -2425,7 +2996,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           {activeTab === 'settings' && (
             <div className="admin-form-card">
               <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <SettingsIcon size={22} color="var(--color-gold)" /> Pengaturan Umum Sistem & Website
+                <SettingsIcon size={22} color="var(--color-gold)" /> Pengaturan Website
               </h3>
 
               <form onSubmit={handleSaveSettings}>
@@ -2446,18 +3017,18 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     <input type="text" className="form-input-custom" value={settingsState.kabupaten} onChange={(e) => setSettingsState({ ...settingsState, kabupaten: e.target.value })} required />
                   </div>
                   <div className="admin-form-group">
-                    <label className="admin-form-label">Email Admin Login</label>
+                    <label className="admin-form-label">Email Admin</label>
                     <input type="email" className="form-input-custom" value={settingsState.emailAdmin} onChange={(e) => setSettingsState({ ...settingsState, emailAdmin: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Pengumuman / Teks Berjalan Running Text</label>
+                  <label className="admin-form-label">Teks Berjalan (Running Text)</label>
                   <textarea className="form-input-custom" rows={2} value={settingsState.runningText} onChange={(e) => setSettingsState({ ...settingsState, runningText: e.target.value })} />
                 </div>
 
                 <button type="submit" className="btn btn-gold" style={{ padding: '0.85rem 2rem' }}>
-                  <Save size={18} /> Simpan Pengaturan Umum
+                  <Save size={18} /> Simpan Pengaturan
                 </button>
               </form>
             </div>
@@ -2471,7 +3042,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           <div className="modal-content animate-scale-up" style={{ maxWidth: 480 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
               <h3 style={{ fontSize: '1.2rem', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-                <BarChart3 size={20} color="var(--color-gold)" /> {editingStatId ? 'Edit Kartu Statistik' : 'Tambah Kartu Statistik Baru'}
+                <BarChart3 size={20} color="var(--color-gold)" /> {editingStatId ? 'Edit Statistik' : 'Tambah Statistik'}
               </h3>
               <button onClick={() => setShowStatModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1.2rem' }}>
                 ✕
@@ -2480,11 +3051,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
             <form onSubmit={handleSaveStatistikItem}>
               <div className="admin-form-group">
-                <label className="admin-form-label">Angka / Jumlah Nominal *</label>
+                <label className="admin-form-label">Nilai / Angka *</label>
                 <input 
                   type="text" 
                   className="form-input-custom" 
-                  placeholder="Contoh: 2.845 Jiwa, 4 RT / 2 RW, 12 UMKM, 340 Ha" 
+                  placeholder="Contoh: 2.845 Jiwa, 4 RT / 2 RW, 12 UMKM" 
                   value={statForm.angka} 
                   onChange={(e) => setStatForm({ ...statForm, angka: e.target.value })} 
                   required 
@@ -2492,7 +3063,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               </div>
 
               <div className="admin-form-group">
-                <label className="admin-form-label">Label / Keterangan Indikator *</label>
+                <label className="admin-form-label">Keterangan / Label *</label>
                 <input 
                   type="text" 
                   className="form-input-custom" 
@@ -2505,7 +3076,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
               <div className="form-grid-2col">
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Pilihan Ikon</label>
+                  <label className="admin-form-label">Ikon</label>
                   <select 
                     className="form-input-custom" 
                     value={statForm.icon} 
@@ -2519,7 +3090,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 </div>
 
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Warna Ikon & Background</label>
+                  <label className="admin-form-label">Warna Kartu</label>
                   <select 
                     className="form-input-custom" 
                     value={statForm.colorBg} 
@@ -2540,7 +3111,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
               {/* Preview Card */}
               <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 12, padding: '0.85rem', marginBottom: '1.25rem' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>PREVIEW TAMPILAN KARTU</span>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>PREVIEW KARTU</span>
                 <div className="stat-card" style={{ background: '#ffffff', border: '1px solid rgba(212,175,55,0.4)', borderRadius: 14, padding: '1rem', textAlign: 'center' }}>
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: statForm.colorBg, color: statForm.colorText, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem auto' }}>
                     {statForm.icon === 'Wheat' ? <Wheat size={22} /> : statForm.icon === 'Building' ? <Building size={22} /> : statForm.icon === 'Sparkles' ? <Sparkles size={22} /> : <Users size={22} />}
@@ -2569,7 +3140,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           <div className="modal-content animate-scale-up" style={{ maxWidth: 480 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
               <h3 style={{ fontSize: '1.2rem', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-                <User size={20} color="var(--color-gold)" /> {editingPerangkatId ? 'Edit Perangkat Desa' : 'Tambah Perangkat Desa Baru'}
+                <User size={20} color="var(--color-gold)" /> {editingPerangkatId ? 'Edit Perangkat Desa' : 'Tambah Perangkat Desa'}
               </h3>
               <button onClick={() => setShowPerangkatModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1.2rem' }}>
                 ✕
@@ -2578,7 +3149,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
 
             <form onSubmit={handleSavePerangkatItem}>
               <div className="admin-form-group">
-                <label className="admin-form-label">Nama Lengkap & Gelar *</label>
+                <label className="admin-form-label">Nama Lengkap *</label>
                 <input 
                   type="text" 
                   className="form-input-custom" 
@@ -2590,11 +3161,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               </div>
 
               <div className="admin-form-group">
-                <label className="admin-form-label">Jabatan Aparatur *</label>
+                <label className="admin-form-label">Jabatan *</label>
                 <input 
                   type="text" 
                   className="form-input-custom" 
-                  placeholder="Contoh: Sekretaris Desa / Kaur Keuangan / Kasi Kesejahteraan" 
+                  placeholder="Contoh: Sekretaris Desa / Kaur Keuangan" 
                   value={perangkatForm.jabatan} 
                   onChange={(e) => setPerangkatForm({ ...perangkatForm, jabatan: e.target.value })} 
                   required 
@@ -2602,14 +3173,14 @@ export default function AdminDashboard({ adminUser, onLogout }) {
               </div>
 
               <div className="admin-form-group">
-                <label className="admin-form-label">Upload Foto Perangkat (JPG, PNG, WebP)</label>
+                <label className="admin-form-label">Foto Perangkat</label>
                 <div 
                   className="dropzone-box"
                   style={{ padding: '1rem', textAlign: 'center', cursor: 'pointer', marginBottom: '0.75rem' }}
                   onClick={() => document.getElementById('perangkat-foto-file-input').click()}
                 >
                   <Upload size={24} color="var(--color-primary)" style={{ margin: '0 auto 0.25rem auto', display: 'block' }} />
-                  <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.88rem' }}>Klik untuk Unggah Foto Perangkat Baru</strong>
+                  <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.88rem' }}>Pilih atau unggah foto perangkat</strong>
                   <input id="perangkat-foto-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/jpg" style={{ display: 'none' }} onChange={handlePerangkatFotoUpload} />
                 </div>
 

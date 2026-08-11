@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { History, Target, Users, CheckCircle2, Landmark, User } from 'lucide-react';
+import { History, Target, Users, CheckCircle2, Landmark, User, Quote, Sparkles } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function Profile() {
@@ -9,23 +9,52 @@ export default function Profile() {
     apiService.getProfil().then(data => {
       if (data) setProfil(data);
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
   return (
-    <div className="profile-page animate-fade-in section-padding">
+    <div className="profile-page section-padding animate-fade-in" style={{ background: '#f8faf8', minHeight: '85vh' }}>
       <style>{`
-        .profile-hero {
+        .profile-header {
           text-align: center;
-          max-width: 800px;
-          margin: 0 auto 4rem auto;
+          max-width: 780px;
+          margin: 0 auto 3.5rem auto;
         }
 
-        .timeline-box {
+        .profile-card {
           background: #ffffff;
           border-radius: 20px;
-          padding: 2.5rem;
           border: 1px solid var(--color-border);
-          box-shadow: var(--shadow-sm);
-          margin-bottom: 4rem;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+          transition: var(--transition-normal);
+        }
+
+        .sejarah-card {
+          padding: 3rem;
+          margin-bottom: 3rem;
+        }
+
+        .sejarah-quote-box {
+          background: #fef9e7;
+          border-left: 4px solid var(--color-gold);
+          border-radius: 0 14px 14px 0;
+          padding: 1.25rem 1.5rem;
+          margin-bottom: 2rem;
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem;
+        }
+
+        .sejarah-text {
+          font-size: 1rem;
+          line-height: 1.85;
+          color: var(--color-text-main);
+          margin-bottom: 1.25rem;
+          white-space: pre-line;
+        }
+
+        .sejarah-text:last-child {
+          margin-bottom: 0;
         }
 
         .visi-misi-grid {
@@ -39,130 +68,220 @@ export default function Profile() {
           background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
           color: #ffffff;
           border-radius: 20px;
-          padding: 2.5rem;
-          box-shadow: var(--shadow-md);
+          padding: 2.75rem 2.5rem;
+          box-shadow: 0 8px 25px rgba(27, 94, 32, 0.15);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+
+        .visi-tag {
+          font-size: 0.8rem;
+          text-transform: uppercase;
+          letter-spacing: 1.5px;
+          color: #fef08a;
+          font-weight: 700;
+          display: block;
+          margin-bottom: 1rem;
+        }
+
+        .visi-title {
+          font-size: 1.55rem;
+          color: #ffffff;
+          line-height: 1.4;
+          font-weight: 800;
+          margin-bottom: 1.5rem;
+        }
+
+        .visi-desc {
+          background: rgba(255, 255, 255, 0.12);
+          border-radius: 12px;
+          padding: 1rem 1.25rem;
+          color: #e8f5e9;
+          font-size: 0.92rem;
+          line-height: 1.6;
         }
 
         .misi-card {
-          background: #ffffff;
-          border-radius: 20px;
-          padding: 2.5rem;
-          border: 1px solid var(--color-border);
-          box-shadow: var(--shadow-sm);
+          padding: 2.75rem 2.5rem;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .misi-tag {
+          font-size: 0.8rem;
+          text-transform: uppercase;
+          letter-spacing: 1.5px;
+          color: var(--color-primary);
+          font-weight: 700;
+          display: block;
+          margin-bottom: 0.5rem;
+        }
+
+        .misi-list {
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          margin-top: 1rem;
+        }
+
+        .misi-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.85rem;
+          font-size: 0.95rem;
+          color: var(--color-text-main);
+          line-height: 1.6;
+        }
+
+        .org-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+          gap: 1.5rem;
         }
 
         .org-card {
           background: #ffffff;
-          border-radius: 16px;
-          padding: 1.5rem;
+          border-radius: 18px;
+          padding: 2rem 1.25rem;
           text-align: center;
           border: 1px solid var(--color-border);
-          box-shadow: var(--shadow-sm);
-          transition: var(--transition-fast);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+          transition: all 0.25s ease;
         }
 
         .org-card:hover {
           transform: translateY(-4px);
           border-color: var(--color-gold);
-          box-shadow: var(--shadow-md);
+          box-shadow: 0 10px 25px rgba(46, 125, 50, 0.1);
+        }
+
+        .org-avatar-wrap {
+          margin-bottom: 1.25rem;
         }
 
         .org-img {
-          width: 110px;
-          height: 110px;
+          width: 96px;
+          height: 96px;
           border-radius: 50%;
           object-fit: cover;
-          margin: 0 auto 1rem auto;
+          margin: 0 auto;
           border: 3px solid var(--color-gold);
-          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+          box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+          display: block;
         }
 
-        .apbdes-card {
-          background: #ffffff;
-          border-radius: 20px;
-          padding: 2.5rem;
-          border: 2px solid var(--color-gold);
-          box-shadow: var(--shadow-md);
+        .org-placeholder {
+          width: 96px;
+          height: 96px;
+          border-radius: 50%;
+          background: var(--color-primary-soft);
+          color: var(--color-primary-dark);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto;
+          border: 3px solid var(--color-border);
         }
 
-        .progress-bar-bg {
-          height: 12px;
-          background: #e2e8f0;
-          border-radius: 10px;
-          overflow: hidden;
-          margin-top: 0.4rem;
+        .org-name {
+          font-size: 1.05rem;
+          font-weight: 700;
+          color: var(--color-primary-dark);
+          margin-bottom: 0.4rem;
         }
 
-        .progress-bar-fill {
-          height: 100%;
-          background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-gold) 100%);
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 850px) {
           .visi-misi-grid {
             grid-template-columns: 1fr;
+            gap: 1.5rem;
             margin-bottom: 2.5rem;
           }
-          .profile-hero {
+          .sejarah-card {
+            padding: 1.75rem 1.5rem;
+            margin-bottom: 2rem;
+          }
+          .visi-card, .misi-card {
+            padding: 2rem 1.5rem;
+          }
+          .profile-header {
             margin-bottom: 2.5rem;
           }
-          .timeline-box, .visi-card, .misi-card, .apbdes-card {
-            padding: 1.5rem;
-            margin-bottom: 2.5rem;
+          .org-grid {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
           }
         }
       `}</style>
 
       <div className="container">
-        {/* Page Header */}
-        <div className="profile-hero">
+        {/* Header Profil Desa */}
+        <div className="profile-header">
           <h1 className="section-title">Profil Desa Tajemsari</h1>
           <p className="section-description">
             Sejarah, Visi Misi Pembangunan, dan Struktur Organisasi Pemerintah Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan.
           </p>
         </div>
 
-        {/* Sejarah Desa */}
-        <div className="timeline-box">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-            <div style={{ background: 'var(--color-primary-soft)', padding: '0.6rem', borderRadius: '12px', color: 'var(--color-primary-dark)' }}>
-              <History size={24} />
+        {/* Sejarah Desa Card */}
+        <div className="profile-card sejarah-card">
+          <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary-dark)', fontWeight: 700, marginBottom: '1.5rem' }}>
+            {profil.sejarahJudul || 'Sejarah Singkat Desa Tajemsari'}
+          </h2>
+
+          <div className="sejarah-quote-box">
+            <Quote size={22} color="var(--color-gold)" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <strong style={{ color: 'var(--color-primary-dark)', fontSize: '0.92rem', display: 'block', marginBottom: 2 }}>
+                Filosofi Nama Tajemsari
+              </strong>
+              <span style={{ fontSize: '0.88rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+                Berasal dari kata <strong>"Tajem"</strong> (tegas memegang prinsip kebenaran) serta <strong>"Sari"</strong> (keasrian alam dan inti kebaikan).
+              </span>
             </div>
-            <h2 style={{ fontSize: '1.6rem', color: 'var(--color-primary-dark)' }}>{profil.sejarahJudul || 'Sejarah Singkat Desa Tajemsari'}</h2>
           </div>
-          <p style={{ lineHeight: '1.8', color: 'var(--color-text-main)', fontSize: '1rem', marginBottom: '1rem', whiteSpace: 'pre-line' }}>
+
+          <p className="sejarah-text">
             {profil.sejarahParagraf1}
           </p>
           {profil.sejarahParagraf2 && (
-            <p style={{ lineHeight: '1.8', color: 'var(--color-text-main)', fontSize: '1rem', whiteSpace: 'pre-line' }}>
+            <p className="sejarah-text">
               {profil.sejarahParagraf2}
             </p>
           )}
         </div>
 
-        {/* Visi & Misi */}
+        {/* Visi & Misi Grid */}
         <div className="visi-misi-grid">
           <div className="visi-card">
-            <span style={{ textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.85rem', color: 'var(--color-gold)', fontWeight: 700, display: 'block', marginBottom: '0.75rem' }}>
-              Visi Desa
-            </span>
-            <h3 style={{ fontSize: '1.6rem', color: '#ffffff', marginBottom: '1rem', lineHeight: '1.3' }}>
-              {profil.visiJudul || '"Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Transparan, dan Berorientasi Agrowisata Ramah Lingkungan."'}
-            </h3>
-            <p style={{ color: '#e8f5e9', fontSize: '0.95rem', lineHeight: '1.6' }}>
+            <div>
+              <span className="visi-tag">Visi Desa</span>
+              <div className="visi-title">
+                {profil.visiJudul || '"Mewujudkan Desa Tajemsari yang Mandiri, Sejahtera, Transparan, dan Berorientasi Agrowisata Ramah Lingkungan."'}
+              </div>
+            </div>
+
+            <div className="visi-desc">
+              <strong style={{ display: 'block', color: '#ffffff', marginBottom: 3, fontSize: '0.82rem' }}>
+                Fokus Utama:
+              </strong>
               {profil.visiDeskripsi || 'Fokus utama pada penguatan ketahanan pangan lokal, kemudahan administrasi warga, serta pemberdayaan ekonomi UMKM Tajemsari.'}
-            </p>
+            </div>
           </div>
 
-          <div className="misi-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <Target color="var(--color-primary-dark)" size={24} />
-              <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)' }}>Misi Desa</h3>
+          <div className="profile-card misi-card">
+            <div>
+              <span className="misi-tag">Misi Pembangunan</span>
+              <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary-dark)', fontWeight: 700 }}>
+                Prioritas & Fokus Kerja
+              </h3>
             </div>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+
+            <ul className="misi-list">
               {(profil.misiList || []).map((misiItem, idx) => (
-                <li key={idx} style={{ display: 'flex', gap: '0.75rem', fontSize: '0.95rem' }}>
-                  <CheckCircle2 size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
+                <li key={idx} className="misi-item">
+                  <CheckCircle2 size={18} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 3 }} />
                   <span>{misiItem}</span>
                 </li>
               ))}
@@ -170,28 +289,31 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Struktur Organisasi Perangkat Desa */}
-        <div style={{ marginBottom: '4rem' }}>
-          <div className="section-header">
+        {/* Struktur Pemerintahan Desa */}
+        <div>
+          <div className="section-header" style={{ marginBottom: '2.5rem' }}>
             <h2 className="section-title">Struktur Pemerintah Desa</h2>
             <p className="section-description">
               Jajaran aparatur Pemerintah Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan.
             </p>
           </div>
 
-          <div className="grid-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+          <div className="org-grid">
             {(profil.perangkatList || []).map((perangkat) => (
               <div key={perangkat.id} className="org-card">
-                {perangkat.foto ? (
-                  <img src={perangkat.foto} alt={perangkat.nama} className="org-img" />
-                ) : (
-                  <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'var(--color-primary-soft)', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem auto' }}>
-                    <User size={48} />
-                  </div>
-                )}
-                <h4 style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', marginBottom: '0.25rem' }}>
+                <div className="org-avatar-wrap">
+                  {perangkat.foto ? (
+                    <img src={perangkat.foto} alt={perangkat.nama} className="org-img" />
+                  ) : (
+                    <div className="org-placeholder">
+                      <User size={42} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="org-name">
                   {perangkat.nama}
-                </h4>
+                </div>
                 <div className="badge-gold" style={{ display: 'inline-block', marginTop: 4 }}>
                   {perangkat.jabatan}
                 </div>

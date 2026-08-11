@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, Share2, ChevronRight, Clock, Check, Bookmark, Image as ImageIcon, ChevronLeft, ZoomIn, ZoomOut, X, Maximize2, Camera } from 'lucide-react';
+import { ArrowLeft, Calendar, User, ChevronRight, Bookmark, Image as ImageIcon, ChevronLeft, ZoomIn, ZoomOut, X, Maximize2, Camera } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function NewsDetail() {
@@ -10,7 +10,6 @@ export default function NewsDetail() {
   const [berita, setBerita] = useState(null);
   const [otherBerita, setOtherBerita] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
 
   // Lightbox State
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -66,18 +65,6 @@ export default function NewsDetail() {
       setBerita(null);
     }
     setLoading(false);
-  };
-
-  const handleShareWhatsApp = () => {
-    const url = window.location.href;
-    const text = `Baca Berita Desa Tajemsari: "${berita?.judul}"\n${url}`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-  };
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   // Helper to normalize galeri items into objects with { url, caption }
@@ -172,28 +159,34 @@ export default function NewsDetail() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1.75rem;
           flex-wrap: wrap;
           gap: 1rem;
         }
 
-        .back-link-btn {
+        .news-back-btn {
           display: inline-flex;
           align-items: center;
-          gap: 0.4rem;
-          background: transparent;
+          gap: 0.5rem;
+          background: #f8faf8;
           color: var(--color-primary-dark);
+          font-family: var(--font-body);
           font-size: 0.88rem;
           font-weight: 700;
           cursor: pointer;
-          border: none;
-          padding: 0;
-          transition: var(--transition-fast);
+          border: 1px solid rgba(46, 125, 50, 0.22);
+          padding: 0.5rem 1.15rem;
+          border-radius: 24px;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         }
 
-        .back-link-btn:hover {
-          color: var(--color-gold);
+        .news-back-btn:hover {
+          background: var(--color-primary);
+          color: #ffffff;
+          border-color: var(--color-primary);
           transform: translateX(-3px);
+          box-shadow: 0 4px 14px rgba(46, 125, 50, 0.25);
         }
 
         .news-breadcrumb {
@@ -602,14 +595,15 @@ export default function NewsDetail() {
           <article className="article-main-col">
             {/* Top Bar: Back Action & Breadcrumb */}
             <div className="news-top-bar">
-              <button className="back-link-btn" onClick={() => navigate('/')}>
+              <button className="news-back-btn" onClick={() => navigate('/berita')}>
                 <ArrowLeft size={16} />
+                <span>Kembali ke Berita</span>
               </button>
 
               <div className="news-breadcrumb">
                 <span className="breadcrumb-item" onClick={() => navigate('/')}>Beranda</span>
                 <ChevronRight size={13} />
-                <span className="breadcrumb-item" onClick={() => navigate('/')}>Berita Desa</span>
+                <span className="breadcrumb-item" onClick={() => navigate('/berita')}>Berita Desa</span>
                 <ChevronRight size={13} />
                 <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>{berita.kategori}</span>
               </div>
@@ -636,23 +630,6 @@ export default function NewsDetail() {
                   <Camera size={15} color="var(--color-text-muted)" />
                   <span>{galleryItems.length} Foto Dokumentasi</span>
                 </div>
-              </div>
-
-              {/* Quick Share Buttons */}
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  onClick={handleShareWhatsApp}
-                  style={{ background: '#25D366', color: '#fff', border: 'none', padding: '0.35rem 0.8rem', borderRadius: '16px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}
-                >
-                  <Share2 size={13} /> WA
-                </button>
-                <button
-                  onClick={handleCopyLink}
-                  style={{ background: '#f1f5f9', color: 'var(--color-text-main)', border: 'none', padding: '0.35rem 0.8rem', borderRadius: '16px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}
-                >
-                  {copied ? <Check size={13} color="#16a34a" /> : <Share2 size={13} />}
-                  {copied ? 'Tersalin' : 'Salin'}
-                </button>
               </div>
             </div>
 
@@ -732,27 +709,6 @@ export default function NewsDetail() {
                 </div>
               </div>
             )}
-
-            {/* Bottom Article Share Footer */}
-            <div className="article-share-footer" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '2rem', marginTop: '3rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>
-                Bagikan artikel ini:
-              </span>
-              <button
-                onClick={handleShareWhatsApp}
-                className="btn btn-primary"
-                style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}
-              >
-                WhatsApp
-              </button>
-              <button
-                onClick={handleCopyLink}
-                className="btn btn-outline"
-                style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}
-              >
-                {copied ? 'Tautan Tersalin!' : 'Salin Tautan'}
-              </button>
-            </div>
           </article>
 
           {/* RIGHT COLUMN: Sidebar "Berita Lainnya" (~30%) */}

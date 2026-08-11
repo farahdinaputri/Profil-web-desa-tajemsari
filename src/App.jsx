@@ -11,6 +11,7 @@ import Showcase from './pages/Showcase';
 import NewsList from './pages/NewsList';
 import NewsDetail from './pages/NewsDetail';
 import AdminDashboard from './pages/AdminDashboard';
+import { apiService } from './lib/supabaseClient';
 
 export default function App() {
   const navigate = useNavigate();
@@ -70,12 +71,92 @@ export default function App() {
               adminUser ? (
                 <AdminDashboard adminUser={adminUser} onLogout={handleAdminLogout} />
               ) : (
-                <div style={{ textAlign: 'center', padding: '5rem 1.5rem', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                  <h2 style={{ color: 'var(--color-primary-dark)', fontSize: '2rem', marginBottom: '1rem' }}>Akses Dibatasi</h2>
-                  <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>Anda harus login sebagai Admin untuk mengakses Panel Pengelolaan Desa.</p>
-                  <button className="btn btn-gold" onClick={() => setIsLoginModalOpen(true)}>
-                    Buka Modal Login Admin
-                  </button>
+                <div style={{ background: 'linear-gradient(135deg, #112a14 0%, #1e4620 100%)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+                  <div style={{ background: '#ffffff', maxWidth: 420, width: '100%', borderRadius: 24, boxShadow: '0 25px 50px rgba(0,0,0,0.3)', overflow: 'hidden', border: '1px solid rgba(212,175,55,0.4)' }}>
+                    <div style={{ background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', color: '#ffffff', padding: '2rem 1.5rem', textAlign: 'center' }}>
+                      <div style={{ width: 60, height: 60, background: '#d4af37', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem auto', color: '#112a14', fontWeight: 900, fontSize: '1.4rem', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
+                        TJ
+                      </div>
+                      <h2 style={{ fontSize: '1.3rem', margin: 0, fontWeight: 700 }}>Panel Admin Desa Tajemsari</h2>
+                      <p style={{ fontSize: '0.82rem', margin: '0.35rem 0 0 0', opacity: 0.85 }}>Kec. Tegowanu, Kab. Grobogan</p>
+                    </div>
+
+                    <form 
+                      style={{ padding: '1.75rem' }}
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const idVal = e.target.elements.identifier.value;
+                        const passVal = e.target.elements.password.value;
+                        const errBox = document.getElementById('admin-inline-error');
+                        if (errBox) errBox.style.display = 'none';
+
+                        try {
+                          const res = await apiService.verifyAdminLogin(idVal, passVal);
+                          if (res.success) {
+                            handleAdminLoginSuccess(res.user);
+                          } else {
+                            if (errBox) {
+                              errBox.innerText = res.message || 'Kredensial login tidak ditemukan atau salah.';
+                              errBox.style.display = 'block';
+                            }
+                          }
+                        } catch (err) {
+                          if (errBox) {
+                            errBox.innerText = 'Terjadi kesalahan saat memverifikasi kredensial.';
+                            errBox.style.display = 'block';
+                          }
+                        }
+                      }}
+                    >
+                      <div id="admin-inline-error" style={{ display: 'none', background: '#fee2e2', color: '#991b1b', padding: '0.65rem 0.85rem', borderRadius: 8, fontSize: '0.82rem', marginBottom: '1rem', border: '1px solid #fecaca' }}></div>
+
+                      <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-primary-dark)', marginBottom: 4 }}>
+                          Email atau Username Admin *
+                        </label>
+                        <input 
+                          name="identifier"
+                          type="text" 
+                          className="form-input-custom" 
+                          placeholder="admin@tajemsari.desa.id" 
+                          defaultValue="admin@tajemsari.desa.id"
+                          required 
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '1.25rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-primary-dark)', marginBottom: 4 }}>
+                          Kata Sandi (Password) *
+                        </label>
+                        <input 
+                          name="password"
+                          type="password" 
+                          className="form-input-custom" 
+                          placeholder="••••••••" 
+                          defaultValue="tajemsari2026"
+                          required 
+                        />
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        className="btn btn-gold" 
+                        style={{ width: '100%', padding: '0.85rem', fontSize: '0.95rem', justifyContent: 'center' }}
+                      >
+                        Masuk ke Dashboard Admin
+                      </button>
+
+                      <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+                        <button 
+                          type="button" 
+                          style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.82rem', cursor: 'pointer' }}
+                          onClick={() => navigate('/')}
+                        >
+                          ← Kembali ke Beranda Website
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               )
             } 

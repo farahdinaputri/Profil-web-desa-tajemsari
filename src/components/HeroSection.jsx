@@ -58,6 +58,44 @@ export default function HeroSection({ onNavigate }) {
           margin-bottom: 0;
         }
 
+        .btn-hero-primary {
+          background: linear-gradient(135deg, #d4af37 0%, #b89628 100%);
+          color: #ffffff;
+          border: none;
+          box-shadow: 0 4px 18px rgba(212, 175, 55, 0.45);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: pointer;
+        }
+
+        .btn-hero-primary:hover {
+          filter: brightness(1.12);
+          transform: translateY(-3px);
+          box-shadow: 0 8px 24px rgba(212, 175, 55, 0.6);
+        }
+
+        .btn-hero-secondary {
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          color: #ffffff !important;
+          border: 1.5px solid rgba(255, 255, 255, 0.5) !important;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: pointer;
+        }
+
+        .btn-hero-secondary:hover {
+          background: rgba(255, 255, 255, 0.24) !important;
+          border-color: rgba(255, 255, 255, 0.95) !important;
+          color: #ffffff !important;
+          transform: translateY(-3px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+        }
+
+        .btn-hero-secondary:active, .btn-hero-primary:active {
+          transform: translateY(-1px);
+        }
+
         @media (max-width: 768px) {
           .hero-title {
             font-size: 2.05rem;
@@ -92,7 +130,7 @@ export default function HeroSection({ onNavigate }) {
         <div className="hero-actions">
           <button 
             id="hero-btn-profil"
-            className="btn btn-gold" 
+            className="btn btn-hero-primary" 
             onClick={() => onNavigate(hero.ctaPrimaryLink || 'profil')}
           >
             <Globe size={18} /> {hero.ctaPrimary || 'Profil Desa Tajemsari'}
@@ -100,8 +138,7 @@ export default function HeroSection({ onNavigate }) {
 
           <button 
             id="hero-btn-potensi"
-            className="btn btn-outline" 
-            style={{ color: '#ffffff', borderColor: '#ffffff' }}
+            className="btn btn-hero-secondary" 
             onClick={() => onNavigate(hero.ctaSecondaryLink || 'potensi')}
           >
             <Compass size={18} /> {hero.ctaSecondary || 'Jelajahi Potensi Desa'}
