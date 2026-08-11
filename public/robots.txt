@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://tajemsari.desa.id/sitemap.xml
+Sitemap: https://profil-web-desa-tajemsari-three.vercel.app/sitemap.xml
