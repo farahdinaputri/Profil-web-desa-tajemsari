@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ShoppingBag, Compass, MapPin, PhoneCall, Clock, Tag, ExternalLink, Sparkles, ChevronLeft, ChevronRight, Eye, X, Check, Store, Package } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 import { getUmkmWaLink } from '../utils/whatsapp';
@@ -13,6 +14,25 @@ export default function Showcase() {
 
   // Modal State for Full Owner Catalog
   const [selectedUmkmModal, setSelectedUmkmModal] = useState(null);
+
+  // Lock body scroll and allow ESC key to close modal when opened
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setSelectedUmkmModal(null);
+      }
+    };
+    if (selectedUmkmModal) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedUmkmModal]);
 
   useEffect(() => {
     loadData();
@@ -347,6 +367,380 @@ export default function Showcase() {
             grid-template-columns: 1fr;
           }
         }
+
+        /* ========================================================
+           MODAL KATALOG SEMUA USAHA PEMILIK (RESPONSIVE & MODERN)
+           ======================================================== */
+        .catalog-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100vw;
+          height: 100vh;
+          height: 100dvh;
+          background: rgba(15, 23, 42, 0.75);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 99999;
+          padding: 1.25rem;
+          box-sizing: border-box;
+          animation: modalOverlayFadeIn 0.25s ease-out forwards;
+        }
+
+        @keyframes modalOverlayFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes modalCardPop {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(0);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        .catalog-modal-card {
+          background: #ffffff;
+          border-radius: 24px;
+          width: 100%;
+          max-width: 680px;
+          max-height: 85vh;
+          max-height: 85dvh;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(212, 175, 55, 0.25);
+          border: 1px solid rgba(226, 232, 240, 0.9);
+          overflow: hidden;
+          margin: auto;
+          animation: modalCardPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Modal Header */
+        .catalog-modal-header {
+          padding: 1.25rem 1.5rem;
+          background: linear-gradient(135deg, #fbfdfa 0%, #f4fbf5 100%);
+          border-bottom: 1px solid var(--color-border);
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 1rem;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+
+        .catalog-header-badges {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+          margin-bottom: 0.4rem;
+        }
+
+        .catalog-modal-title {
+          font-size: 1.35rem;
+          font-weight: 700;
+          color: var(--color-primary-dark);
+          margin: 0 0 0.25rem 0;
+          line-height: 1.3;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .catalog-modal-subtitle {
+          font-size: 0.85rem;
+          color: var(--color-text-muted);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .catalog-close-btn {
+          background: #f1f5f9;
+          color: #64748b;
+          border: 1px solid #e2e8f0;
+          border-radius: 50%;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.2s ease;
+        }
+
+        .catalog-close-btn:hover {
+          background: #fee2e2;
+          color: #dc2626;
+          border-color: #fecaca;
+          transform: rotate(90deg);
+        }
+
+        /* Modal Body */
+        .catalog-modal-body {
+          padding: 1.5rem;
+          overflow-y: auto;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+          background: #f8faf8;
+        }
+
+        /* Custom Scrollbar */
+        .catalog-modal-body::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .catalog-modal-body::-webkit-scrollbar-track {
+          background: #f1f5f9;
+        }
+
+        .catalog-modal-body::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+        }
+
+        .catalog-modal-body::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+
+        /* Catalog Product Card */
+        .catalog-item-card {
+          background: #ffffff;
+          border-radius: 18px;
+          border: 1px solid var(--color-border);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+          padding: 1.15rem;
+          display: grid;
+          grid-template-columns: 160px 1fr;
+          gap: 1.25rem;
+          align-items: center;
+          transition: all 0.25s ease;
+          position: relative;
+        }
+
+        .catalog-item-card:hover {
+          border-color: rgba(46, 125, 50, 0.4);
+          box-shadow: 0 8px 24px rgba(46, 125, 50, 0.08);
+          transform: translateY(-2px);
+        }
+
+        .catalog-item-img-wrap {
+          width: 100%;
+          height: 140px;
+          border-radius: 14px;
+          overflow: hidden;
+          background: #f1f5f9;
+          position: relative;
+          flex-shrink: 0;
+        }
+
+        .catalog-item-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+
+        .catalog-item-card:hover .catalog-item-img {
+          transform: scale(1.04);
+        }
+
+        .catalog-item-number {
+          position: absolute;
+          top: 8px;
+          left: 8px;
+          background: rgba(17, 42, 20, 0.85);
+          color: var(--color-gold);
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 0.15rem 0.5rem;
+          border-radius: 12px;
+          backdrop-filter: blur(4px);
+          border: 1px solid rgba(212, 175, 55, 0.4);
+        }
+
+        .catalog-item-details {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .catalog-item-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+        }
+
+        .catalog-item-name {
+          font-size: 1.12rem;
+          font-weight: 700;
+          color: var(--color-primary-dark);
+          margin: 0;
+          line-height: 1.35;
+          word-break: break-word;
+        }
+
+        .catalog-item-price {
+          font-weight: 800;
+          color: var(--color-primary);
+          font-size: 1.02rem;
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          padding: 0.25rem 0.65rem;
+          border-radius: 8px;
+          white-space: nowrap;
+          flex-shrink: 0;
+          display: inline-block;
+        }
+
+        .catalog-item-desc {
+          font-size: 0.85rem;
+          color: var(--color-text-muted);
+          line-height: 1.5;
+          margin: 0;
+          word-break: break-word;
+        }
+
+        .catalog-item-btn-wa {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: linear-gradient(135deg, #25D366 0%, #1b8a43 100%);
+          color: #ffffff;
+          font-weight: 700;
+          font-size: 0.85rem;
+          padding: 0.6rem 1.15rem;
+          border-radius: 10px;
+          text-decoration: none;
+          width: fit-content;
+          box-shadow: 0 3px 10px rgba(37, 211, 102, 0.25);
+          transition: all 0.2s ease;
+          margin-top: 0.25rem;
+        }
+
+        .catalog-item-btn-wa:hover {
+          background: linear-gradient(135deg, #22bf5b 0%, #166e35 100%);
+          transform: translateY(-1.5px);
+          box-shadow: 0 5px 15px rgba(37, 211, 102, 0.35);
+          color: #ffffff;
+        }
+
+        /* Modal Footer */
+        .catalog-modal-footer {
+          padding: 0.9rem 1.5rem;
+          background: #ffffff;
+          border-top: 1px solid var(--color-border);
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          position: sticky;
+          bottom: 0;
+          z-index: 10;
+        }
+
+        /* Responsive Breakpoints for Mobile */
+        @media (max-width: 640px) {
+          .catalog-modal-overlay {
+            padding: 1rem 0.75rem;
+            display: flex;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+
+          .catalog-modal-card {
+            max-height: 80vh;
+            max-height: 80dvh;
+            border-radius: 20px;
+            margin: auto !important;
+          }
+
+          .catalog-modal-header {
+            padding: 1rem 1.15rem;
+          }
+
+          .catalog-modal-title {
+            font-size: 1.15rem;
+          }
+
+          .catalog-modal-subtitle {
+            font-size: 0.78rem;
+          }
+
+          .catalog-modal-body {
+            padding: 0.85rem;
+            gap: 0.85rem;
+          }
+
+          .catalog-item-card {
+            grid-template-columns: 1fr;
+            gap: 0.85rem;
+            padding: 0.9rem;
+            border-radius: 16px;
+          }
+
+          .catalog-item-img-wrap {
+            width: 100%;
+            height: 180px;
+            border-radius: 12px;
+          }
+
+          .catalog-item-top {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.35rem;
+          }
+
+          .catalog-item-name {
+            font-size: 1.05rem;
+          }
+
+          .catalog-item-price {
+            font-size: 0.95rem;
+            padding: 0.2rem 0.55rem;
+          }
+
+          .catalog-item-desc {
+            font-size: 0.82rem;
+          }
+
+          .catalog-item-btn-wa {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            font-size: 0.88rem;
+            text-align: center;
+            border-radius: 10px;
+            margin-top: 0.35rem;
+          }
+
+          .catalog-modal-footer {
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: center;
+          }
+
+          .catalog-modal-footer .btn {
+            width: 100%;
+          }
+        }
       `}</style>
 
       <div className="container">
@@ -604,113 +998,131 @@ export default function Showcase() {
         </div>
       </div>
 
-      {/* MODAL FULL CATALOG OF AN UMKM OWNER */}
-      {selectedUmkmModal && (
+      {/* MODAL FULL CATALOG OF AN UMKM OWNER (Rendered via Portal for perfect center alignment) */}
+      {selectedUmkmModal && typeof document !== 'undefined' && createPortal(
         <div 
-          style={{ 
-            position: 'fixed', 
-            inset: 0, 
-            background: 'rgba(0,0,0,0.65)', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            zIndex: 1200, 
-            backdropFilter: 'blur(5px)',
-            padding: '1rem'
-          }}
+          className="catalog-modal-overlay"
           onClick={() => setSelectedUmkmModal(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-catalog-title"
         >
           <div 
-            style={{ 
-              background: '#ffffff', 
-              borderRadius: 24, 
-              padding: '2rem', 
-              maxWidth: 720, 
-              width: '100%', 
-              maxHeight: '90vh', 
-              overflowY: 'auto', 
-              boxShadow: '0 25px 50px rgba(0,0,0,0.3)', 
-              border: '2px solid var(--color-border)' 
-            }}
+            className="catalog-modal-card"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
-              <div>
-                <span className="badge-gold" style={{ marginBottom: '0.35rem', display: 'inline-block' }}>
-                  {selectedUmkmModal.kategori}
-                </span>
-                <h3 style={{ fontSize: '1.4rem', color: 'var(--color-primary-dark)', margin: 0 }}>
-                  Katalog Usaha: {selectedUmkmModal.pembuat}
+            <div className="catalog-modal-header">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="catalog-header-badges">
+                  <span className="badge-gold">
+                    {selectedUmkmModal.kategori || 'UMKM Desa'}
+                  </span>
+                  <span className="badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Package size={12} />
+                    {getOwnerProducts(selectedUmkmModal).length} Usaha / Produk
+                  </span>
+                </div>
+                <h3 id="modal-catalog-title" className="catalog-modal-title">
+                  <Store size={20} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                  <span>Katalog Usaha: {selectedUmkmModal.pembuat}</span>
                 </h3>
-                <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                  {selectedUmkmModal.nama_produk} • {selectedUmkmModal.dusun || 'Desa Tajemsari'}
-                </span>
+                <div className="catalog-modal-subtitle">
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <MapPin size={13} color="var(--color-gold)" />
+                    {selectedUmkmModal.dusun || 'Desa Tajemsari, Kec. Tegowanu'}
+                  </span>
+                  {selectedUmkmModal.nama_produk && (
+                    <>
+                      <span>•</span>
+                      <span>{selectedUmkmModal.nama_produk}</span>
+                    </>
+                  )}
+                </div>
               </div>
               <button 
+                type="button"
+                className="catalog-close-btn"
                 onClick={() => setSelectedUmkmModal(null)}
-                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                title="Tutup Katalog (Esc)"
+                aria-label="Tutup Katalog"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* List of Products from this Owner */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="catalog-modal-body">
               {getOwnerProducts(selectedUmkmModal).map((prod, pIdx) => (
                 <div 
                   key={prod.id || pIdx}
-                  style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: '140px 1fr', 
-                    gap: '1.25rem', 
-                    background: '#fcfdfc', 
-                    border: '1px solid var(--color-border)', 
-                    borderRadius: 16, 
-                    padding: '1rem',
-                    alignItems: 'center'
-                  }}
+                  className="catalog-item-card"
                 >
-                  <img 
-                    src={prod.gambar} 
-                    alt={prod.nama} 
-                    style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 12 }} 
-                  />
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                      <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', margin: 0 }}>
+                  <div className="catalog-item-img-wrap">
+                    {prod.gambar ? (
+                      <img 
+                        src={prod.gambar} 
+                        alt={prod.nama} 
+                        className="catalog-item-img"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80';
+                        }}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', color: '#d4af37' }}>
+                        <ShoppingBag size={32} />
+                        <span style={{ fontSize: '0.7rem', color: '#ffffff', marginTop: 4 }}>Foto Produk</span>
+                      </div>
+                    )}
+                    <span className="catalog-item-number">
+                      #{pIdx + 1}
+                    </span>
+                  </div>
+
+                  <div className="catalog-item-details">
+                    <div className="catalog-item-top">
+                      <h4 className="catalog-item-name">
                         {prod.nama}
                       </h4>
-                      <span style={{ fontWeight: 800, color: 'var(--color-primary)', fontSize: '0.95rem', background: '#e8f5e9', padding: '0.2rem 0.5rem', borderRadius: 6 }}>
+                      <span className="catalog-item-price">
                         {prod.harga}
                       </span>
                     </div>
 
-                    <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem', lineHeight: '1.45' }}>
-                      {prod.deskripsi}
+                    <p className="catalog-item-desc">
+                      {prod.deskripsi || selectedUmkmModal.deskripsi || 'Produk unggulan berkualitas dari warga Desa Tajemsari.'}
                     </p>
 
                     <a 
                       href={getUmkmWaLink(selectedUmkmModal, prod)}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="btn btn-primary"
-                      style={{ padding: '0.45rem 1rem', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}
+                      className="catalog-item-btn-wa"
+                      title={`Pesan ${prod.nama} via WhatsApp`}
                     >
-                      <PhoneCall size={14} /> Pesan Produk Ini via WhatsApp
+                      <PhoneCall size={15} />
+                      <span>Pesan Produk Ini via WhatsApp</span>
                     </a>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div style={{ textAlign: 'right', marginTop: '1.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
-              <button className="btn btn-outline" onClick={() => setSelectedUmkmModal(null)}>
+            {/* Modal Footer */}
+            <div className="catalog-modal-footer">
+              <button 
+                type="button"
+                className="btn btn-outline" 
+                onClick={() => setSelectedUmkmModal(null)}
+                style={{ padding: '0.55rem 1.4rem', fontSize: '0.88rem' }}
+              >
                 Tutup Katalog
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
