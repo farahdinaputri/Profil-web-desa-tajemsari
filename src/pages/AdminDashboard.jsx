@@ -29,7 +29,16 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const [heroBgFileName, setHeroBgFileName] = useState('');
 
   const [profilState, setProfilState] = useState({
-    namaKades: '', jabatanKades: '', sambutanKades: '', fotoKades: '', visi: '', misi: []
+    sejarahJudul: '',
+    sejarahParagraf1: '',
+    sejarahParagraf2: '',
+    visiJudul: '',
+    visiDeskripsi: '',
+    misiList: [],
+    perangkatList: [],
+    apbdesTahun: '',
+    apbdesTotal: '',
+    apbdesRincian: []
   });
 
   const [footerState, setFooterState] = useState({

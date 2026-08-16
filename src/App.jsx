@@ -65,6 +65,7 @@ export default function App() {
           <Route path="/berita/:id" element={<NewsDetail />} />
           <Route path="/profil" element={<Profile />} />
           <Route path="/potensi" element={<Showcase />} />
+          <Route path="/showcase" element={<Showcase />} />
           <Route 
             path="/admin" 
             element={

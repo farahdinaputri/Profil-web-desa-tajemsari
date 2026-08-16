@@ -96,9 +96,12 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('berita').select('*').order('tanggal', { ascending: false });
-        if (!error && data) {
+        if (!error && data && data.length > 0) {
           setStorageItem('berita', data);
           return data;
+        }
+        if (!error && data && data.length === 0) {
+          return getStorageItem('berita', INITIAL_BERITA);
         }
         console.error('Supabase getBerita error:', error);
       } catch (e) {
@@ -211,9 +214,12 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('umkm').select('*');
-        if (!error && data) {
+        if (!error && data && data.length > 0) {
           setStorageItem('umkm', data);
           return data;
+        }
+        if (!error && data && data.length === 0) {
+          return getStorageItem('umkm', INITIAL_UMKM);
         }
         console.error('Supabase getUMKM error:', error);
       } catch (e) {
@@ -281,9 +287,12 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('wisata').select('*');
-        if (!error && data) {
+        if (!error && data && data.length > 0) {
           setStorageItem('wisata', data);
           return data;
+        }
+        if (!error && data && data.length === 0) {
+          return getStorageItem('wisata', INITIAL_WISATA);
         }
         console.error('Supabase getWisata error:', error);
       } catch (e) {
@@ -412,10 +421,66 @@ export const apiService = {
     return merged;
   },
 
-  // --- STATISTIK BERANDA (CRUD) ---
+  // --- STATISTIK BERANDA (CRUD + SUPABASE PERSISTENCE) ---
   async getStatistik() {
-    const stored = getStorageItem('statistik', INITIAL_STATISTIK);
-    const stats = (Array.isArray(stored) && stored.length > 0) ? stored : INITIAL_STATISTIK;
+    let stats = null;
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('hero_section').select('*').eq('id', 1).maybeSingle();
+        if (!error && data) {
+          if (Array.isArray(data.statistik_cards) && data.statistik_cards.length > 0) {
+            stats = data.statistik_cards;
+          } else if (typeof data.stat_penduduk === 'string' && data.stat_penduduk.trim().startsWith('[')) {
+            try {
+              const parsed = JSON.parse(data.stat_penduduk);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                stats = parsed;
+              }
+            } catch (e) {}
+          }
+
+          if (!stats && (data.stat_penduduk || data.stat_rt_rw)) {
+            stats = [
+              {
+                id: 1,
+                angka: data.stat_penduduk ? data.stat_penduduk.replace(/\s*jiwa\s*$/i, '') : '2.845',
+                label: 'Jiwa Penduduk',
+                icon: 'Users',
+                colorBg: '#e8f5e9',
+                colorText: '#2e7d32'
+              },
+              {
+                id: 2,
+                angka: data.stat_rt_rw || '12 RT / 4 RW',
+                label: 'Wilayah Dusun Tajemsari',
+                icon: 'Building',
+                colorBg: '#e8f5e9',
+                colorText: '#2e7d32'
+              },
+              {
+                id: 3,
+                angka: data.stat_umkm || 'Produk Unggulan',
+                label: 'Produk Unggulan Desa',
+                icon: 'Sparkles',
+                colorBg: '#e8f5e9',
+                colorText: '#2e7d32'
+              }
+            ];
+          }
+        }
+      } catch (e) {
+        console.error("Supabase getStatistik error:", e);
+      }
+    }
+
+    if (!stats) {
+      const stored = getStorageItem('statistik', INITIAL_STATISTIK);
+      stats = (Array.isArray(stored) && stored.length > 0) ? stored : INITIAL_STATISTIK;
+    }
+
+    setStorageItem('statistik', stats);
+
     const umkms = await this.getUMKM();
     const totalProducts = Array.isArray(umkms)
       ? umkms.reduce((total, item) => {
@@ -440,23 +505,50 @@ export const apiService = {
       return s;
     });
   },
+
+  async saveStatistikList(newList) {
+    setStorageItem('statistik', newList);
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const jsonStr = JSON.stringify(newList);
+        const card2 = newList[1]?.angka || '12 RT / 4 RW';
+        const card3 = newList[2]?.angka || '12 UMKM';
+
+        await supabase.from('hero_section').update({
+          stat_penduduk: jsonStr,
+          stat_rt_rw: card2,
+          stat_umkm: card3,
+          updated_at: new Date().toISOString()
+        }).eq('id', 1);
+      } catch (e) {
+        console.error("Supabase saveStatistikList error:", e);
+      }
+    }
+    return newList;
+  },
+
   async addStatistik(statItem) {
-    const current = await this.getStatistik();
+    const rawStored = getStorageItem('statistik', INITIAL_STATISTIK);
+    const current = (Array.isArray(rawStored) && rawStored.length > 0) ? rawStored : INITIAL_STATISTIK;
     const item = { ...statItem, id: Date.now() };
     const updated = [...current, item];
-    setStorageItem('statistik', updated);
+    await this.saveStatistikList(updated);
     return item;
   },
+
   async updateStatistik(id, updatedStat) {
-    const current = await this.getStatistik();
+    const rawStored = getStorageItem('statistik', INITIAL_STATISTIK);
+    const current = (Array.isArray(rawStored) && rawStored.length > 0) ? rawStored : INITIAL_STATISTIK;
     const updated = current.map(s => s.id === id ? { ...s, ...updatedStat } : s);
-    setStorageItem('statistik', updated);
+    await this.saveStatistikList(updated);
     return true;
   },
+
   async deleteStatistik(id) {
-    const current = await this.getStatistik();
+    const rawStored = getStorageItem('statistik', INITIAL_STATISTIK);
+    const current = (Array.isArray(rawStored) && rawStored.length > 0) ? rawStored : INITIAL_STATISTIK;
     const updated = current.filter(s => s.id !== id);
-    setStorageItem('statistik', updated);
+    await this.saveStatistikList(updated);
     return true;
   },
 

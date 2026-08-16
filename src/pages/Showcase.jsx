@@ -957,44 +957,56 @@ export default function Showcase() {
             </p>
           </div>
 
-          {wisataList.map((spot) => (
-            <div key={spot.id} className="wisata-card-banner">
-              {spot.gambar ? (
-                <img src={spot.gambar} alt={spot.nama_tempat} className="wisata-img" />
-              ) : (
-                <div style={{ minHeight: 280, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', color: '#d4af37' }}>
-                  <Compass size={60} />
-                  <span style={{ fontSize: '0.85rem', color: '#ffffff', marginTop: 8, opacity: 0.9 }}>Foto Destinasi Wisata</span>
-                </div>
-              )}
-              <div style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <span className="badge-green" style={{ display: 'inline-block', width: 'fit-content', marginBottom: '0.75rem' }}>
-                  {spot.kategori}
-                </span>
-                <h3 style={{ fontSize: '1.8rem', color: 'var(--color-primary-dark)', marginBottom: '0.75rem' }}>
-                  {spot.nama_tempat}
-                </h3>
-                <p style={{ lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
-                  {spot.deskripsi}
-                </p>
-
-                <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.88rem', color: 'var(--color-text-main)', marginBottom: '1.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <MapPin size={18} color="var(--color-gold)" />
-                    <span>{spot.lokasi}</span>
+          {wisataList && wisataList.length > 0 ? (
+            wisataList.map((spot) => (
+              <div key={spot.id} className="wisata-card-banner">
+                {spot.gambar ? (
+                  <img src={spot.gambar} alt={spot.nama_tempat} className="wisata-img" />
+                ) : (
+                  <div style={{ minHeight: 280, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', color: '#d4af37' }}>
+                    <Compass size={60} />
+                    <span style={{ fontSize: '0.85rem', color: '#ffffff', marginTop: 8, opacity: 0.9 }}>Foto Destinasi Wisata</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Clock size={18} color="var(--color-gold)" />
-                    <span>{spot.jam_buka}</span>
-                  </div>
-                </div>
+                )}
+                <div style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <span className="badge-green" style={{ display: 'inline-block', width: 'fit-content', marginBottom: '0.75rem' }}>
+                    {spot.kategori}
+                  </span>
+                  <h3 style={{ fontSize: '1.8rem', color: 'var(--color-primary-dark)', marginBottom: '0.75rem' }}>
+                    {spot.nama_tempat}
+                  </h3>
+                  <p style={{ lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
+                    {spot.deskripsi}
+                  </p>
 
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#fef9e7', padding: '0.5rem 1rem', borderRadius: 10, width: 'fit-content', border: '1px solid var(--color-gold)', fontSize: '0.88rem', color: '#8a6d13', fontWeight: 700 }}>
-                  Tiket Masuk: {spot.tiket_masuk}
+                  <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.88rem', color: 'var(--color-text-main)', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <MapPin size={18} color="var(--color-gold)" />
+                      <span>{spot.lokasi}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Clock size={18} color="var(--color-gold)" />
+                      <span>{spot.jam_buka}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#fef9e7', padding: '0.5rem 1rem', borderRadius: 10, width: 'fit-content', border: '1px solid var(--color-gold)', fontSize: '0.88rem', color: '#8a6d13', fontWeight: 700 }}>
+                    Tiket Masuk: {spot.tiket_masuk}
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div style={{ background: '#ffffff', padding: '3rem', borderRadius: 20, textAlign: 'center', border: '1px solid var(--color-border)' }}>
+              <Compass size={48} color="var(--color-primary)" style={{ margin: '0 auto 1rem auto' }} />
+              <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.3rem', marginBottom: '0.5rem' }}>
+                Destinasi Wisata Segera Hadir
+              </h3>
+              <p style={{ color: 'var(--color-text-muted)', maxWidth: 500, margin: '0 auto' }}>
+                Pemerintah Desa Tajemsari sedang menyiapkan pengembangan agrowisata dan pusat edukasi pertanian untuk masyarakat.
+              </p>
             </div>
-          ))}
+          )}
         </div>
       </div>
 

@@ -249,8 +249,13 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
 
         {/* Footer Bottom */}
         <div className="footer-bottom">
-          <div>
-            © 2026 Pemerintah Desa Tajemsari, Tegowanu, Grobogan. Hak Cipta Dilindungi.
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <div>
+              © 2026 Pemerintah Desa Tajemsari, Tegowanu, Grobogan. Hak Cipta Dilindungi.
+            </div>
+            <div style={{ fontSize: '0.82rem', color: '#a7f3d0' }}>
+              Diinisiasi & Dikembangkan oleh <strong style={{ color: '#fef08a' }}>Mahasiswa KKN UNIMUS Kelompok 22</strong>.
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

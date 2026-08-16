@@ -3,7 +3,7 @@
   <!-- Beranda -->
   <url>
     <loc>https://profil-web-desa-tajemsari-three.vercel.app/</loc>
-    <lastmod>2026-08-12</lastmod>
+    <lastmod>2026-08-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,7 +11,7 @@
   <!-- Profil Desa -->
   <url>
     <loc>https://profil-web-desa-tajemsari-three.vercel.app/profil</loc>
-    <lastmod>2026-08-12</lastmod>
+    <lastmod>2026-08-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -19,15 +19,15 @@
   <!-- Berita Desa -->
   <url>
     <loc>https://profil-web-desa-tajemsari-three.vercel.app/berita</loc>
-    <lastmod>2026-08-12</lastmod>
+    <lastmod>2026-08-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- Potensi UMKM & Wisata -->
   <url>
-    <loc>https://profil-web-desa-tajemsari-three.vercel.app/showcase</loc>
-    <lastmod>2026-08-12</lastmod>
+    <loc>https://profil-web-desa-tajemsari-three.vercel.app/potensi</loc>
+    <lastmod>2026-08-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

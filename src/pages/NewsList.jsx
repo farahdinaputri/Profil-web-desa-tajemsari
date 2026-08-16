@@ -24,12 +24,13 @@ export default function NewsList() {
 
   const categories = ['Semua', 'Pembangunan', 'Ekonomi', 'Pertanian', 'Kesehatan'];
 
-  const filteredBerita = beritaList.filter((b) => {
+  const filteredBerita = (beritaList || []).filter((b) => {
     const matchesCategory = activeCategory === 'Semua' || b.kategori === activeCategory;
-    const matchesSearch = searchQuery.trim() === '' || 
-      b.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.ringkasan.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.isi.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch = query === '' || 
+      (b.judul || '').toLowerCase().includes(query) ||
+      (b.ringkasan || '').toLowerCase().includes(query) ||
+      (b.isi || '').toLowerCase().includes(query);
 
     return matchesCategory && matchesSearch;
   });
