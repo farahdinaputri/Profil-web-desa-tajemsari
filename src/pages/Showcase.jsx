@@ -746,9 +746,9 @@ export default function Showcase() {
       <div className="container">
         {/* Header */}
         <div className="section-header">
-          <h1 className="section-title">Potensi UMKM & Agrowisata</h1>
+          <h1 className="section-title">Produk UMKM & Wisata</h1>
           <p className="section-description">
-            Jelajahi beragam produk unggulan warga desa serta keindahan agrowisata dan persawahan asri Desa Tajemsari, Tegowanu.
+            Jelajahi beragam produk unggulan warga desa serta keindahan wisata dan persawahan asri Desa Tajemsari, Tegowanu.
           </p>
         </div>
 
@@ -757,7 +757,7 @@ export default function Showcase() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
             <div>
               <h2 style={{ fontSize: '1.75rem', color: 'var(--color-primary-dark)', margin: 0 }}>
-                Katalog UMKM & Produk Warga
+                Produk UMKM
               </h2>
               <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
                 Dukung pengusaha lokal Tajemsari dengan memesan langsung ke kontak resmi WhatsApp penjual.

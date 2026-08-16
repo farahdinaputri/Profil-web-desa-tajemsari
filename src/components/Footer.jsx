@@ -181,7 +181,7 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
             <ul className="footer-links-list">
               <li className="footer-link-item" onClick={() => handleNavClick('/')}>Beranda Utama</li>
               <li className="footer-link-item" onClick={() => handleNavClick('/profil')}>Profil & Struktur Desa</li>
-              <li className="footer-link-item" onClick={() => handleNavClick('/potensi')}>Potensi UMKM & Wisata</li>
+              <li className="footer-link-item" onClick={() => handleNavClick('/potensi')}>Produk UMKM & Wisata</li>
               <li className="footer-link-item" onClick={() => handleNavClick('/berita')}>Berita & Publikasi Desa</li>
             </ul>
           </div>

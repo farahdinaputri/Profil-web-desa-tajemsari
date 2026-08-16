@@ -48,7 +48,7 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
   const navItems = [
     { id: 'beranda', path: '/', label: 'Beranda' },
     { id: 'profil', path: '/profil', label: 'Profil Desa' },
-    { id: 'potensi', path: '/potensi', label: 'Potensi & Wisata' },
+    { id: 'potensi', path: '/potensi', label: 'Produk UMKM & Wisata' },
   ];
 
   const handleNavClick = (path) => {

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1b5e20" />
+      <stop offset="50%" stop-color="#2e7d32" />
+      <stop offset="100%" stop-color="#14532d" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#86efac" />
+      <stop offset="100%" stop-color="#22c55e" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#bgGrad)" stroke="#facc15" stroke-width="12" filter="url(#shadow)"/>
+  
+  <!-- Inner Decorative Ring -->
+  <circle cx="256" cy="256" r="218" fill="none" stroke="#fef08a" stroke-width="3" stroke-dasharray="8 6" opacity="0.7"/>
+
+  <!-- Center Shield Base -->
+  <path d="M 256 100 Q 330 110 340 180 C 340 280 256 360 256 360 C 256 360 172 280 172 180 Q 182 110 256 100 Z" fill="#0f3e18" stroke="url(#goldGrad)" stroke-width="6"/>
+
+  <!-- Golden Rice Stalks (Padi) Left -->
+  <g fill="url(#goldGrad)" stroke="#854d0e" stroke-width="1.5">
+    <ellipse cx="220" cy="160" rx="14" ry="24" transform="rotate(-35 220 160)" />
+    <ellipse cx="205" cy="205" rx="14" ry="24" transform="rotate(-45 205 205)" />
+    <ellipse cx="200" cy="255" rx="14" ry="24" transform="rotate(-55 200 255)" />
+    <ellipse cx="210" cy="300" rx="13" ry="22" transform="rotate(-65 210 300)" />
+  </g>
+
+  <!-- Golden Rice Stalks (Padi) Right -->
+  <g fill="url(#goldGrad)" stroke="#854d0e" stroke-width="1.5">
+    <ellipse cx="292" cy="160" rx="14" ry="24" transform="rotate(35 292 160)" />
+    <ellipse cx="307" cy="205" rx="14" ry="24" transform="rotate(45 307 205)" />
+    <ellipse cx="312" cy="255" rx="14" ry="24" transform="rotate(55 312 255)" />
+    <ellipse cx="302" cy="300" rx="13" ry="22" transform="rotate(65 302 300)" />
+  </g>
+
+  <!-- Center Leaf Growth -->
+  <path d="M 256 320 C 256 240 220 190 256 140 C 292 190 256 240 256 320 Z" fill="url(#leafGrad)" />
+  <path d="M 256 320 L 256 150" stroke="#14532d" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Star at Top -->
+  <polygon points="256,110 263,126 280,126 266,136 271,152 256,142 241,152 246,136 232,126 249,126" fill="url(#goldGrad)" stroke="#854d0e" stroke-width="1"/>
+
+  <!-- Bottom Ribbon / Banner -->
+  <path d="M 120 400 Q 256 430 392 400 L 380 440 Q 256 465 132 440 Z" fill="#b91c1c" stroke="#facc15" stroke-width="4"/>
+  <text x="256" y="432" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="26" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="3">TAJEMSARI</text>
+</svg>
