@@ -328,7 +328,7 @@ export const INITIAL_WISATA = [
     lokasi: "Dusun Tajemsari RT 02 / RW 01, Tegowanu",
     jam_buka: "06.00 - 18.00 WIB",
     tiket_masuk: "Gratis",
-    gambar: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80"
+    gambar: ""
   },
   {
     id: 2,
@@ -338,60 +338,10 @@ export const INITIAL_WISATA = [
     lokasi: "Kompleks Balai Desa Tajemsari",
     jam_buka: "08.00 - 16.00 WIB",
     tiket_masuk: "Gratis (Donasi Kebersihan)",
-    gambar: "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80"
+    gambar: ""
   }
 ];
 
-export const INITIAL_PERMOHONAN = [
-  {
-    id: 1,
-    nomor_tiket: "TJM-202607-001",
-    nama_warga: "Budi Santoso",
-    nik: "3315082405900001",
-    no_hp: "08123456789",
-    alamat_lengkap: "Dusun Krajan RT 01 / RW 02, Desa Tajemsari, Tegowanu",
-    jenis_surat: "Surat Keterangan Usaha (SKU)",
-    keperluan: "Syarat pengajuan KUR Bank Jateng untuk warung makan.",
-    status: "Siap Diunduh",
-    catatan_admin: "Surat Keterangan Usaha telah terverifikasi dan ditandatangani secara digital.",
-    tanggal_pengajuan: "2026-07-28 09:30",
-    file_surat_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    file_surat_name: "SKU_Budi_Santoso_TJM-202607-001.pdf",
-    metode_pengambilan: "Digital"
-  },
-  {
-    id: 2,
-    nomor_tiket: "TJM-202607-002",
-    nama_warga: "Siti Rahayu",
-    nik: "3315085611950003",
-    no_hp: "08571234567",
-    alamat_lengkap: "Dusun Mlangi RT 03 / RW 01, Desa Tajemsari, Tegowanu",
-    jenis_surat: "Surat Keterangan Tidak Mampu (SKTM)",
-    keperluan: "Pengajuan beasiswa pendidikan universitas.",
-    status: "Sedang Diproses",
-    catatan_admin: "Sedang dilakukan verifikasi berkas administrasi oleh Kasi Kesejahteraan Desa.",
-    tanggal_pengajuan: "2026-07-29 14:15",
-    file_surat_url: "",
-    file_surat_name: "",
-    metode_pengambilan: "Digital"
-  },
-  {
-    id: 3,
-    nomor_tiket: "TJM-202607-003",
-    nama_warga: "Slamet Widodo",
-    nik: "3315081203880002",
-    no_hp: "08139876543",
-    alamat_lengkap: "Dusun Plosorejo RT 02 / RW 03, Desa Tajemsari",
-    jenis_surat: "Surat Keterangan Domisili",
-    keperluan: "Pendaftaran jaminan sosial dan kelengkapan domisili usaha.",
-    status: "Siap Diambil di Balai Desa",
-    catatan_admin: "Dokumen fisik surat keterangan domisili dengan cap dan tanda tangan basah Kades telah selesai. Silakan ambil di Balai Desa pada jam kerja.",
-    tanggal_pengajuan: "2026-07-30 11:00",
-    file_surat_url: "",
-    file_surat_name: "",
-    metode_pengambilan: "Fisik"
-  }
-];
 
 export const STRUKTUR_ORGANISASI = [
   {
@@ -441,28 +391,15 @@ export const INITIAL_HERO = {
   bgImage: "",
   ctaPrimary: "Profil Desa Tajemsari",
   ctaPrimaryLink: "profil",
-  ctaSecondary: "Jelajahi Potensi & Wisata",
+  ctaSecondary: "Lihat Produk UMKM & Wisata",
   ctaSecondaryLink: "potensi",
 
-  // 2. Akses Cepat (Quick Access Cards)
-  quickTitle: "Akses Cepat Informasi Desa Tajemsari",
-  quickSubtitle: "Kec. Tegowanu • Kab. Grobogan",
-  quickCard1Title: "Profil & Wilayah Desa",
-  quickCard1Desc: "Sejarah, Visi Misi & Struktur",
-  quickCard1Link: "profil",
-  quickCard2Title: "Potensi UMKM & Wisata",
-  quickCard2Desc: "Produk Lokal & Agrowisata",
-  quickCard2Link: "potensi",
-  quickCard3Title: "Berita & Kegiatan Desa",
-  quickCard3Desc: "Informasi & Publikasi Terkini",
-  quickCard3Link: "berita",
+  // 2. Statistik Hero (3 statistik: Penduduk, RT/RW, UMKM)
+  statPenduduk: "3.090 Jiwa",
+  statRtRw: "12 RT / 4 RW",
+  statUmkm: "3 UMKM",
 
-  // 3. Statistik Hero (3 statistik: Penduduk, RT/RW, UMKM)
-  statPenduduk: "2.845 Jiwa",
-  statRtRw: "4 RT / 2 RW",
-  statUmkm: "12 UMKM",
-
-  // 4. Sambutan Kepala Desa
+  // 3. Sambutan Kepala Desa
   kadesBadge: "Sambutan Kepala Desa",
   kadesJudul: '"Terwujudnya Desa Tajemsari Berdikari, Sejahtera & Asri"',
   kadesNama: "H. Suhartono, S.Sos",
@@ -473,10 +410,48 @@ export const INITIAL_HERO = {
 };
 
 export const INITIAL_STATISTIK = [
-  { id: 1, angka: "2.845", label: "Jiwa Penduduk", icon: "Users", colorBg: "#e8f5e9", colorText: "#2e7d32" },
-  { id: 2, angka: "340 Ha", label: "Luas Persawahan Padi", icon: "Wheat", colorBg: "#fef9e7", colorText: "#d4af37" },
-  { id: 3, angka: "4 RT / 2 RW", label: "Wilayah Dusun Tajemsari", icon: "Building", colorBg: "#e8f5e9", colorText: "#2e7d32" },
-  { id: 4, angka: "12 UMKM", label: "Produk Unggulan Desa", icon: "Sparkles", colorBg: "#e0f2fe", colorText: "#0284c7" }
+  { id: 1, angka: "3.090", label: "Jiwa Penduduk", icon: "Users", colorBg: "#e8f5e9", colorText: "#2e7d32" },
+  { id: 2, angka: "12 RT / 4 RW", label: "Wilayah Dusun Tajemsari", icon: "Building", colorBg: "#e8f5e9", colorText: "#2e7d32" },
+  { id: 3, angka: "3 UMKM", label: "Produk Unggulan Desa", icon: "Sparkles", colorBg: "#e8f5e9", colorText: "#2e7d32" }
+];
+
+export const INITIAL_LEMBAGA = [
+  {
+    id: 1,
+    nama_lembaga: "Badan Permusyawaratan Desa (BPD)",
+    ketua: "Bambang Sutrisno",
+    deskripsi: "Membahas dan menyepakati Rancangan Peraturan Desa bersama Kepala Desa, serta menampung dan menyalurkan aspirasi masyarakat Tajemsari."
+  },
+  {
+    id: 2,
+    nama_lembaga: "Lembaga Pemberdayaan Masyarakat Desa (LPMD)",
+    ketua: "H. Slamet Widodo",
+    deskripsi: "Mitra pemerintah desa dalam merencanakan, melaksanakan, dan menggerakkan prakarsa gotong royong pembangunan partisipatif masyarakat."
+  },
+  {
+    id: 3,
+    nama_lembaga: "Tim Penggerak PKK Desa Tajemsari",
+    ketua: "Ny. Hj. Siti Marwiyah",
+    deskripsi: "Membina kesejahteraan keluarga, posyandu balita & lansia, pemberdayaan ekonomi perempuan, dan program ketahanan pangan keluarga."
+  },
+  {
+    id: 4,
+    nama_lembaga: "Karang Taruna \"Tunas Kencana\"",
+    ketua: "Joko Prasetyo",
+    deskripsi: "Wadah pembinaan dan pengembangan generasi muda desa di bidang kepemudaan, sosial kemasyarakatan, olahraga, dan seni budaya."
+  },
+  {
+    id: 5,
+    nama_lembaga: "Satuan Perlindungan Masyarakat (Satlinmas)",
+    ketua: "Supardi",
+    deskripsi: "Membantu memelihara ketenteraman, ketertiban masyarakat, keamanan lingkungan, dan kesiapsiagaan penanggulangan bencana."
+  },
+  {
+    id: 6,
+    nama_lembaga: "Gabungan Kelompok Tani (Gapoktan) \"Tajemsari Makmur\"",
+    ketua: "Kuswanto",
+    deskripsi: "Mengoordinasikan kelompok tani se-Tajemsari dalam penyaluran pupuk, pemanfaatan alat mesin pertanian (alsintan), dan pengelolaan irigasi."
+  }
 ];
 
 export const INITIAL_PROFIL = {
@@ -503,7 +478,10 @@ export const INITIAL_PROFIL = {
     { id: 4, nama: "Sri Rejeki, A.Md", jabatan: "Kasi Kesejahteraan & Pelayanan", foto: "" }
   ],
 
-  // 4. Transparansi APBDes (CRUD Dynamic List)
+  // 4. Struktur Lembaga Desa (LKD) (CRUD Dynamic List)
+  lembagaList: INITIAL_LEMBAGA,
+
+  // 5. Transparansi APBDes (CRUD Dynamic List)
   apbdesTahun: "2026",
   apbdesPendapatan: "Rp 1.450.000.000",
   apbdesBelanja: "Rp 1.380.000.000",

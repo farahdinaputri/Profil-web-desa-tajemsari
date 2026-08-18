@@ -73,6 +73,7 @@ ALTER TABLE public.profil_desa ADD COLUMN IF NOT EXISTS visi_judul TEXT;
 ALTER TABLE public.profil_desa ADD COLUMN IF NOT EXISTS visi_deskripsi TEXT;
 ALTER TABLE public.profil_desa ADD COLUMN IF NOT EXISTS misi_list JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.profil_desa ADD COLUMN IF NOT EXISTS perangkat_list JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.profil_desa ADD COLUMN IF NOT EXISTS lembaga_list JSONB DEFAULT '[]'::jsonb;
 
 -- 4. TABEL BERITA & PUBLIKASI DESA
 CREATE TABLE IF NOT EXISTS public.berita (

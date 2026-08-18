@@ -3,9 +3,9 @@ import {
   INITIAL_BERITA, 
   INITIAL_UMKM, 
   INITIAL_WISATA, 
-  INITIAL_PERMOHONAN,
   INITIAL_HERO,
   INITIAL_PROFIL,
+  INITIAL_LEMBAGA,
   INITIAL_FOOTER,
   INITIAL_SETTINGS,
   INITIAL_STATISTIK
@@ -95,13 +95,10 @@ export const apiService = {
   async getBerita() {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase.from('berita').select('*').order('tanggal', { ascending: false });
-        if (!error && data && data.length > 0) {
+        const { data, error } = await supabase.from('berita').select('*').order('tanggal', { ascending: false }).order('id', { ascending: false });
+        if (!error && data) {
           setStorageItem('berita', data);
           return data;
-        }
-        if (!error && data && data.length === 0) {
-          return getStorageItem('berita', INITIAL_BERITA);
         }
         console.error('Supabase getBerita error:', error);
       } catch (e) {
@@ -115,7 +112,12 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('berita').insert([newBerita]).select();
-        if (!error && data?.length) return data[0];
+        if (!error && data?.length) {
+          const current = getStorageItem('berita', []);
+          const updated = [data[0], ...current.filter(b => b.id !== data[0].id)];
+          setStorageItem('berita', updated);
+          return data[0];
+        }
         console.error('Supabase addBerita error:', error);
       } catch (e) {
         console.error('Supabase addBerita exception:', e);
@@ -132,7 +134,12 @@ export const apiService = {
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.from('berita').update(updatedBerita).eq('id', id).select();
-        if (!error && data?.length) return data[0];
+        if (!error && data?.length) {
+          const current = getStorageItem('berita', []);
+          const updated = current.map(b => b.id === id ? data[0] : b);
+          setStorageItem('berita', updated);
+          return data[0];
+        }
         console.error('Supabase updateBerita error:', error);
       } catch (e) {
         console.error('Supabase updateBerita exception:', e);
@@ -146,8 +153,11 @@ export const apiService = {
 
   async deleteBerita(id) {
     if (isSupabaseConfigured) {
-      await supabase.from('berita').delete().eq('id', id);
-      return true;
+      try {
+        await supabase.from('berita').delete().eq('id', id);
+      } catch (e) {
+        console.error('Supabase deleteBerita error:', e);
+      }
     }
     const current = getStorageItem('berita', INITIAL_BERITA);
     const updated = current.filter(b => b.id !== id);
@@ -155,71 +165,14 @@ export const apiService = {
     return true;
   },
 
-  // --- PERMOHONAN SURAT ---
-  async getPermohonan() {
-    if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase.from('permohonan_surat').select('*').order('tanggal_pengajuan', { ascending: false });
-        if (!error) return data || [];
-        console.error('Supabase getPermohonan error:', error);
-      } catch (e) {
-        console.error('Supabase getPermohonan exception:', e);
-      }
-    }
-    return getStorageItem('permohonan', INITIAL_PERMOHONAN);
-  },
-
-  async createPermohonan(form) {
-    const tiket = `TJM-${new Date().getFullYear()}${(new Date().getMonth() + 1).toString().padStart(2, '0')}-${Math.floor(100 + Math.random() * 900)}`;
-    const newPermohonan = {
-      ...form,
-      nomor_tiket: tiket,
-      status: 'Menunggu',
-      tanggal_pengajuan: new Date().toLocaleString('id-ID')
-    };
-
-    if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase.from('permohonan_surat').insert([newPermohonan]).select();
-        if (!error && data?.length) return data[0];
-        console.error('Supabase createPermohonan error:', error);
-      } catch (e) {
-        console.error('Supabase createPermohonan exception:', e);
-      }
-    }
-
-    const current = getStorageItem('permohonan', INITIAL_PERMOHONAN);
-    const updated = [newPermohonan, ...current];
-    setStorageItem('permohonan', updated);
-    return newPermohonan;
-  },
-
-  async updateStatusPermohonan(id, status, catatan) {
-    if (isSupabaseConfigured) {
-      try {
-        await supabase.from('permohonan_surat').update({ status, catatan_admin: catatan }).eq('id', id);
-        return true;
-      } catch (e) {
-        console.error('Supabase updateStatusPermohonan exception:', e);
-      }
-    }
-    const current = getStorageItem('permohonan', INITIAL_PERMOHONAN);
-    const updated = current.map(p => p.id === id ? { ...p, status, catatan_admin: catatan } : p);
-    setStorageItem('permohonan', updated);
-    return true;
-  },
-
   // --- UMKM ---
   async getUMKM() {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase.from('umkm').select('*');
-        if (!error && data && data.length > 0) {
+        const { data, error } = await supabase.from('umkm').select('*').order('created_at', { ascending: false });
+        if (!error && data) {
           setStorageItem('umkm', data);
           return data;
-        }
-        if (!error && data && data.length === 0) {
-          return getStorageItem('umkm', INITIAL_UMKM);
         }
         console.error('Supabase getUMKM error:', error);
       } catch (e) {
@@ -234,8 +187,8 @@ export const apiService = {
       try {
         const { data, error } = await supabase.from('umkm').insert([newProduct]).select();
         if (!error && data?.length) {
-          const current = getStorageItem('umkm', INITIAL_UMKM);
-          const updated = [...current, data[0]];
+          const current = getStorageItem('umkm', []);
+          const updated = [data[0], ...current.filter(u => u.id !== data[0].id)];
           setStorageItem('umkm', updated);
           return data[0];
         }
@@ -256,8 +209,8 @@ export const apiService = {
       try {
         const { data, error } = await supabase.from('umkm').update(updatedProduct).eq('id', id).select();
         if (!error && data?.length) {
-          const current = getStorageItem('umkm', INITIAL_UMKM);
-          const updated = current.map(u => u.id === id ? { ...u, ...updatedProduct } : u);
+          const current = getStorageItem('umkm', []);
+          const updated = current.map(u => u.id === id ? data[0] : u);
           setStorageItem('umkm', updated);
           return data[0];
         }
@@ -274,7 +227,11 @@ export const apiService = {
 
   async deleteUMKM(id) {
     if (isSupabaseConfigured) {
-      await supabase.from('umkm').delete().eq('id', id);
+      try {
+        await supabase.from('umkm').delete().eq('id', id);
+      } catch (e) {
+        console.error('Supabase deleteUMKM error:', e);
+      }
     }
     const current = getStorageItem('umkm', INITIAL_UMKM);
     const updated = current.filter(u => u.id !== id);
@@ -286,13 +243,10 @@ export const apiService = {
   async getWisata() {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase.from('wisata').select('*');
-        if (!error && data && data.length > 0) {
+        const { data, error } = await supabase.from('wisata').select('*').order('created_at', { ascending: false });
+        if (!error && data) {
           setStorageItem('wisata', data);
           return data;
-        }
-        if (!error && data && data.length === 0) {
-          return getStorageItem('wisata', INITIAL_WISATA);
         }
         console.error('Supabase getWisata error:', error);
       } catch (e) {
@@ -307,8 +261,8 @@ export const apiService = {
       try {
         const { data, error } = await supabase.from('wisata').insert([newSpot]).select();
         if (!error && data?.length) {
-          const current = getStorageItem('wisata', INITIAL_WISATA);
-          const updated = [...current, data[0]];
+          const current = getStorageItem('wisata', []);
+          const updated = [data[0], ...current.filter(w => w.id !== data[0].id)];
           setStorageItem('wisata', updated);
           return data[0];
         }
@@ -329,8 +283,8 @@ export const apiService = {
       try {
         const { data, error } = await supabase.from('wisata').update(updatedSpot).eq('id', id).select();
         if (!error && data?.length) {
-          const current = getStorageItem('wisata', INITIAL_WISATA);
-          const updated = current.map(w => w.id === id ? { ...w, ...updatedSpot } : w);
+          const current = getStorageItem('wisata', []);
+          const updated = current.map(w => w.id === id ? data[0] : w);
           setStorageItem('wisata', updated);
           return data[0];
         }
@@ -347,7 +301,11 @@ export const apiService = {
 
   async deleteWisata(id) {
     if (isSupabaseConfigured) {
-      await supabase.from('wisata').delete().eq('id', id);
+      try {
+        await supabase.from('wisata').delete().eq('id', id);
+      } catch (e) {
+        console.error('Supabase deleteWisata error:', e);
+      }
     }
     const current = getStorageItem('wisata', INITIAL_WISATA);
     const updated = current.filter(w => w.id !== id);
@@ -380,6 +338,10 @@ export const apiService = {
             statPenduduk: data.stat_penduduk ?? INITIAL_HERO.statPenduduk,
             statRtRw: data.stat_rt_rw ?? INITIAL_HERO.statRtRw,
             statUmkm: data.stat_umkm ?? INITIAL_HERO.statUmkm,
+            ctaPrimary: data.cta_primary ?? INITIAL_HERO.ctaPrimary,
+            ctaPrimaryLink: data.cta_primary_link ?? INITIAL_HERO.ctaPrimaryLink,
+            ctaSecondary: data.cta_secondary ?? INITIAL_HERO.ctaSecondary,
+            ctaSecondaryLink: data.cta_secondary_link ?? INITIAL_HERO.ctaSecondaryLink,
           };
           // Simpan ke local cache agar load berikutnya instan tanpa flicker
           setStorageItem('hero', result);
@@ -394,29 +356,33 @@ export const apiService = {
   },
 
   async updateHero(heroData) {
-    const merged = { ...INITIAL_HERO, ...(heroData || {}) };
     if (isSupabaseConfigured) {
       try {
-        await supabase.from('hero_section').upsert([{
-          id: 1,
-          badge: merged.badge,
-          judul: merged.judul,
-          deskripsi: merged.deskripsi,
-          bg_image: merged.bgImage,
-          kades_nama: merged.kadesNama,
-          kades_jabatan: merged.kadesJabatan,
-          kades_periode: merged.kadesPeriode,
-          kades_foto: merged.kadesFoto,
-          kades_sambutan: merged.kadesSambutan,
-          stat_penduduk: merged.statPenduduk,
-          stat_rt_rw: merged.statRtRw,
-          stat_umkm: merged.statUmkm,
+        const payload = {
+          badge: heroData.badge,
+          judul: heroData.judul,
+          deskripsi: heroData.deskripsi,
+          bg_image: heroData.bgImage,
+          kades_nama: heroData.kadesNama,
+          kades_jabatan: heroData.kadesJabatan,
+          kades_periode: heroData.kadesPeriode,
+          kades_foto: heroData.kadesFoto,
+          kades_sambutan: heroData.kadesSambutan,
+          cta_primary: heroData.ctaPrimary,
+          cta_primary_link: heroData.ctaPrimaryLink,
+          cta_secondary: heroData.ctaSecondary,
+          cta_secondary_link: heroData.ctaSecondaryLink,
           updated_at: new Date().toISOString()
-        }]);
+        };
+        Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+
+        await supabase.from('hero_section').update(payload).eq('id', 1);
       } catch (e) {
         console.error("Supabase updateHero error:", e);
       }
     }
+    const current = getStorageItem('hero', INITIAL_HERO);
+    const merged = { ...current, ...(heroData || {}) };
     setStorageItem('hero', merged);
     return merged;
   },
@@ -444,7 +410,7 @@ export const apiService = {
             stats = [
               {
                 id: 1,
-                angka: data.stat_penduduk ? data.stat_penduduk.replace(/\s*jiwa\s*$/i, '') : '2.845',
+                angka: data.stat_penduduk ? data.stat_penduduk.replace(/\s*jiwa\s*$/i, '') : '3.090',
                 label: 'Jiwa Penduduk',
                 icon: 'Users',
                 colorBg: '#e8f5e9',
@@ -563,6 +529,26 @@ export const apiService = {
       try {
         const { data, error } = await supabase.from('profil_desa').select('*').eq('id', 1).maybeSingle();
         if (!error && data) {
+          let perangkatClean = [];
+          let lembagaClean = [];
+
+          if (Array.isArray(data.perangkat_list)) {
+            perangkatClean = data.perangkat_list.filter(p => p.tipe !== 'lembaga');
+            const embeddedLembaga = data.perangkat_list.filter(p => p.tipe === 'lembaga');
+            if (embeddedLembaga.length > 0) {
+              lembagaClean = embeddedLembaga;
+            }
+          }
+
+          if (Array.isArray(data.lembaga_list) && data.lembaga_list.length > 0) {
+            lembagaClean = data.lembaga_list;
+          }
+
+          if (lembagaClean.length === 0) {
+            const localStored = getStorageItem('profil', INITIAL_PROFIL);
+            lembagaClean = (Array.isArray(localStored.lembagaList) && localStored.lembagaList.length > 0) ? localStored.lembagaList : INITIAL_LEMBAGA;
+          }
+
           const result = {
             ...INITIAL_PROFIL,
             sejarahJudul: data.sejarah_judul ?? INITIAL_PROFIL.sejarahJudul,
@@ -571,7 +557,8 @@ export const apiService = {
             visiJudul: data.visi_judul ?? INITIAL_PROFIL.visiJudul,
             visiDeskripsi: data.visi_deskripsi ?? INITIAL_PROFIL.visiDeskripsi,
             misiList: data.misi_list ?? INITIAL_PROFIL.misiList,
-            perangkatList: data.perangkat_list ?? INITIAL_PROFIL.perangkatList,
+            perangkatList: perangkatClean.length > 0 ? perangkatClean : (data.perangkat_list ?? INITIAL_PROFIL.perangkatList),
+            lembagaList: lembagaClean.length > 0 ? lembagaClean : INITIAL_LEMBAGA,
           };
           setStorageItem('profil', result);
           return result;
@@ -586,6 +573,15 @@ export const apiService = {
   async updateProfil(profilData) {
     if (isSupabaseConfigured) {
       try {
+        const perangkatList = Array.isArray(profilData.perangkatList) 
+          ? profilData.perangkatList.map(p => ({ ...p, tipe: 'pemerintah' })) 
+          : [];
+        const lembagaList = Array.isArray(profilData.lembagaList) 
+          ? profilData.lembagaList.map(l => ({ ...l, tipe: 'lembaga' })) 
+          : [];
+        
+        const mergedPerangkatAndLembaga = [...perangkatList, ...lembagaList];
+
         await supabase.from('profil_desa').upsert([{
           id: 1,
           sejarah_judul: profilData.sejarahJudul,
@@ -594,7 +590,7 @@ export const apiService = {
           visi_judul: profilData.visiJudul,
           visi_deskripsi: profilData.visiDeskripsi,
           misi_list: profilData.misiList,
-          perangkat_list: profilData.perangkatList,
+          perangkat_list: mergedPerangkatAndLembaga,
           updated_at: new Date().toISOString()
         }]);
       } catch (e) {

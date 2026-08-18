@@ -35,6 +35,7 @@ export default function Showcase() {
   }, [selectedUmkmModal]);
 
   useEffect(() => {
+    document.title = "Potensi & UMKM Desa Tajemsari - Produk Unggulan & Destinasi Wisata";
     loadData();
   }, []);
 
@@ -790,23 +791,24 @@ export default function Showcase() {
               return (
                 <div key={item.id} className="product-card">
                   {/* Photo Header with Carousel & Multi-Product Navigation */}
-                  <div className="card-img-container">
+                  <div className="card-img-container" style={{ background: 'linear-gradient(135deg, #112a14 0%, #1e4620 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {(currentProduct.gambar || item.gambar) ? (
                       <img 
                         src={currentProduct.gambar || item.gambar} 
                         alt={currentProduct.nama} 
                         className="product-img-main" 
                         onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80';
+                          e.target.style.display = 'none';
+                          if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
                         }}
                       />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', color: '#d4af37' }}>
-                        <ShoppingBag size={48} />
-                        <span style={{ fontSize: '0.78rem', color: '#ffffff', marginTop: 6, opacity: 0.9 }}>Foto Produk Belum Diunggah</span>
-                      </div>
-                    )}
+                    ) : null}
+
+                    <div style={{ width: '100%', height: '100%', display: (currentProduct.gambar || item.gambar) ? 'none' : 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#d4af37', padding: '1rem', textAlign: 'center' }}>
+                      <ShoppingBag size={52} color="#d4af37" />
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff', marginTop: 8 }}>{currentProduct.nama || item.nama_produk}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#a7f3d0', marginTop: 2 }}>Foto Produk Belum Diunggah</span>
+                    </div>
 
                     {/* Count Badge Overlay */}
                     <div className="badge-count-overlay">
@@ -855,8 +857,13 @@ export default function Showcase() {
                           className={`thumb-btn ${safeIdx === pIdx ? 'active' : ''}`}
                           onClick={() => handleSelectProduct(item.id, pIdx)}
                           title={`${p.nama} (${p.harga})`}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#112a14', color: '#d4af37' }}
                         >
-                          <img src={p.gambar} alt={p.nama} />
+                          {p.gambar ? (
+                            <img src={p.gambar} alt={p.nama} onError={(e) => { e.target.style.display = 'none'; }} />
+                          ) : (
+                            <ShoppingBag size={18} />
+                          )}
                         </button>
                       ))}
                     </div>
@@ -1070,23 +1077,22 @@ export default function Showcase() {
                   key={prod.id || pIdx}
                   className="catalog-item-card"
                 >
-                  <div className="catalog-item-img-wrap">
+                  <div className="catalog-item-img-wrap" style={{ background: 'linear-gradient(135deg, #112a14 0%, #1e4620 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {prod.gambar ? (
                       <img 
                         src={prod.gambar} 
                         alt={prod.nama} 
                         className="catalog-item-img"
                         onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80';
+                          e.target.style.display = 'none';
+                          if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
                         }}
                       />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', color: '#d4af37' }}>
-                        <ShoppingBag size={32} />
-                        <span style={{ fontSize: '0.7rem', color: '#ffffff', marginTop: 4 }}>Foto Produk</span>
-                      </div>
-                    )}
+                    ) : null}
+                    <div style={{ width: '100%', height: '100%', display: prod.gambar ? 'none' : 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#d4af37', padding: '0.5rem', textAlign: 'center' }}>
+                      <ShoppingBag size={32} />
+                      <span style={{ fontSize: '0.65rem', color: '#ffffff', marginTop: 4, fontWeight: 700 }}>{prod.nama}</span>
+                    </div>
                     <span className="catalog-item-number">
                       #{pIdx + 1}
                     </span>

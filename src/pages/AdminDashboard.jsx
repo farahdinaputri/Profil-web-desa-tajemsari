@@ -5,7 +5,8 @@ import {
   ArrowDown, Sparkles, MessageSquare, Compass, MapPin, Clock, Ticket, 
   Tag, DollarSign, User, Phone, LayoutDashboard, Settings as SettingsIcon, 
   Globe, Eye, Menu, ChevronRight, AlertCircle, Save, CheckCircle, RefreshCw, Mail, Download, FileCheck,
-  BarChart3, Wheat, Building, Users, History, Target, Calendar, Loader, Store, Package
+  BarChart3, Wheat, Building, Users, History, Target, Calendar, Loader, Store, Package,
+  Landmark, Award, Shield, HeartHandshake
 } from 'lucide-react';
 import { apiService, uploadImage } from '../lib/supabaseClient';
 import { formatWaNumber } from '../utils/whatsapp';
@@ -36,6 +37,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     visiDeskripsi: '',
     misiList: [],
     perangkatList: [],
+    lembagaList: [],
     apbdesTahun: '',
     apbdesTotal: '',
     apbdesRincian: []
@@ -96,6 +98,15 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     colorText: '#2e7d32'
   });
 
+  // Lembaga Desa CRUD States
+  const [showLembagaModal, setShowLembagaModal] = useState(false);
+  const [editingLembagaId, setEditingLembagaId] = useState(null);
+  const [lembagaForm, setLembagaForm] = useState({
+    nama_lembaga: '',
+    ketua: '',
+    deskripsi: ''
+  });
+
   const mainContentRef = useRef(null);
 
   const scrollToTop = () => {
@@ -129,6 +140,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   };
 
   useEffect(() => {
+    document.title = "Panel CMS Administrasi - Desa Tajemsari";
     loadAllData();
   }, []);
 
@@ -312,36 +324,99 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     }
   };
 
-  const handleSavePerangkatItem = (e) => {
+  const handleSavePerangkatItem = async (e) => {
     e.preventDefault();
     if (!perangkatForm.nama || !perangkatForm.jabatan) {
       alert('Mohon isi nama lengkap dan jabatan perangkat desa.');
       return;
     }
+    let updatedPerangkatList;
     if (editingPerangkatId) {
-      setProfilState(prev => ({
-        ...prev,
-        perangkatList: (prev.perangkatList || []).map(p => p.id === editingPerangkatId ? { ...p, ...perangkatForm } : p)
-      }));
-      showToast('Data Perangkat Desa berhasil diperbarui!');
+      updatedPerangkatList = (profilState.perangkatList || []).map(p => 
+        p.id === editingPerangkatId ? { ...p, ...perangkatForm } : p
+      );
     } else {
-      const newItem = { ...perangkatForm, id: Date.now() };
-      setProfilState(prev => ({
-        ...prev,
-        perangkatList: [...(prev.perangkatList || []), newItem]
-      }));
-      showToast('Perangkat Desa baru berhasil ditambahkan!');
+      const newItem = { ...perangkatForm, id: Date.now(), tipe: 'pemerintah' };
+      updatedPerangkatList = [...(profilState.perangkatList || []), newItem];
     }
+    const updatedProfil = {
+      ...profilState,
+      perangkatList: updatedPerangkatList
+    };
+    setProfilState(updatedProfil);
     setShowPerangkatModal(false);
+    await apiService.updateProfil(updatedProfil);
+    showToast(editingPerangkatId ? 'Data Perangkat Desa berhasil diperbarui!' : 'Perangkat Desa baru berhasil ditambahkan!');
   };
 
-  const handleDeletePerangkatItem = (id) => {
+  const handleDeletePerangkatItem = async (id) => {
     if (window.confirm('Hapus perangkat desa ini dari daftar?')) {
-      setProfilState(prev => ({
-        ...prev,
-        perangkatList: (prev.perangkatList || []).filter(p => p.id !== id)
-      }));
+      const updatedPerangkatList = (profilState.perangkatList || []).filter(p => p.id !== id);
+      const updatedProfil = {
+        ...profilState,
+        perangkatList: updatedPerangkatList
+      };
+      setProfilState(updatedProfil);
+      await apiService.updateProfil(updatedProfil);
       showToast('Perangkat Desa berhasil dihapus!');
+    }
+  };
+
+  // --- LEMBAGA DESA (LKD) HANDLERS ---
+  const handleOpenLembagaModal = (item = null) => {
+    if (item) {
+      setEditingLembagaId(item.id);
+      setLembagaForm({
+        nama_lembaga: item.nama_lembaga || item.nama || '',
+        ketua: item.ketua || '',
+        deskripsi: item.deskripsi || ''
+      });
+    } else {
+      setEditingLembagaId(null);
+      setLembagaForm({
+        nama_lembaga: '',
+        ketua: '',
+        deskripsi: ''
+      });
+    }
+    setShowLembagaModal(true);
+  };
+
+  const handleSaveLembagaItem = async (e) => {
+    e.preventDefault();
+    if (!lembagaForm.nama_lembaga) {
+      alert('Mohon isi nama lembaga desa.');
+      return;
+    }
+    let updatedLembagaList;
+    if (editingLembagaId) {
+      updatedLembagaList = (profilState.lembagaList || []).map(l => 
+        l.id === editingLembagaId ? { ...l, ...lembagaForm } : l
+      );
+    } else {
+      const newItem = { ...lembagaForm, id: Date.now(), tipe: 'lembaga' };
+      updatedLembagaList = [...(profilState.lembagaList || []), newItem];
+    }
+    const updatedProfil = {
+      ...profilState,
+      lembagaList: updatedLembagaList
+    };
+    setProfilState(updatedProfil);
+    setShowLembagaModal(false);
+    await apiService.updateProfil(updatedProfil);
+    showToast(editingLembagaId ? 'Data Lembaga Desa berhasil diperbarui!' : 'Lembaga Desa baru berhasil ditambahkan!');
+  };
+
+  const handleDeleteLembagaItem = async (id) => {
+    if (window.confirm('Hapus lembaga desa ini dari daftar?')) {
+      const updatedLembagaList = (profilState.lembagaList || []).filter(l => l.id !== id);
+      const updatedProfil = {
+        ...profilState,
+        lembagaList: updatedLembagaList
+      };
+      setProfilState(updatedProfil);
+      await apiService.updateProfil(updatedProfil);
+      showToast('Lembaga Desa berhasil dihapus!');
     }
   };
 
@@ -580,9 +655,9 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const handleSaveBerita = async (e) => {
     e.preventDefault();
     const coverObj = beritaImagesList.find(img => img.isCover) || beritaImagesList[0];
-    const coverUrl = coverObj ? coverObj.url : 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80';
+    const coverUrl = coverObj ? coverObj.url : '';
 
-    const galeriObjects = beritaImagesList.map(img => ({
+    const galeriObjects = (beritaImagesList || []).filter(img => Boolean(img.url)).map(img => ({
       url: img.url,
       caption: img.caption || 'Dokumentasi kegiatan Desa Tajemsari'
     }));
@@ -605,12 +680,15 @@ export default function AdminDashboard({ adminUser, onLogout }) {
       await apiService.updateBerita(editingBeritaId, payload);
       showToast('Berita berhasil diperbarui!');
     } else {
-      await apiService.addBerita(payload);
+      const added = await apiService.addBerita(payload);
+      if (added) {
+        setBeritaList(prev => [added, ...prev.filter(b => b.id !== added.id)]);
+      }
       showToast('Berita baru berhasil dipublikasikan!');
     }
 
     handleCancelEditBerita();
-    loadAllData();
+    await loadAllData();
   };
 
   const handleDeleteBerita = async (id) => {
@@ -787,33 +865,28 @@ export default function AdminDashboard({ adminUser, onLogout }) {
     e.preventDefault();
     const coverObj = umkmImagesList.find(img => img.isCover) || umkmImagesList[0];
     const firstProdImg = umkmProductsList.find(p => p.gambar)?.gambar;
-    const coverUrl = coverObj ? coverObj.url : (firstProdImg || 'https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80');
+    const coverUrl = coverObj ? coverObj.url : (firstProdImg || '');
 
     const cleanProducts = umkmProductsList.length > 0
       ? umkmProductsList.map((p, idx) => ({
           id: p.id || `prod_${idx}_${Date.now()}`,
           nama: p.nama || `${newProdukNama} Varian #${idx + 1}`,
           harga: p.harga || newProdukHarga || 'Hubungi Penjual',
-          gambar: p.gambar || coverUrl,
+          gambar: p.gambar || coverUrl || '',
           deskripsi: p.deskripsi || newProdukDesc
         }))
       : [{
           id: `prod_main_${Date.now()}`,
           nama: newProdukNama || 'Produk UMKM',
           harga: newProdukHarga || 'Hubungi Penjual',
-          gambar: coverUrl,
+          gambar: coverUrl || '',
           deskripsi: newProdukDesc
         }];
 
-    const galeriObjects = umkmImagesList.length > 0
-      ? umkmImagesList.map(img => ({
-          url: img.url,
-          caption: img.caption || 'Foto Produk UMKM Desa Tajemsari'
-        }))
-      : cleanProducts.map(p => ({
-          url: p.gambar,
-          caption: p.nama
-        }));
+    const galeriObjects = (umkmImagesList || []).filter(img => Boolean(img.url)).map(img => ({
+      url: img.url,
+      caption: img.caption || 'Foto Produk UMKM Desa Tajemsari'
+    }));
 
     const payload = {
       nama_produk: newProdukNama,
@@ -832,12 +905,15 @@ export default function AdminDashboard({ adminUser, onLogout }) {
       await apiService.updateUMKM(editingUmkmId, payload);
       showToast('Profil UMKM & Katalog Produk berhasil diperbarui!');
     } else {
-      await apiService.addUMKM(payload);
+      const added = await apiService.addUMKM(payload);
+      if (added) {
+        setUmkmList(prev => [added, ...prev.filter(u => u.id !== added.id)]);
+      }
       showToast('Profil UMKM & Katalog Produk baru berhasil ditambahkan!');
     }
 
     handleCancelEditUmkm();
-    loadAllData();
+    await loadAllData();
   };
 
   const handleDeleteUmkm = async (id) => {
@@ -947,9 +1023,9 @@ export default function AdminDashboard({ adminUser, onLogout }) {
   const handleSaveWisata = async (e) => {
     e.preventDefault();
     const coverObj = wisataImagesList.find(img => img.isCover) || wisataImagesList[0];
-    const coverUrl = coverObj ? coverObj.url : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80';
+    const coverUrl = coverObj ? coverObj.url : '';
 
-    const galeriObjects = wisataImagesList.map(img => ({
+    const galeriObjects = (wisataImagesList || []).filter(img => Boolean(img.url)).map(img => ({
       url: img.url,
       caption: img.caption || 'Dokumentasi Wisata Desa Tajemsari'
     }));
@@ -969,12 +1045,15 @@ export default function AdminDashboard({ adminUser, onLogout }) {
       await apiService.updateWisata(editingWisataId, payload);
       showToast('Destinasi wisata berhasil diperbarui!');
     } else {
-      await apiService.addWisata(payload);
+      const added = await apiService.addWisata(payload);
+      if (added) {
+        setWisataList(prev => [added, ...prev.filter(w => w.id !== added.id)]);
+      }
       showToast('Destinasi wisata baru berhasil ditambahkan!');
     }
 
     handleCancelEditWisata();
-    loadAllData();
+    await loadAllData();
   };
 
   const handleDeleteWisata = async (id) => {
@@ -1985,7 +2064,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                         value={heroState.ctaSecondaryLink || 'potensi'} 
                         onChange={(e) => setHeroState({ ...heroState, ctaSecondaryLink: e.target.value })}
                       >
-                        <option value="potensi">Halaman Potensi & Wisata (/potensi)</option>
+                        <option value="potensi">Halaman Produk UMKM & Wisata (/potensi)</option>
                         <option value="profil">Halaman Profil Desa (/profil)</option>
                         <option value="berita">Halaman Berita Desa (/berita)</option>
                       </select>
@@ -2051,62 +2130,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 </div>
 
-                {/* SECTION 2: KARTU AKSES CEPAT */}
-                <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
-                  <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <ShieldCheck size={18} color="var(--color-primary)" /> Kartu Akses Cepat
-                  </h4>
-
-                  <div className="form-grid-2col">
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">Judul Bagian</label>
-                      <input 
-                        type="text" 
-                        className="form-input-custom" 
-                        value={heroState.quickTitle || ''} 
-                        onChange={(e) => setHeroState({ ...heroState, quickTitle: e.target.value })} 
-                      />
-                    </div>
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">Subjudul</label>
-                      <input 
-                        type="text" 
-                        className="form-input-custom" 
-                        value={heroState.quickSubtitle || ''} 
-                        onChange={(e) => setHeroState({ ...heroState, quickSubtitle: e.target.value })} 
-                      />
-                    </div>
-                  </div>
-
-                  {/* Card 1 */}
-                  <div style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: 10, padding: '0.85rem', marginBottom: '0.75rem' }}>
-                    <strong style={{ fontSize: '0.85rem', color: 'var(--color-primary-dark)' }}>Kartu 1 (Surat Usaha)</strong>
-                    <div className="form-grid-2col" style={{ marginTop: '0.5rem' }}>
-                      <input type="text" className="form-input-custom" placeholder="Judul Kartu 1" value={heroState.quickCard1Title || ''} onChange={(e) => setHeroState({ ...heroState, quickCard1Title: e.target.value })} />
-                      <input type="text" className="form-input-custom" placeholder="Deskripsi Kartu 1" value={heroState.quickCard1Desc || ''} onChange={(e) => setHeroState({ ...heroState, quickCard1Desc: e.target.value })} />
-                    </div>
-                  </div>
-
-                  {/* Card 2 */}
-                  <div style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: 10, padding: '0.85rem', marginBottom: '0.75rem' }}>
-                    <strong style={{ fontSize: '0.85rem', color: 'var(--color-primary-dark)' }}>Kartu 2 (SKTM & KIS)</strong>
-                    <div className="form-grid-2col" style={{ marginTop: '0.5rem' }}>
-                      <input type="text" className="form-input-custom" placeholder="Judul Kartu 2" value={heroState.quickCard2Title || ''} onChange={(e) => setHeroState({ ...heroState, quickCard2Title: e.target.value })} />
-                      <input type="text" className="form-input-custom" placeholder="Deskripsi Kartu 2" value={heroState.quickCard2Desc || ''} onChange={(e) => setHeroState({ ...heroState, quickCard2Desc: e.target.value })} />
-                    </div>
-                  </div>
-
-                  {/* Card 3 */}
-                  <div style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: 10, padding: '0.85rem' }}>
-                    <strong style={{ fontSize: '0.85rem', color: 'var(--color-primary-dark)' }}>Kartu 3 (Potensi & Wisata)</strong>
-                    <div className="form-grid-2col" style={{ marginTop: '0.5rem' }}>
-                      <input type="text" className="form-input-custom" placeholder="Judul Kartu 3" value={heroState.quickCard3Title || ''} onChange={(e) => setHeroState({ ...heroState, quickCard3Title: e.target.value })} />
-                      <input type="text" className="form-input-custom" placeholder="Deskripsi Kartu 3" value={heroState.quickCard3Desc || ''} onChange={(e) => setHeroState({ ...heroState, quickCard3Desc: e.target.value })} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* SECTION 3: KELOLA KARTU STATISTIK BERANDA (CRUD) */}
+                {/* SECTION 2: KELOLA KARTU STATISTIK BERANDA (CRUD) */}
                 <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 6, margin: 0 }}>
@@ -2161,7 +2185,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 </div>
 
-                {/* SECTION 4: SAMBUTAN KEPALA DESA */}
+                {/* SECTION 3: SAMBUTAN KEPALA DESA */}
                 <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <User size={18} color="var(--color-primary)" /> Sambutan Kepala Desa
@@ -2415,6 +2439,52 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   </div>
                 </div>
 
+                {/* 4. STRUKTUR LEMBAGA DESA (LKD) (CRUD LIST) */}
+                <div style={{ background: '#f8faf8', border: '1px solid var(--color-border)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <h4 style={{ fontSize: '1.05rem', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 6, margin: 0 }}>
+                      <Landmark size={18} color="var(--color-primary)" /> Struktur Lembaga Desa (LKD)
+                    </h4>
+                    <button 
+                      type="button" 
+                      className="btn btn-gold" 
+                      style={{ padding: '0.4rem 0.85rem', fontSize: '0.82rem' }}
+                      onClick={() => handleOpenLembagaModal()}
+                    >
+                      <Plus size={15} /> Tambah Lembaga Desa
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem' }}>
+                    {(profilState.lembagaList || []).map((l) => (
+                      <div key={l.id} style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: 12, padding: '1.1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.65rem' }}>
+                        <div>
+                          <h5 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)', margin: '0 0 6px 0', fontWeight: 700 }}>
+                            {l.nama_lembaga || l.nama}
+                          </h5>
+                          <div style={{ fontSize: '0.84rem', color: 'var(--color-primary-dark)', fontWeight: 600, background: '#f8faf8', padding: '0.35rem 0.6rem', borderRadius: 6, borderLeft: '3px solid var(--color-gold)', marginBottom: 8 }}>
+                            <span style={{ color: 'var(--color-text-muted)', fontWeight: 500 }}>Ketua:</span> {l.ketua || '-'}
+                          </div>
+                          {l.deskripsi && (
+                            <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+                              {l.deskripsi.length > 110 ? `${l.deskripsi.substring(0, 110)}...` : l.deskripsi}
+                            </div>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.4rem', width: '100%', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #f1f5f9' }}>
+                          <button type="button" className="btn btn-outline" style={{ flex: 1, padding: '0.35rem', fontSize: '0.75rem', justifyContent: 'center' }} onClick={() => handleOpenLembagaModal(l)}>
+                            <Edit3 size={12} /> Edit
+                          </button>
+                          <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.35rem 0.65rem', borderRadius: 6, fontSize: '0.75rem', cursor: 'pointer' }} onClick={() => handleDeleteLembagaItem(l.id)}>
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <button type="submit" className="btn btn-gold" style={{ padding: '0.9rem 2.5rem', width: '100%', fontSize: '1rem' }}>
                   <Save size={20} /> Simpan Profil Desa
                 </button>
@@ -2522,7 +2592,21 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   {beritaList.map((item) => (
                     <div key={item.id} className="admin-item-card">
                       <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', flex: 1 }}>
-                        <img src={item.gambar} alt={item.judul} style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover' }} />
+                        <div style={{ position: 'relative', width: 64, height: 64, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg, #112a14 0%, #1e4620 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', border: '1px solid rgba(212,175,55,0.3)' }}>
+                          {item.gambar ? (
+                            <img 
+                              src={item.gambar} 
+                              alt={item.judul} 
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <FileText size={22} color="#d4af37" />
+                              <span style={{ fontSize: '0.55rem', color: '#a7f3d0', fontWeight: 700, marginTop: 2 }}>BERITA</span>
+                            </div>
+                          )}
+                        </div>
                         <div>
                           <span className="badge-gold" style={{ fontSize: '0.72rem' }}>{item.kategori}</span>
                           <h4 style={{ fontSize: '0.98rem', color: 'var(--color-primary-dark)', marginTop: 2 }}>{item.judul}</h4>
@@ -2698,12 +2782,23 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                           className="umkm-product-item-card"
                         >
                           {/* Image Box */}
-                          <div style={{ position: 'relative', width: 90, height: 90, borderRadius: 10, overflow: 'hidden', background: '#e2e8f0' }}>
+                          <div style={{ position: 'relative', width: 90, height: 90, borderRadius: 10, overflow: 'hidden', background: '#f8faf8', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             {prod.gambar ? (
-                              <img src={prod.gambar} alt={`Produk ${pIdx+1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <>
+                                <img src={prod.gambar} alt={`Produk ${pIdx+1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                                <button 
+                                  type="button" 
+                                  style={{ position: 'absolute', top: 3, right: 3, background: 'rgba(220,38,38,0.9)', color: '#fff', border: 'none', borderRadius: 4, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 3 }}
+                                  onClick={() => handleUpdateUmkmProduct(prod.id, 'gambar', '')}
+                                  title="Hapus foto produk ini"
+                                >
+                                  <Trash2 size={11} />
+                                </button>
+                              </>
                             ) : (
-                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-                                <ImageIcon size={28} />
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#8a6d13', padding: '0.2rem', textAlign: 'center' }}>
+                                <ShoppingBag size={22} color="#d4af37" />
+                                <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-primary-dark)', marginTop: 2 }}>Belum Ada Foto</span>
                               </div>
                             )}
                             <label 
@@ -2713,15 +2808,18 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                                 bottom: 0, 
                                 left: 0, 
                                 right: 0, 
-                                background: 'rgba(0,0,0,0.6)', 
-                                color: '#ffffff', 
-                                fontSize: '0.68rem', 
+                                background: 'rgba(17,42,20,0.88)', 
+                                color: '#d4af37', 
+                                fontSize: '0.65rem', 
+                                fontWeight: 700,
                                 textAlign: 'center', 
                                 padding: '2px 0', 
-                                cursor: 'pointer' 
+                                cursor: 'pointer',
+                                backdropFilter: 'blur(2px)',
+                                zIndex: 2
                               }}
                             >
-                              Ganti Foto
+                              {prod.gambar ? 'Ganti Foto' : '+ Unggah Foto'}
                             </label>
                             <input 
                               id={`prod-img-input-${prod.id || pIdx}`} 
@@ -2737,7 +2835,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                           </div>
 
                           {/* Inputs */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
                             <div className="umkm-product-inputs-grid">
                               <input 
                                 type="text" 
@@ -2799,10 +2897,22 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     return (
                       <div key={item.id} className="admin-item-card">
                         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1 }}>
-                          <div style={{ position: 'relative' }}>
-                            <img src={item.gambar} alt={item.nama_produk} style={{ width: 68, height: 68, borderRadius: 12, objectFit: 'cover' }} />
+                          <div style={{ position: 'relative', width: 68, height: 68, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg, #112a14 0%, #1e4620 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', border: '1px solid rgba(212,175,55,0.3)' }}>
+                            {item.gambar ? (
+                              <img 
+                                src={item.gambar} 
+                                alt={item.nama_produk} 
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <ShoppingBag size={24} color="#d4af37" />
+                                <span style={{ fontSize: '0.55rem', color: '#a7f3d0', fontWeight: 700, marginTop: 2 }}>UMKM</span>
+                              </div>
+                            )}
                             {count > 1 && (
-                              <span style={{ position: 'absolute', bottom: -4, right: -4, background: 'var(--color-primary-dark)', color: '#fff', fontSize: '0.65rem', fontWeight: 800, padding: '1px 5px', borderRadius: 8, border: '1px solid #fff' }}>
+                              <span style={{ position: 'absolute', bottom: -2, right: -2, background: 'var(--color-primary-dark)', color: '#fff', fontSize: '0.62rem', fontWeight: 800, padding: '1px 5px', borderRadius: 8, border: '1px solid #fff', zIndex: 2 }}>
                                 {count} Usaha
                               </span>
                             )}
@@ -2911,7 +3021,7 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                             <div style={{ flex: 1 }}>
                               {img.isCover ? <span className="cover-tag-badge"><Star size={10} fill="#fff" /> UTAMA</span> : <button type="button" onClick={() => handleWisataSetCover(img.id)} style={{ background: 'transparent', border: '1px solid var(--color-gold)', color: '#8a6d13', fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 4, cursor: 'pointer' }}>Jadikan Utama</button>}
                             </div>
-                            <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 4, padding: '0.25rem 0.4rem', cursor: 'pointer' }} onClick={() => handleDeleteWisata(img.id)}><Trash2 size={14} /></button>
+                            <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 4, padding: '0.25rem 0.4rem', cursor: 'pointer' }} onClick={() => handleWisataDeleteImage(img.id)} title="Hapus foto ini"><Trash2 size={14} /></button>
                           </div>
                         ))}
                       </div>
@@ -2932,7 +3042,21 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                   {wisataList.map((item) => (
                     <div key={item.id} className="admin-item-card">
                       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1 }}>
-                        <img src={item.gambar} alt={item.nama_tempat} style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover' }} />
+                        <div style={{ position: 'relative', width: 64, height: 64, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg, #112a14 0%, #1e4620 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', border: '1px solid rgba(212,175,55,0.3)' }}>
+                          {item.gambar ? (
+                            <img 
+                              src={item.gambar} 
+                              alt={item.nama_tempat} 
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <Compass size={22} color="#d4af37" />
+                              <span style={{ fontSize: '0.55rem', color: '#a7f3d0', fontWeight: 700, marginTop: 2 }}>WISATA</span>
+                            </div>
+                          )}
+                        </div>
                         <div>
                           <span className="badge-green" style={{ fontSize: '0.72rem' }}>{item.kategori}</span>
                           <h4 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)' }}>{item.nama_tempat}</h4>
@@ -3216,6 +3340,70 @@ export default function AdminDashboard({ adminUser, onLogout }) {
           </div>
         </div>
       )}
+
+      {/* MODAL TAMBAH / EDIT LEMBAGA DESA */}
+      {showLembagaModal && (
+        <div className="modal-overlay">
+          <div className="modal-content animate-scale-up" style={{ maxWidth: 540 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '1.2rem', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+                <Landmark size={20} color="var(--color-gold)" /> {editingLembagaId ? 'Edit Lembaga Desa' : 'Tambah Lembaga Desa'}
+              </h3>
+              <button onClick={() => setShowLembagaModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1.2rem' }}>
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveLembagaItem}>
+              <div className="admin-form-group">
+                <label className="admin-form-label">Nama Lembaga Desa *</label>
+                <input 
+                  type="text" 
+                  className="form-input-custom" 
+                  placeholder="Contoh: Badan Permusyawaratan Desa (BPD)" 
+                  value={lembagaForm.nama_lembaga} 
+                  onChange={(e) => setLembagaForm({ ...lembagaForm, nama_lembaga: e.target.value })} 
+                  required 
+                />
+              </div>
+
+              <div className="admin-form-group">
+                <label className="admin-form-label">Nama Ketua / Koordinator *</label>
+                <input 
+                  type="text" 
+                  className="form-input-custom" 
+                  placeholder="Contoh: Bambang Sutrisno" 
+                  value={lembagaForm.ketua} 
+                  onChange={(e) => setLembagaForm({ ...lembagaForm, ketua: e.target.value })} 
+                  required
+                />
+              </div>
+
+              <div className="admin-form-group">
+                <label className="admin-form-label">Deskripsi / Tugas Lembaga *</label>
+                <textarea 
+                  className="form-input-custom" 
+                  rows={4} 
+                  placeholder="Tuliskan deskripsi mengenai tugas atau peran lembaga ini..." 
+                  value={lembagaForm.deskripsi} 
+                  onChange={(e) => setLembagaForm({ ...lembagaForm, deskripsi: e.target.value })} 
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowLembagaModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className="btn btn-gold" style={{ padding: '0.75rem 1.5rem' }}>
+                  <Save size={16} /> {editingLembagaId ? 'Simpan Perubahan' : 'Tambah Lembaga'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Global Upload Loading Overlay */}
       {uploadingImage && (
         <div style={{

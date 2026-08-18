@@ -14,6 +14,7 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState('Semua');
 
   useEffect(() => {
+    document.title = "Desa Tajemsari - Kec. Tegowanu, Kab. Grobogan";
     loadHomeData();
   }, []);
 
@@ -452,7 +453,7 @@ export default function Home() {
               const count = Array.isArray(item.produk_list) ? item.produk_list.length : (Array.isArray(item.galeri) ? item.galeri.length : 1);
               return (
                 <div key={item.id} className="product-card-home" onClick={() => navigate('/potensi')} style={{ cursor: 'pointer' }}>
-                  <div style={{ position: 'relative', width: '100%', height: 210, overflow: 'hidden', background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)' }}>
+                  <div style={{ position: 'relative', width: '100%', height: 210, overflow: 'hidden', background: 'linear-gradient(135deg, #112a14 0%, #1e4620 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.gambar ? (
                       <img 
                         src={item.gambar} 
@@ -460,16 +461,16 @@ export default function Home() {
                         className="product-img-home" 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                         onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80';
+                          e.target.style.display = 'none';
+                          if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
                         }}
                       />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#d4af37' }}>
-                        <ShoppingBag size={42} />
-                        <span style={{ fontSize: '0.78rem', color: '#ffffff', marginTop: 6, opacity: 0.9 }}>Produk UMKM</span>
-                      </div>
-                    )}
+                    ) : null}
+                    <div style={{ width: '100%', height: '100%', display: item.gambar ? 'none' : 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#d4af37', padding: '1rem', textAlign: 'center' }}>
+                      <ShoppingBag size={46} color="#d4af37" />
+                      <span style={{ fontSize: '0.82rem', color: '#ffffff', marginTop: 8, fontWeight: 700 }}>{item.nama_produk}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#a7f3d0', marginTop: 2 }}>Produk UMKM Tajemsari</span>
+                    </div>
                     <span className="badge-gold" style={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
                       {item.kategori}
                     </span>

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { History, Target, Users, CheckCircle2, Landmark, User, Quote, Sparkles } from 'lucide-react';
+import { History, Target, Users, CheckCircle2, Landmark, User, Quote, Sparkles, Shield, Award, Wheat, HeartHandshake } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function Profile() {
   const [profil, setProfil] = useState(() => apiService.getProfilCached());
 
   useEffect(() => {
+    document.title = "Profil Desa Tajemsari - Sejarah, Visi Misi, Perangkat & Lembaga Desa";
     apiService.getProfil().then(data => {
       if (data) setProfil(data);
     });
@@ -212,6 +213,66 @@ export default function Profile() {
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
           }
+          .lembaga-grid {
+            grid-template-columns: 1fr !important;
+            gap: 1.25rem !important;
+          }
+          .lembaga-card {
+            padding: 1.4rem !important;
+          }
+        }
+
+        .lembaga-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: 1.5rem;
+        }
+
+        .lembaga-card {
+          padding: 1.75rem 1.6rem;
+          background: #ffffff;
+          border-radius: 16px;
+          border: 1px solid var(--color-border);
+          box-shadow: 0 3px 14px rgba(0,0,0,0.03);
+          transition: all 0.25s ease;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .lembaga-card:hover {
+          transform: translateY(-3px);
+          border-color: var(--color-primary);
+          box-shadow: 0 8px 22px rgba(46, 125, 50, 0.08);
+        }
+
+        .lembaga-title {
+          font-size: 1.15rem;
+          font-weight: 700;
+          color: var(--color-primary-dark);
+          line-height: 1.35;
+          margin-bottom: 0.5rem;
+        }
+
+        .lembaga-ketua-info {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.88rem;
+          color: var(--color-primary-dark);
+          background: #f8faf8;
+          border-left: 3px solid var(--color-gold);
+          padding: 0.35rem 0.7rem;
+          border-radius: 0 8px 8px 0;
+          margin-bottom: 0.85rem;
+          font-weight: 600;
+        }
+
+        .lembaga-desc {
+          font-size: 0.92rem;
+          color: var(--color-text-main);
+          line-height: 1.65;
+          margin: 0;
+          flex: 1;
         }
       `}</style>
 
@@ -317,6 +378,35 @@ export default function Profile() {
                 <div className="badge-gold" style={{ display: 'inline-block', marginTop: 4 }}>
                   {perangkat.jabatan}
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Struktur Lembaga Desa */}
+        <div style={{ marginTop: '5rem' }}>
+          <div className="section-header" style={{ marginBottom: '2.5rem' }}>
+            <h2 className="section-title">Struktur Lembaga Desa</h2>
+            <p className="section-description">
+              Lembaga Kemasyarakatan Desa (LKD) dan mitra strategis Pemerintah Desa Tajemsari dalam pembangunan dan kemasyarakatan.
+            </p>
+          </div>
+
+          <div className="lembaga-grid">
+            {(profil.lembagaList || []).map((lembaga) => (
+              <div key={lembaga.id} className="profile-card lembaga-card">
+                <h3 className="lembaga-title">
+                  {lembaga.nama_lembaga || lembaga.nama}
+                </h3>
+
+                <div className="lembaga-ketua-info">
+                  <span style={{ color: 'var(--color-text-muted)', fontWeight: 500 }}>Ketua:</span>
+                  <strong>{lembaga.ketua || '-'}</strong>
+                </div>
+
+                <p className="lembaga-desc">
+                  {lembaga.deskripsi}
+                </p>
               </div>
             ))}
           </div>

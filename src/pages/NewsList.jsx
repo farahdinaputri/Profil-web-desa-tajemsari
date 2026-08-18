@@ -11,6 +11,7 @@ export default function NewsList() {
   const [activeCategory, setActiveCategory] = useState('Semua');
 
   useEffect(() => {
+    document.title = "Berita & Publikasi Desa Tajemsari - Kab. Grobogan";
     loadAllBerita();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);

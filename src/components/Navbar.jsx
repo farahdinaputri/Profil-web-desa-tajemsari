@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck, Menu, X, Leaf, UserCheck, Lock } from 'lucide-react';
+import { apiService } from '../lib/supabaseClient';
+import { INITIAL_SETTINGS } from '../data/mockData';
 
 export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmin }) {
   const navigate = useNavigate();
@@ -8,6 +10,20 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [settings, setSettings] = useState(() => {
+    try {
+      const stored = localStorage.getItem('tajemsari_settings');
+      return stored ? JSON.parse(stored) : INITIAL_SETTINGS;
+    } catch (e) {
+      return INITIAL_SETTINGS;
+    }
+  });
+
+  useEffect(() => {
+    apiService.getSettings().then(data => {
+      if (data) setSettings(data);
+    });
+  }, []);
 
   useEffect(() => {
     let lastScrollY = window.pageYOffset || document.documentElement.scrollTop;
@@ -61,6 +77,24 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
   const isCurrentActive = (path) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname === path;
+  };
+
+  const getCleanBrandTitle = () => {
+    if (!settings.namaDesa) return 'DESA TAJEMSARI';
+    const clean = settings.namaDesa.trim();
+    return clean.toUpperCase().startsWith('DESA') ? clean.toUpperCase() : `DESA ${clean.toUpperCase()}`;
+  };
+
+  const getCleanBrandSubtitle = () => {
+    const rawKec = settings.kecamatan || 'Tegowanu';
+    const rawKab = settings.kabupaten || 'Grobogan';
+    const cleanKec = rawKec.toLowerCase().startsWith('kecamatan')
+      ? rawKec
+      : (rawKec.toLowerCase().startsWith('kec.') ? rawKec : `Kec. ${rawKec}`);
+    const cleanKab = rawKab.toLowerCase().startsWith('kabupaten')
+      ? rawKab
+      : (rawKab.toLowerCase().startsWith('kab.') ? rawKab : `Kab. ${rawKab}`);
+    return `${cleanKec}, ${cleanKab}`;
   };
 
   return (
@@ -160,41 +194,6 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
           font-weight: 700;
         }
 
-        .admin-corner-btn {
-          display: flex;
-          align-items: center;
-          gap: 0.4rem;
-          padding: 0.45rem 0.95rem;
-          border-radius: var(--radius-full);
-          font-size: 0.82rem;
-          font-weight: 700;
-          font-family: var(--font-heading);
-          transition: var(--transition-fast);
-          cursor: pointer;
-        }
-
-        .admin-corner-btn.login {
-          background: #fef9e7;
-          border: 1px solid var(--color-gold);
-          color: #8a6d13;
-        }
-
-        .admin-corner-btn.login:hover {
-          background: var(--color-gold);
-          color: #ffffff;
-          box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
-        }
-
-        .admin-corner-btn.dashboard {
-          background: var(--color-primary);
-          color: #ffffff;
-          border: 1px solid var(--color-primary-dark);
-        }
-
-        .admin-corner-btn.dashboard:hover {
-          background: var(--color-primary-dark);
-        }
-
         .hamburger-btn {
           display: none;
           background: transparent;
@@ -245,8 +244,8 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
               <Leaf size={24} />
             </div>
             <div>
-              <div className="brand-text-title">DESA TAJEMSARI</div>
-              <div className="brand-text-subtitle">Kec. Tegowanu, Kab. Grobogan</div>
+              <div className="brand-text-title">{getCleanBrandTitle()}</div>
+              <div className="brand-text-subtitle">{getCleanBrandSubtitle()}</div>
             </div>
           </div>
 
@@ -264,20 +263,6 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
               </li>
             ))}
 
-            {isAdminLoggedIn && (
-              <li>
-                <button
-                  id="nav-link-admin-panel"
-                  className={`nav-item-btn ${location.pathname === '/admin' ? 'active' : ''}`}
-                  onClick={() => handleNavClick('/admin')}
-                  style={{ color: '#d4af37', fontWeight: 700 }}
-                >
-                  <ShieldCheck size={16} style={{ display: 'inline', marginRight: 4 }} />
-                  Panel Admin
-                </button>
-              </li>
-            )}
-
             {/* Mobile Only Admin Link inside Drawer (Only when logged in) */}
             {isAdminLoggedIn && (
               <li className="mobile-only-admin-link" style={{ marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-border)' }}>
@@ -286,27 +271,58 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
                   onClick={() => handleNavClick('/admin')}
                   style={{ color: 'var(--color-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}
                 >
-                  <UserCheck size={16} /> Dashboard Admin
+                  <ShieldCheck size={16} color="var(--color-gold)" /> Dashboard Admin
                 </button>
               </li>
             )}
           </ul>
 
-          {/* Admin Corner Action (Shows Admin Mode / Keluar only when logged in) */}
+          {/* Admin Corner Action (Shows Clean Panel Admin & Keluar when logged in) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {isAdminLoggedIn && (
-              <div className="admin-corner-wrap" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="admin-corner-wrap" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                 <button
                   id="admin-dashboard-shortcut-btn"
-                  className="admin-corner-btn dashboard"
                   onClick={() => handleNavClick('/admin')}
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 6, 
+                    background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', 
+                    color: '#ffffff', 
+                    border: '1.5px solid var(--color-gold)', 
+                    padding: '0.45rem 1rem', 
+                    borderRadius: '24px', 
+                    fontSize: '0.82rem', 
+                    fontWeight: 700, 
+                    cursor: 'pointer', 
+                    boxShadow: '0 2px 10px rgba(27,94,32,0.25)',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  title="Kembali ke Dashboard Admin"
                 >
-                  <UserCheck size={14} /> Admin Mode
+                  <ShieldCheck size={15} color="#fef08a" />
+                  <span>Panel Admin</span>
                 </button>
                 <button
                   id="admin-logout-btn"
                   onClick={onLogoutAdmin}
-                  style={{ background: '#fee2e2', color: '#991b1b', padding: '0.4rem 0.75rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600 }}
+                  style={{ 
+                    background: '#fee2e2', 
+                    color: '#dc2626', 
+                    border: '1px solid #fecaca', 
+                    padding: '0.45rem 0.8rem', 
+                    borderRadius: '24px', 
+                    fontSize: '0.8rem', 
+                    fontWeight: 700, 
+                    cursor: 'pointer', 
+                    transition: 'all 0.2s ease' 
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#fecaca'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#fee2e2'; }}
+                  title="Keluar dari Akun Admin"
                 >
                   Keluar
                 </button>

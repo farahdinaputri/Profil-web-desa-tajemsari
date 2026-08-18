@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Leaf, MapPin, Phone, Mail, Clock, Lock, ExternalLink } from 'lucide-react';
+import { apiService } from '../lib/supabaseClient';
+import { INITIAL_FOOTER } from '../data/mockData';
 
 export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
   const navigate = useNavigate();
+  const [footer, setFooter] = useState(() => {
+    try {
+      const stored = localStorage.getItem('tajemsari_footer');
+      return stored ? JSON.parse(stored) : INITIAL_FOOTER;
+    } catch (e) {
+      return INITIAL_FOOTER;
+    }
+  });
+
+  useEffect(() => {
+    apiService.getFooter().then((data) => {
+      if (data) setFooter(data);
+    });
+  }, []);
 
   const handleNavClick = (path) => {
     navigate(path);
@@ -11,7 +27,8 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
   };
 
   const handleOpenMaps = () => {
-    window.open('https://maps.app.goo.gl/3VuZdA1hyBNbtZpn8', '_blank', 'noopener,noreferrer');
+    const mapsLink = footer.mapsUrl || 'https://maps.app.goo.gl/3VuZdA1hyBNbtZpn8';
+    window.open(mapsLink, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -192,15 +209,7 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
             <div className="footer-contact-item">
               <Clock size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
-                <strong>Senin - Kamis:</strong><br />
-                08.00 - 15.30 WIB
-              </div>
-            </div>
-            <div className="footer-contact-item">
-              <Clock size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
-              <div>
-                <strong>Jumat:</strong><br />
-                08.00 - 11.30 WIB
+                {footer.jamPelayanan || 'Senin - Jumat: 08.00 - 15.00 WIB'}
               </div>
             </div>
           </div>
@@ -211,17 +220,25 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
             <div className="footer-contact-item">
               <MapPin size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
-                Jl. Raya Tajemsari No. 01, Tegowanu, Kab. Grobogan, Jawa Tengah 58165
+                {footer.alamat || 'Jl. Raya Tajemsari No. 01, Tegowanu, Kab. Grobogan, Jawa Tengah 58165'}
               </div>
             </div>
-            <div className="footer-contact-item">
-              <Phone size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
-              <div>(0292) 7654-321 / WA: 0812-3456-7890</div>
-            </div>
-            <div className="footer-contact-item">
-              <Mail size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
-              <div>pemdes@tajemsari.desa.id</div>
-            </div>
+            {(footer.telepon || footer.whatsapp) && (
+              <div className="footer-contact-item">
+                <Phone size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  {footer.telepon ? footer.telepon : ''}
+                  {footer.telepon && footer.whatsapp ? ' / ' : ''}
+                  {footer.whatsapp ? `WA: ${footer.whatsapp}` : ''}
+                </div>
+              </div>
+            )}
+            {footer.email && (
+              <div className="footer-contact-item">
+                <Mail size={18} color="#d4af37" style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>{footer.email}</div>
+              </div>
+            )}
           </div>
 
           {/* Square Interactive Clickable Google Maps Section */}

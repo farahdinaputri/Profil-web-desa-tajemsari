@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, ChevronRight, Bookmark, Image as ImageIcon, ChevronLeft, ZoomIn, ZoomOut, X, Maximize2, Camera } from 'lucide-react';
+import { ArrowLeft, Calendar, User, ChevronRight, Bookmark, Image as ImageIcon, ChevronLeft, ZoomIn, ZoomOut, X, Maximize2, Camera, FileText } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 
 export default function NewsDetail() {
@@ -59,10 +59,12 @@ export default function NewsDetail() {
 
     if (found) {
       setBerita(found);
+      document.title = `${found.judul} - Desa Tajemsari`;
       const rest = (allBerita || []).filter(b => String(b.id) !== String(found.id));
       setOtherBerita(rest.slice(0, 6));
     } else {
       setBerita(null);
+      document.title = "Berita Tidak Ditemukan - Desa Tajemsari";
     }
     setLoading(false);
   };
@@ -70,21 +72,26 @@ export default function NewsDetail() {
   // Helper to normalize galeri items into objects with { url, caption }
   const galleryItems = React.useMemo(() => {
     if (!berita) return [];
-    if (!berita.galeri || berita.galeri.length === 0) {
-      return [{ url: berita.gambar, caption: `Foto utama: ${berita.judul}` }];
+    if (Array.isArray(berita.galeri) && berita.galeri.length > 0) {
+      return berita.galeri
+        .map((item, idx) => {
+          if (typeof item === 'string') {
+            return {
+              url: (item || '').trim(),
+              caption: idx === 0 ? `Foto utama: ${berita.judul}` : `Dokumentasi kegiatan Desa Tajemsari #${idx}`
+            };
+          }
+          return {
+            url: (item?.url || '').trim(),
+            caption: item?.caption || (idx === 0 ? `Foto utama: ${berita.judul}` : `Dokumentasi foto #${idx}`)
+          };
+        })
+        .filter(item => Boolean(item.url));
     }
-    return berita.galeri.map((item, idx) => {
-      if (typeof item === 'string') {
-        return {
-          url: item,
-          caption: idx === 0 ? `Foto utama: ${berita.judul}` : `Dokumentasi kegiatan Desa Tajemsari #${idx}`
-        };
-      }
-      return {
-        url: item.url || berita.gambar,
-        caption: item.caption || (idx === 0 ? `Foto utama: ${berita.judul}` : `Dokumentasi foto #${idx}`)
-      };
-    });
+    if (berita.gambar && berita.gambar.trim()) {
+      return [{ url: berita.gambar.trim(), caption: `Foto utama: ${berita.judul}` }];
+    }
+    return [];
   }, [berita]);
 
   // Lightbox Handlers
@@ -130,7 +137,7 @@ export default function NewsDetail() {
     );
   }
 
-  const coverPhotoObj = galleryItems[0] || { url: berita.gambar, caption: berita.judul };
+  const coverPhotoObj = galleryItems.length > 0 ? galleryItems[0] : null;
   const inlineDocPhotos = galleryItems.slice(1);
   const paragraphs = berita.isi ? berita.isi.split('\n').filter(p => p.trim()) : [];
 
@@ -626,27 +633,31 @@ export default function NewsDetail() {
                   <Calendar size={15} color="var(--color-gold)" />
                   <span>{berita.tanggal}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Camera size={15} color="var(--color-text-muted)" />
-                  <span>{galleryItems.length} Foto Dokumentasi</span>
-                </div>
+                {galleryItems.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Camera size={15} color="var(--color-text-muted)" />
+                    <span>{galleryItems.length} Foto Dokumentasi</span>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* --- MAIN COVER PHOTO WITH CAPTION --- */}
-            <figure className="article-photo-figure">
-              <img
-                src={coverPhotoObj.url}
-                alt={coverPhotoObj.caption}
-                className="article-featured-image"
-                onClick={() => openLightbox(0)}
-                title="Klik untuk memperbesar foto"
-              />
-              <figcaption className="article-photo-caption">
-                <Camera size={13} style={{ flexShrink: 0, marginTop: 2 }} />
-                <span>{coverPhotoObj.caption}</span>
-              </figcaption>
-            </figure>
+            {/* --- MAIN COVER PHOTO WITH CAPTION (ONLY IF PHOTO EXISTS) --- */}
+            {coverPhotoObj && coverPhotoObj.url && (
+              <figure className="article-photo-figure">
+                <img
+                  src={coverPhotoObj.url}
+                  alt={coverPhotoObj.caption}
+                  className="article-featured-image"
+                  onClick={() => openLightbox(0)}
+                  title="Klik untuk memperbesar foto"
+                />
+                <figcaption className="article-photo-caption">
+                  <Camera size={13} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <span>{coverPhotoObj.caption}</span>
+                </figcaption>
+              </figure>
+            )}
 
             {/* --- ARTICLE CONTENT STREAM WITH INLINE DOCUMENTATION PHOTOS --- */}
             <div className="article-content-flow">
@@ -662,7 +673,7 @@ export default function NewsDetail() {
                     <p>{paragraph}</p>
 
                     {/* Disisipkan foto dokumentasi tambahan di antara paragraf */}
-                    {inlineDocPhotos[pIdx] && (
+                    {inlineDocPhotos[pIdx] && inlineDocPhotos[pIdx].url && (
                       <figure className="article-photo-figure">
                         <img
                           src={inlineDocPhotos[pIdx].url}
@@ -723,9 +734,21 @@ export default function NewsDetail() {
                 <div
                   key={item.id}
                   className="sidebar-news-item"
-                  onClick={() => navigate(`/berita/${item.id}`)}
+                  onClick={() => navigate(`/berita/${item.slug || item.id}`)}
                 >
-                  <img src={item.gambar} alt={item.judul} className="sidebar-news-thumb" />
+                  {item.gambar && item.gambar.trim() ? (
+                    <img 
+                      src={item.gambar} 
+                      alt={item.judul} 
+                      className="sidebar-news-thumb" 
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="sidebar-news-thumb" style={{ background: 'linear-gradient(135deg, #1b5e20, #0f2a12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#d4af37', flexShrink: 0 }}>
+                      <FileText size={20} color="#d4af37" />
+                      <span style={{ fontSize: '0.52rem', fontWeight: 700, color: '#a7f3d0', marginTop: 2 }}>BERITA</span>
+                    </div>
+                  )}
                   <div className="sidebar-news-info">
                     <span className="sidebar-news-badge">{item.kategori}</span>
                     <h4 className="sidebar-news-title">{item.judul}</h4>

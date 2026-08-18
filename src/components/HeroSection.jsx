@@ -141,7 +141,7 @@ export default function HeroSection({ onNavigate }) {
             className="btn btn-hero-secondary" 
             onClick={() => onNavigate(hero.ctaSecondaryLink || 'potensi')}
           >
-            <Compass size={18} /> {hero.ctaSecondary || 'Jelajahi Potensi Desa'}
+            <Compass size={18} /> {hero.ctaSecondary || 'Lihat Produk UMKM & Wisata'}
           </button>
         </div>
       </div>
