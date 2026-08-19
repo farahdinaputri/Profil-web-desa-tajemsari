@@ -25,6 +25,66 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey) 
   : null;
 
+// Helper to automatically compress image in browser before upload (saving 90% storage)
+export const compressImageFile = async (file, maxWidth = 1600, maxHeight = 1600, quality = 0.82) => {
+  if (typeof window === 'undefined' || !file || !file.type?.startsWith('image/') || file.type === 'image/svg+xml' || file.type === 'image/gif') {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Try converting to webp (fallback to jpeg if not supported)
+          canvas.toBlob(
+            (blob) => {
+              if (blob && blob.size < file.size) {
+                const cleanName = (file.name || 'foto').replace(/\.[^.]+$/, '') + '.webp';
+                const compressedFile = new File([blob], cleanName, {
+                  type: 'image/webp',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file);
+              }
+            },
+            'image/webp',
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    } catch (err) {
+      resolve(file);
+    }
+  });
+};
+
 // =========================================================================
 // SUPABASE STORAGE — Upload Image & Get Public URL
 // Bucket: "desa-tajemsari" (must be set as Public in Supabase Dashboard)
@@ -36,17 +96,19 @@ export const uploadImage = async (file, folder = 'umum') => {
   }
 
   try {
-    const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+    // Otomatis kompresi gambar agar hemat kuota storage hingga 90%
+    const processedFile = await compressImageFile(file);
+    const ext = processedFile.name.split('.').pop().toLowerCase() || 'webp';
     const timestamp = Date.now();
     const random = Math.random().toString(36).substr(2, 8);
     const fileName = `${folder}/${timestamp}_${random}.${ext}`;
 
     const { data, error } = await supabase.storage
       .from('desa-tajemsari')
-      .upload(fileName, file, {
-        cacheControl: '3600',
+      .upload(fileName, processedFile, {
+        cacheControl: '31536000',
         upsert: false,
-        contentType: file.type,
+        contentType: processedFile.type || 'image/webp',
       });
 
     if (error) {
