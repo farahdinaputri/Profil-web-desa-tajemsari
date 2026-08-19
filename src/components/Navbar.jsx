@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, Menu, X, Leaf, UserCheck, Lock } from 'lucide-react';
+import { ShieldCheck, Menu, X, UserCheck, Lock } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 import { INITIAL_SETTINGS } from '../data/mockData';
 
@@ -140,14 +140,22 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
         .logo-icon-wrap {
           width: 44px;
           height: 44px;
-          background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
-          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #ffffff;
-          box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
-          border: 2px solid #d4af37;
+          flex-shrink: 0;
+        }
+
+        .brand-logo-img {
+          width: 40px;
+          height: 46px;
+          object-fit: contain;
+          filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .brand-logo:hover .brand-logo-img {
+          transform: scale(1.08);
         }
 
         .brand-text-title {
@@ -241,7 +249,11 @@ export default function Navbar({ onOpenAdminLogin, isAdminLoggedIn, onLogoutAdmi
           {/* Brand Logo */}
           <div className="brand-logo" onClick={() => handleNavClick('/')}>
             <div className="logo-icon-wrap">
-              <Leaf size={24} />
+              <img 
+                src="/logo.png" 
+                alt="Lambang Kabupaten Grobogan" 
+                className="brand-logo-img" 
+              />
             </div>
             <div>
               <div className="brand-text-title">{getCleanBrandTitle()}</div>

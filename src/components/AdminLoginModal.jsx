@@ -93,16 +93,18 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
         }
 
         .modal-header-icon-wrap {
-          width: 52px;
-          height: 52px;
-          background: linear-gradient(135deg, #d4af37 0%, #aa820a 100%);
+          width: 58px;
+          height: 58px;
+          background: rgba(255, 255, 255, 0.15);
+          border: 1.5px solid rgba(212, 175, 55, 0.6);
+          backdrop-filter: blur(8px);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           margin: 0 auto 0.75rem auto;
-          color: #ffffff;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+          padding: 6px;
         }
 
         .modal-body {
@@ -179,7 +181,11 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
             <X size={18} />
           </button>
           <div className="modal-header-icon-wrap">
-            <Lock size={24} />
+            <img 
+              src="/logo.png" 
+              alt="Lambang Kabupaten Grobogan" 
+              style={{ width: '38px', height: '44px', objectFit: 'contain' }}
+            />
           </div>
           <h3 style={{ color: '#ffffff', fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>Portal Pengurus Desa</h3>
           <p style={{ fontSize: '0.85rem', color: '#e2e8f0', marginTop: 4, marginBottom: 0 }}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, MapPin, Phone, Mail, Clock, Lock, ExternalLink } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Lock, ExternalLink } from 'lucide-react';
 import { apiService } from '../lib/supabaseClient';
 import { INITIAL_FOOTER } from '../data/mockData';
 
@@ -185,7 +185,12 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
           {/* Brand Info */}
           <div>
             <div className="footer-brand-title">
-              <Leaf color="#d4af37" size={26} /> DESA TAJEMSARI
+              <img 
+                src="/logo.png" 
+                alt="Lambang Kabupaten Grobogan" 
+                style={{ width: '28px', height: '34px', objectFit: 'contain', flexShrink: 0 }} 
+              /> 
+              <span>DESA TAJEMSARI</span>
             </div>
             <p className="footer-desc">
               Pemerintah Desa Tajemsari, Kecamatan Tegowanu, Kabupaten Grobogan. Mengedepankan transparansi tata kelola, inovasi pelayanan publik, dan pelestarian nilai budaya persawahan Jawa.

@@ -1123,14 +1123,17 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         .sidebar-brand-icon {
           width: 42px;
           height: 42px;
-          background: linear-gradient(135deg, var(--color-gold) 0%, #b89428 100%);
-          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #ffffff;
           flex-shrink: 0;
-          box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .sidebar-brand-img {
+          width: 36px;
+          height: 42px;
+          object-fit: contain;
+          filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
         }
 
         .sidebar-nav-container {
@@ -1735,7 +1738,11 @@ export default function AdminDashboard({ adminUser, onLogout }) {
         <div className="sidebar-brand" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div className="sidebar-brand-icon">
-              <ShieldCheck size={24} />
+              <img 
+                src="/logo.png" 
+                alt="Lambang Kabupaten Grobogan" 
+                className="sidebar-brand-img"
+              />
             </div>
             {!sidebarCollapsed && (
               <div>

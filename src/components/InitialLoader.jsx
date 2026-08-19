@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wheat, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export default function InitialLoader() {
   const [loading, setLoading] = useState(true);
@@ -105,18 +105,25 @@ export default function InitialLoader() {
         }
 
         .loader-emblem-center {
-          width: 60px;
-          height: 60px;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(212, 175, 55, 0.5);
+          width: 64px;
+          height: 64px;
+          background: rgba(255, 255, 255, 0.12);
+          border: 1.5px solid rgba(212, 175, 55, 0.6);
           backdrop-filter: blur(10px);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #d4af37;
-          box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+          box-shadow: 0 0 24px rgba(212, 175, 55, 0.35);
           animation: badgeFloat 2s ease-in-out infinite;
+          padding: 6px;
+        }
+
+        .loader-logo-img {
+          width: 40px;
+          height: 48px;
+          object-fit: contain;
+          filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
         }
 
         @keyframes spinRing {
@@ -189,7 +196,11 @@ export default function InitialLoader() {
         <div className="loader-spinning-ring"></div>
         <div className="loader-spinning-ring-inner"></div>
         <div className="loader-emblem-center">
-          <Wheat size={28} />
+          <img 
+            src="/logo.png" 
+            alt="Lambang Kabupaten Grobogan" 
+            className="loader-logo-img" 
+          />
         </div>
       </div>
 
