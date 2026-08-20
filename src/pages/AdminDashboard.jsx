@@ -2419,26 +2419,37 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                     </button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
                     {(profilState.perangkatList || []).map((p) => (
-                      <div key={p.id} style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: 12, padding: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', gap: '0.65rem' }}>
-                        {p.foto ? (
-                          <img src={p.foto} alt={p.nama} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-gold)' }} />
-                        ) : (
-                          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-primary-soft)', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--color-gold)' }}>
-                            <User size={30} />
-                          </div>
-                        )}
-                        <div>
-                          <h5 style={{ fontSize: '0.95rem', color: 'var(--color-primary-dark)', margin: 0 }}>{p.nama}</h5>
-                          <span className="badge-gold" style={{ fontSize: '0.72rem', marginTop: 4, display: 'inline-block' }}>{p.jabatan}</span>
+                      <div key={p.id} style={{ background: '#ffffff', border: '1.5px solid var(--color-border)', borderRadius: 18, padding: '1.15rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', gap: '0.85rem', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+                        <div style={{ width: '100%', aspectRatio: '3 / 4', maxHeight: 260, borderRadius: 14, overflow: 'hidden', background: 'linear-gradient(180deg, #f0fdf4 0%, #e2efe4 100%)', border: '2px solid rgba(212, 175, 55, 0.4)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
+                          {p.foto ? (
+                            <img src={p.foto} alt={p.nama} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+                          ) : (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 50% 35%, #eefbf0 0%, #d8edd9 100%)', gap: '0.75rem', padding: '1rem' }}>
+                              <div style={{ width: 64, height: 64, borderRadius: 16, background: '#ffffff', border: '2px solid rgba(212, 175, 55, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', boxShadow: '0 4px 14px rgba(46, 125, 50, 0.1)' }}>
+                                <User size={32} />
+                              </div>
+                              <span style={{ fontSize: '0.76rem', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--color-primary-dark)', background: 'rgba(255, 255, 255, 0.85)', padding: '0.25rem 0.65rem', borderRadius: 12, border: '1px solid rgba(46, 125, 50, 0.2)' }}>
+                                Aparatur Desa
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <div style={{ display: 'flex', gap: '0.4rem', width: '100%', marginTop: '0.25rem' }}>
-                          <button type="button" className="btn btn-outline" style={{ flex: 1, padding: '0.3rem', fontSize: '0.75rem', justifyContent: 'center' }} onClick={() => handleOpenPerangkatModal(p)}>
-                            <Edit3 size={12} /> Edit
+                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.65rem', alignItems: 'center' }}>
+                          <h5 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-primary-dark)', margin: 0, lineHeight: 1.3 }}>
+                            {p.nama || '-'}
+                          </h5>
+                          <div style={{ width: '100%', minHeight: '42px', background: 'linear-gradient(135deg, #1b5e20 0%, #112a14 100%)', color: '#ffffff', border: '1px solid rgba(212, 175, 55, 0.5)', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 700, padding: '0.45rem 0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', lineHeight: 1.35, letterSpacing: '0.4px', boxShadow: '0 2px 6px rgba(17, 42, 20, 0.15)' }}>
+                            {p.jabatan || '-'}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', width: '100%', marginTop: '0.25rem' }}>
+                          <button type="button" className="btn btn-outline" style={{ flex: 1, padding: '0.45rem', fontSize: '0.82rem', justifyContent: 'center' }} onClick={() => handleOpenPerangkatModal(p)}>
+                            <Edit3 size={14} /> Edit
                           </button>
-                          <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.3rem 0.6rem', borderRadius: 6, fontSize: '0.75rem', cursor: 'pointer' }} onClick={() => handleDeletePerangkatItem(p.id)}>
-                            <Trash2 size={12} />
+                          <button type="button" style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleDeletePerangkatItem(p.id)} title="Hapus Perangkat">
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </div>
@@ -3325,10 +3336,17 @@ export default function AdminDashboard({ adminUser, onLogout }) {
                 </div>
 
                 {perangkatForm.foto && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#f8faf8', padding: '0.6rem 0.85rem', borderRadius: 10, border: '1px solid var(--color-border)' }}>
-                    <img src={perangkatForm.foto} alt="Perangkat" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
-                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Foto Terpasang</span>
-                    <button type="button" style={{ marginLeft: 'auto', background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.3rem 0.6rem', borderRadius: 6, fontSize: '0.75rem', cursor: 'pointer' }} onClick={() => setPerangkatForm({ ...perangkatForm, foto: '' })}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8faf8', padding: '0.75rem 1rem', borderRadius: 12, border: '1px solid var(--color-border)' }}>
+                    <img 
+                      src={perangkatForm.foto} 
+                      alt="Foto Perangkat" 
+                      style={{ width: 64, height: 85, borderRadius: 8, objectFit: 'cover', objectPosition: 'top center', border: '1.5px solid var(--color-gold)' }} 
+                    />
+                    <button 
+                      type="button" 
+                      style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.45rem 0.9rem', borderRadius: 8, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }} 
+                      onClick={() => setPerangkatForm({ ...perangkatForm, foto: '' })}
+                    >
                       Hapus Foto
                     </button>
                   </div>

@@ -138,59 +138,136 @@ export default function Profile() {
 
         .org-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 1.75rem;
         }
 
         .org-card {
           background: #ffffff;
-          border-radius: 18px;
-          padding: 2rem 1.25rem;
+          border-radius: 20px;
+          padding: 1.15rem;
           text-align: center;
-          border: 1px solid var(--color-border);
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-          transition: all 0.25s ease;
+          border: 1.5px solid var(--color-border);
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          position: relative;
         }
 
         .org-card:hover {
-          transform: translateY(-4px);
+          transform: translateY(-6px);
           border-color: var(--color-gold);
-          box-shadow: 0 10px 25px rgba(46, 125, 50, 0.1);
+          box-shadow: 0 16px 32px rgba(46, 125, 50, 0.12);
         }
 
         .org-avatar-wrap {
-          margin-bottom: 1.25rem;
-        }
-
-        .org-img {
-          width: 96px;
-          height: 96px;
-          border-radius: 50%;
-          object-fit: cover;
-          margin: 0 auto;
-          border: 3px solid var(--color-gold);
-          box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
-          display: block;
-        }
-
-        .org-placeholder {
-          width: 96px;
-          height: 96px;
-          border-radius: 50%;
-          background: var(--color-primary-soft);
-          color: var(--color-primary-dark);
+          width: 100%;
+          aspect-ratio: 3 / 4;
+          max-height: 310px;
+          border-radius: 14px;
+          overflow: hidden;
+          background: linear-gradient(180deg, #f0fdf4 0%, #e2efe4 100%);
+          border: 2px solid rgba(212, 175, 55, 0.4);
+          position: relative;
+          margin-bottom: 1.15rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin: 0 auto;
-          border: 3px solid var(--color-border);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .org-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: top center;
+          transition: transform 0.4s ease;
+          display: block;
+        }
+
+        .org-card:hover .org-img {
+          transform: scale(1.04);
+        }
+
+        .org-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          color: var(--color-primary-dark);
+          padding: 1.5rem;
+          background: radial-gradient(circle at 50% 35%, #eefbf0 0%, #d8edd9 100%);
+          gap: 0.75rem;
+        }
+
+        .org-placeholder-icon {
+          width: 72px;
+          height: 72px;
+          border-radius: 16px;
+          background: #ffffff;
+          border: 2px solid rgba(212, 175, 55, 0.6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--color-primary);
+          box-shadow: 0 4px 14px rgba(46, 125, 50, 0.1);
+        }
+
+        .org-placeholder-label {
+          font-size: 0.76rem;
+          font-weight: 700;
+          letter-spacing: 0.8px;
+          text-transform: uppercase;
+          color: var(--color-primary-dark);
+          background: rgba(255, 255, 255, 0.85);
+          padding: 0.25rem 0.65rem;
+          border-radius: 12px;
+          border: 1px solid rgba(46, 125, 50, 0.2);
+        }
+
+        .org-info-wrap {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          flex: 1;
+          justify-content: space-between;
+          gap: 0.65rem;
         }
 
         .org-name {
-          font-size: 1.05rem;
-          font-weight: 700;
+          font-size: 1.1rem;
+          font-weight: 800;
           color: var(--color-primary-dark);
-          margin-bottom: 0.4rem;
+          line-height: 1.3;
+          margin: 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .org-role-badge {
+          width: 100%;
+          min-height: 42px;
+          background: linear-gradient(135deg, #1b5e20 0%, #112a14 100%);
+          color: #ffffff;
+          border: 1px solid rgba(212, 175, 55, 0.5);
+          border-radius: 6px;
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.4px;
+          padding: 0.45rem 0.75rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          line-height: 1.35;
+          box-shadow: 0 2px 6px rgba(17, 42, 20, 0.15);
         }
 
         @media (max-width: 850px) {
@@ -210,7 +287,7 @@ export default function Profile() {
             margin-bottom: 2.5rem;
           }
           .org-grid {
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 1rem;
           }
           .lembaga-grid {
@@ -364,19 +441,29 @@ export default function Profile() {
               <div key={perangkat.id} className="org-card">
                 <div className="org-avatar-wrap">
                   {perangkat.foto ? (
-                    <img src={perangkat.foto} alt={perangkat.nama} className="org-img" />
+                    <img 
+                      src={perangkat.foto} 
+                      alt={perangkat.nama} 
+                      className="org-img" 
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
                   ) : (
                     <div className="org-placeholder">
-                      <User size={42} />
+                      <div className="org-placeholder-icon">
+                        <User size={36} />
+                      </div>
+                      <span className="org-placeholder-label">Aparatur Desa</span>
                     </div>
                   )}
                 </div>
 
-                <div className="org-name">
-                  {perangkat.nama}
-                </div>
-                <div className="badge-gold" style={{ display: 'inline-block', marginTop: 4 }}>
-                  {perangkat.jabatan}
+                <div className="org-info-wrap">
+                  <div className="org-name">
+                    {perangkat.nama || '-'}
+                  </div>
+                  <div className="org-role-badge">
+                    {perangkat.jabatan || '-'}
+                  </div>
                 </div>
               </div>
             ))}
