@@ -162,7 +162,39 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
           font-size: 0.85rem;
           color: #94a3b8;
           flex-wrap: wrap;
-          gap: 1rem;
+          gap: 1.25rem;
+        }
+
+        .footer-collab-wrap {
+          display: flex;
+          align-items: center;
+          gap: 1.15rem;
+          flex-wrap: wrap;
+        }
+
+        .footer-collab-logos {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          background: rgba(255, 255, 255, 0.08);
+          padding: 0.35rem 0.65rem;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .footer-logo-img {
+          height: 36px;
+          width: auto;
+          object-fit: contain;
+          display: block;
+        }
+
+        .footer-logo-kkn {
+          height: 38px;
+          width: 38px;
+          border-radius: 50%;
+          background: #ffffff;
+          padding: 1px;
         }
 
         @media (max-width: 1100px) {
@@ -176,6 +208,11 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
         @media (max-width: 650px) {
           .footer-grid {
             grid-template-columns: 1fr;
+          }
+          .footer-collab-wrap {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.85rem;
           }
         }
       `}</style>
@@ -271,12 +308,30 @@ export default function Footer({ onOpenAdminLogin, isAdminLoggedIn }) {
 
         {/* Footer Bottom */}
         <div className="footer-bottom">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            <div>
-              © 2026 Pemerintah Desa Tajemsari, Tegowanu, Grobogan. Hak Cipta Dilindungi.
+          <div className="footer-collab-wrap">
+            <div className="footer-collab-logos">
+              <img 
+                src="/logo-unimus.png" 
+                alt="Logo Universitas Muhammadiyah Semarang (UNIMUS)" 
+                className="footer-logo-img"
+                title="Universitas Muhammadiyah Semarang"
+              />
+              <div style={{ width: '1px', height: '22px', background: 'rgba(255, 255, 255, 0.25)' }} />
+              <img 
+                src="/logo-kkn.png" 
+                alt="Logo KKN Kelompok 22 Desa Tajemsari" 
+                className="footer-logo-img footer-logo-kkn"
+                title="KKN Kelompok 22 UNIMUS Desa Tajemsari"
+              />
             </div>
-            <div style={{ fontSize: '0.82rem', color: '#a7f3d0' }}>
-              Diinisiasi & Dikembangkan oleh <strong style={{ color: '#fef08a' }}>Mahasiswa KKN UNIMUS Kelompok 22</strong>.
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <div>
+                © 2026 Pemerintah Desa Tajemsari, Tegowanu, Grobogan. Hak Cipta Dilindungi.
+              </div>
+              <div style={{ fontSize: '0.82rem', color: '#a7f3d0' }}>
+                Diinisiasi & Dikembangkan oleh <strong style={{ color: '#fef08a' }}>Mahasiswa KKN UNIMUS Kelompok 22</strong>.
+              </div>
             </div>
           </div>
 

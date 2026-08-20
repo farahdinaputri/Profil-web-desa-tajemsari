@@ -75,8 +75,12 @@ export default function App() {
                 <div style={{ background: 'linear-gradient(135deg, #112a14 0%, #1e4620 100%)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
                   <div style={{ background: '#ffffff', maxWidth: 420, width: '100%', borderRadius: 24, boxShadow: '0 25px 50px rgba(0,0,0,0.3)', overflow: 'hidden', border: '1px solid rgba(212,175,55,0.4)' }}>
                     <div style={{ background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', color: '#ffffff', padding: '2rem 1.5rem', textAlign: 'center' }}>
-                      <div style={{ width: 60, height: 60, background: '#d4af37', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem auto', color: '#112a14', fontWeight: 900, fontSize: '1.4rem', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
-                        TJ
+                      <div style={{ width: 56, height: 64, margin: '0 auto 0.75rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img 
+                          src="/logo.png" 
+                          alt="Lambang Kabupaten Grobogan" 
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.3))' }} 
+                        />
                       </div>
                       <h2 style={{ fontSize: '1.3rem', margin: 0, fontWeight: 700 }}>Panel Admin Desa Tajemsari</h2>
                       <p style={{ fontSize: '0.82rem', margin: '0.35rem 0 0 0', opacity: 0.85 }}>Kec. Tegowanu, Kab. Grobogan</p>
